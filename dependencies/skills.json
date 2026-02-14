@@ -1,0 +1,107 @@
+{
+  "version": "1.0.0",
+  "description": "Product Builder skills",
+  
+  "skills": [
+    {
+      "name": "capability-tree-query",
+      "description": "Query capability tree",
+      "phase": "planning"
+    },
+    {
+      "name": "job-create",
+      "description": "Create Job",
+      "phase": "planning"
+    },
+    {
+      "name": "mdx-to-openspec",
+      "description": "MDX to OpenSpec conversion",
+      "phase": "planning"
+    },
+    {
+      "name": "openspec-review",
+      "description": "OpenSpec review",
+      "phase": "planning"
+    },
+    {
+      "name": "requirement-parse",
+      "description": "Requirement parsing",
+      "phase": "planning"
+    },
+    {
+      "name": "capability-analyze",
+      "description": "Capability analysis",
+      "phase": "planning"
+    },
+    {
+      "name": "spec-generate",
+      "description": "Generate development specs",
+      "phase": "planning"
+    },
+    {
+      "name": "specs-review",
+      "description": "Specs review",
+      "phase": "planning"
+    },
+    {
+      "name": "roadmap-generate",
+      "description": "Generate roadmap",
+      "phase": "execution"
+    },
+    {
+      "name": "roadmap-docs-generate",
+      "description": "Generate planning docs",
+      "phase": "execution"
+    },
+    {
+      "name": "task-execute",
+      "description": "Execute task",
+      "phase": "execution"
+    },
+    {
+      "name": "task-verify",
+      "description": "Verify task",
+      "phase": "execution"
+    },
+    {
+      "name": "task-update-status",
+      "description": "Update task status",
+      "phase": "execution"
+    },
+    {
+      "name": "progress-update",
+      "description": "Update progress",
+      "phase": "execution"
+    },
+    {
+      "name": "acceptance-review",
+      "description": "Acceptance review",
+      "phase": "review"
+    },
+    {
+      "name": "capability-docs-generate",
+      "description": "Generate capability docs",
+      "phase": "documentation"
+    },
+    {
+      "name": "api-docs-generate",
+      "description": "Generate API docs",
+      "phase": "documentation"
+    },
+    {
+      "name": "multi-model-review",
+      "description": "Multi-model review framework",
+      "phase": "review"
+    },
+    {
+      "name": "job-workflow",
+      "description": "Workflow orchestration",
+      "phase": "orchestration"
+    },
+    {
+      "name": "keyword-extract",
+      "description": "Keyword extraction",
+      "phase": "utility"
+    }
+  ]
+}

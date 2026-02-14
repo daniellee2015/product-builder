@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "description": "CLI tool dependencies",
+  
+  "tools": {
+    "ccb": {
+      "required": true,
+      "reason": "Claude Code CLI - core tool",
+      "version": ">=1.0.0",
+      "install": "npm install -g @anthropic/claude-code",
+      "check": "ccb --version",
+      "docs": "https://github.com/anthropics/claude-code"
+    },
+    
+    "cca": {
+      "required": true,
+      "reason": "Multi-model coordination tool",
+      "version": ">=0.5.0",
+      "install": "ccb update cca",
+      "check": "cca --version",
+      "docs": "https://github.com/..."
+    },
+    
+    "ralph": {
+      "required": true,
+      "reason": "Auto-retry tool",
+      "version": ">=1.0.0",
+      "install": "npm install -g ralph-claude-code",
+      "check": "ralph --version",
+      "docs": "https://github.com/..."
+    },
+    
+    "openclaw": {
+      "required": true,
+      "reason": "Task monitoring tool",
+      "version": ">=0.3.0",
+      "install": "npm install -g openclaw",
+      "check": "openclaw --version",
+      "docs": "https://github.com/..."
+    }
+  }
+}

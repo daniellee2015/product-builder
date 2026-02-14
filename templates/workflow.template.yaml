@@ -1,0 +1,67 @@
+# Product Builder Workflow Template
+# This is a flexible, hierarchical workflow configuration
+
+phases:
+  - id: planning
+    name: Planning Phase
+    required: true
+    sub-phases:
+      - id: requirement-analysis
+        name: Requirement Analysis
+        steps:
+          - capability-tree-query
+          - job-create
+          - mdx-to-openspec
+          - openspec-review
+      
+      - id: spec-generation
+        name: Spec Generation
+        steps:
+          - requirement-parse
+          - capability-analyze
+          - spec-generate
+          - specs-review
+
+  - id: execution
+    name: Execution Phase
+    required: true
+    sub-phases:
+      - id: task-management
+        name: Task Management
+        steps:
+          - roadmap-generate
+          - roadmap-docs-generate
+          - task-execute
+          - task-verify
+          - progress-update
+
+  - id: review
+    name: Review Phase
+    required: false
+    sub-phases:
+      - id: acceptance
+        name: Acceptance
+        steps:
+          - acceptance-review
+
+  - id: documentation
+    name: Documentation Phase
+    required: false
+    sub-phases:
+      - id: doc-generation
+        name: Documentation Generation
+        steps:
+          - capability-docs-generate
+          - api-docs-generate
+
+# Project type specific configurations
+project-types:
+  monorepo:
+    phases: [planning, execution, review, documentation]
+  
+  single-repo:
+    phases: [planning, execution, review]
+  
+  library:
+    phases: [planning, execution]
+    skip-steps: [roadmap-generate, roadmap-docs-generate]

@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "description": "Plugin system configuration",
+  
+  "plugins": {
+    "custom-generator": {
+      "description": "Custom config generator plugins",
+      "interface": "IConfigGenerator",
+      "examples": [
+        "Custom MCP server generator",
+        "Custom workflow generator"
+      ]
+    },
+    
+    "custom-checker": {
+      "description": "Custom dependency checker plugins",
+      "interface": "IDependencyChecker",
+      "examples": [
+        "Custom tool version checker",
+        "Custom environment validator"
+      ]
+    },
+    
+    "custom-installer": {
+      "description": "Custom installer plugins",
+      "interface": "IInstaller",
+      "examples": [
+        "Custom package installer",
+        "Custom tool installer"
+      ]
+    },
+    
+    "workflow-extension": {
+      "description": "Workflow extension plugins",
+      "interface": "IWorkflowExtension",
+      "examples": [
+        "Custom phase",
+        "Custom step executor"
+      ]
+    }
+  }
+}

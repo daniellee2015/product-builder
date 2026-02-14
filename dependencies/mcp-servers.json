@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "description": "MCP server list",
+  
+  "servers": {
+    "github": {
+      "package": "@modelcontextprotocol/server-github",
+      "required": false,
+      "description": "GitHub integration",
+      "env": ["GITHUB_TOKEN"]
+    },
+    
+    "mongodb": {
+      "package": "@modelcontextprotocol/server-mongodb",
+      "required": false,
+      "description": "MongoDB data access",
+      "env": ["MONGODB_URI"]
+    },
+    
+    "context7": {
+      "package": "@context7/mcp-server",
+      "required": false,
+      "description": "Documentation query"
+    },
+    
+    "playwright": {
+      "package": "@executeautomation/playwright-mcp-server",
+      "required": false,
+      "description": "Browser automation"
+    }
+  }
+}

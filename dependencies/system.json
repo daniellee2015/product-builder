@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "description": "System-level dependencies",
+  
+  "dependencies": {
+    "tmux": {
+      "required": true,
+      "reason": "ccb requires tmux for multi-window management",
+      "version": ">=3.0",
+      "install": {
+        "macos": "brew install tmux",
+        "linux": "apt-get install tmux",
+        "windows": "choco install tmux"
+      },
+      "check": "tmux -V"
+    },
+    
+    "mongodb": {
+      "required": false,
+      "reason": "Data storage (optional)",
+      "version": ">=6.0",
+      "install": {
+        "macos": "brew install mongodb-community",
+        "linux": "apt-get install mongodb",
+        "windows": "choco install mongodb"
+      },
+      "check": "mongod --version"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0",
+  "description": "Lifecycle hooks configuration",
+  
+  "hooks": {
+    "pre-init": {
+      "description": "Runs before initialization",
+      "optional": true,
+      "examples": [
+        "Validate environment",
+        "Check prerequisites"
+      ]
+    },
+    
+    "post-init": {
+      "description": "Runs after initialization",
+      "optional": true,
+      "examples": [
+        "Setup additional configs",
+        "Initialize git repository"
+      ]
+    },
+    
+    "pre-generate": {
+      "description": "Runs before config generation",
+      "optional": true,
+      "examples": [
+        "Backup existing configs",
+        "Validate templates"
+      ]
+    },
+    
+    "post-generate": {
+      "description": "Runs after config generation",
+      "optional": true,
+      "examples": [
+        "Format generated files",
+        "Run linters"
+      ]
+    },
+    
+    "pre-workflow": {
+      "description": "Runs before workflow execution",
+      "optional": true,
+      "examples": [
+        "Check dependencies",
+        "Validate inputs"
+      ]
+    },
+    
+    "post-workflow": {
+      "description": "Runs after workflow execution",
+      "optional": true,
+      "examples": [
+        "Cleanup temporary files",
+        "Generate reports"
+      ]
+    }
+  }
+}

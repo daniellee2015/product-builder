@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "description": "Product Builder npm packages",
+  
+  "packages": {
+    "skill-installer": {
+      "name": "[TO_BE_PROVIDED]",
+      "description": "Quickly install skills to specified directory",
+      "required": true,
+      "version": ">=1.0.0",
+      "install": "npm install -g [package-name]",
+      "usage": "import { installSkills } from '[package-name]'"
+    },
+    
+    "session-sync": {
+      "name": "[TO_BE_PROVIDED]",
+      "description": "Multi-window session sync and history sharing",
+      "required": true,
+      "version": ">=1.0.0",
+      "install": "npm install -g [package-name]",
+      "usage": "import { SessionSync } from '[package-name]'"
+    },
+    
+    "cca-helper": {
+      "name": "[TO_BE_PROVIDED]",
+      "description": "CCA multi-orchestration helper",
+      "required": true,
+      "version": ">=1.0.0",
+      "install": "npm install -g [package-name]",
+      "usage": "import { CCAHelper } from '[package-name]'"
+    }
+  }
+}
