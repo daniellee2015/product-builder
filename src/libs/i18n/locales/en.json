@@ -95,7 +95,8 @@
       "colMode": "Min Mode",
       "colTools": "Tools",
       "colReview": "Review",
-      "success": "Workflow updated with {{count}} enabled steps"
+      "success": "Workflow updated with {{count}} enabled steps",
+      "cancelled": "Edit cancelled"
     }
   },
   "llm": {

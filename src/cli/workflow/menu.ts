@@ -231,6 +231,13 @@ async function editWorkflow(data: WorkflowData): Promise<boolean> {
   // Call the editable table component
   const selectedSteps = await displayEditableWorkflowTable(data);
 
+  // Check if user cancelled (empty array means back was selected or ESC pressed)
+  if (selectedSteps.length === 0) {
+    showInfo(i18n.t('workflow.edit.cancelled'));
+    console.log('');
+    return false;
+  }
+
   // Create or update custom mode
   const currentMode = data.available_modes[data.mode];
   if (currentMode.is_custom) {
