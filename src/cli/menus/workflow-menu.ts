@@ -4,6 +4,7 @@
 
 import {
   menu,
+  input,
   renderSectionHeader,
   renderSimpleHeader,
   renderSummaryTable,
@@ -35,14 +36,15 @@ function displayWorkflow(data: WorkflowData): void {
     title: 'Overview',
     sections: [{
       items: [
-        { key: 'Mode', value: `${currentMode.label} — ${currentMode.description}` },
+        { key: 'Mode', value: currentMode.label },
+        { key: 'Description', value: currentMode.description },
         { key: 'Tools', value: currentMode.required_tools.length > 0 ? currentMode.required_tools.join(', ') : 'Any single CLI' },
         { key: 'Active Steps', value: `${countActiveSteps(data)} / ${countTotalSteps(data)}` },
         { key: 'Review Gates', value: String(countReviewGates(data)) },
         { key: 'Version', value: data.version }
       ]
     }],
-    width: 60
+    width: 70
   });
 
   renderProgressIndicator({
@@ -78,7 +80,7 @@ function displayWorkflow(data: WorkflowData): void {
   console.log('');
 }
 
-async function switchMode(data: WorkflowData): Promise<void> {
+async function switchMode(data: WorkflowData): Promise<boolean> {
   console.log('');
   renderSimpleHeader('Switch Workflow Mode');
 
@@ -90,11 +92,20 @@ async function switchMode(data: WorkflowData): Promise<void> {
     return `${m.label}${current}` + chalk.gray(` — ${m.steps} steps, ${tools}`);
   });
 
+  // Add back option
+  options.push('b. Back' + chalk.gray(' - Return to workflow menu'));
+
   const result = await menu.radio({
     options,
     allowNumberKeys: true,
+    allowLetterKeys: true,
     preserveOnSelect: true
   });
+
+  // Check if user selected back
+  if (result.value.includes('Back')) {
+    return false; // Don't show continue prompt
+  }
 
   const selectedKey = modeKeys[result.index];
   if (selectedKey !== data.mode) {
@@ -105,6 +116,7 @@ async function switchMode(data: WorkflowData): Promise<void> {
     showInfo(`Already in ${data.available_modes[selectedKey].label} mode`);
   }
   console.log('');
+  return true; // Show continue prompt
 }
 
 export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promise<void> {
@@ -135,20 +147,34 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
   if (selected?.id === 'view') {
     if (data) {
       displayWorkflow(data);
+      // Simple back option
+      await menu.radio({
+        options: ['b. Back'],
+        allowLetterKeys: true,
+        preserveOnSelect: true
+      });
+      await showMainMenu();
     } else {
       showError('No workflow.json found.');
+      await promptContinue();
+      await showMainMenu();
     }
   } else if (selected?.id === 'switch-mode') {
     if (data) {
-      await switchMode(data);
+      const shouldContinue = await switchMode(data);
+      if (shouldContinue) {
+        await promptContinue();
+      }
+      await showMainMenu();
     } else {
       showError('No workflow.json found.');
+      await promptContinue();
+      await showMainMenu();
     }
   } else if (selected?.id === 'edit') {
     showInfo('Edit workflow coming soon...');
     console.log('');
+    await promptContinue();
+    await showMainMenu();
   }
-
-  await promptContinue();
-  await showWorkflowMenu(showMainMenu);
 }
