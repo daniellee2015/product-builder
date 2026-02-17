@@ -77,8 +77,11 @@ export const MENUS: Record<string, MenuConfig> = {
     backLabel: 'Back to main menu',
     items: [
       { key: '1', id: 'view', label: 'View workflow', desc: 'Show current workflow definition' },
-      { key: '2', id: 'switch-mode', label: 'Switch mode', desc: 'Change workflow mode' },
-      { key: '3', id: 'edit', label: 'Edit workflow', desc: 'Edit workflow settings' }
+      { key: '2', id: 'switch-mode', label: 'Switch mode', desc: 'Change to base mode (lite/standard/full)' },
+      { key: '3', id: 'edit', label: 'Edit workflow', desc: 'Enable/disable steps (multi-select)' },
+      { key: '4', id: 'import', label: 'Import workflow', desc: 'Load custom workflow configuration' },
+      { key: '5', id: 'export', label: 'Export workflow', desc: 'Save current workflow configuration' },
+      { key: '6', id: 'reset', label: 'Reset workflow', desc: 'Reset to base mode defaults' }
     ]
   },
 
