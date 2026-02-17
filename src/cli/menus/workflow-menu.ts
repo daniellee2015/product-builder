@@ -31,15 +31,18 @@ function displayWorkflow(data: WorkflowData): void {
   renderSimpleHeader(data.name);
 
   const currentMode = data.available_modes[data.mode];
+  const activeSteps = countActiveSteps(data);
+  const totalSteps = countTotalSteps(data);
 
   renderSummaryTable({
-    title: 'Overview',
+    title: `Workflow Overview - ${currentMode.label} Mode (${activeSteps}/${totalSteps} steps active)`,
+    titleAlign: 'left',
     sections: [{
       items: [
         { key: 'Mode', value: currentMode.label },
         { key: 'Description', value: currentMode.description },
         { key: 'Tools', value: currentMode.required_tools.length > 0 ? currentMode.required_tools.join(', ') : 'Any single CLI' },
-        { key: 'Active Steps', value: `${countActiveSteps(data)} / ${countTotalSteps(data)}` },
+        { key: 'Active Steps', value: `${activeSteps} / ${totalSteps}` },
         { key: 'Review Gates', value: String(countReviewGates(data)) },
         { key: 'Version', value: data.version }
       ]
