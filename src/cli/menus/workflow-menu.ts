@@ -50,6 +50,8 @@ function displayWorkflow(data: WorkflowData): void {
     // No width specified - will use full terminal width
   });
 
+  // Show phase progression
+  console.log(chalk.cyan.bold('\n  Phases:'));
   renderProgressIndicator({
     steps: data.phases.map(p => p.name),
     currentStep: 0,
