@@ -3,9 +3,11 @@ import {
   createFullHeaderComponentV2,
   createRadioMenuComponentV2,
   createDynamicHintsComponent,
+  createCustomComponent,
   generateMenuHints,
   setLanguage,
-  hintManager
+  hintManager,
+  type Rect
 } from 'cli-menu-kit';
 import chalk from 'chalk';
 import {
@@ -62,6 +64,9 @@ export async function showMainMenu(): Promise<void> {
     allowLetterKeys: true
   });
 
+  // Set initial hints BEFORE rendering
+  hintManager.set('menu', hints.join(' • '), 10);
+
   // Render page using Page Layout V2
   await renderPageV2({
     // Header area - Full header with ASCII art
@@ -112,16 +117,19 @@ export async function showMainMenu(): Promise<void> {
       ]
     },
 
-    // Footer area - Hints
+    // Footer area - Hints and Prompt
     footer: {
       components: [
-        createDynamicHintsComponent()
+        createDynamicHintsComponent(),
+        createCustomComponent(
+          'prompt',
+          'footerPrompt',
+          (rect: Rect) => [''], // Empty prompt for now
+          undefined
+        )
       ]
     }
   });
-
-  // Set initial hints
-  hintManager.set('menu', hints.join(' • '), 10);
 }
 
 /**
