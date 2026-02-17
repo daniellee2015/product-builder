@@ -84,6 +84,9 @@
       "cancelled": "Reset cancelled"
     },
     "edit": {
+      "title": "Edit Workflow Steps",
+      "description": "Enable or disable workflow steps to customize your workflow",
+      "instructions": "Use Space to toggle, Enter to confirm, Esc to cancel",
       "tableTitle": "Workflow Steps - Detailed View",
       "tableDesc": "Detailed metadata for all workflow steps",
       "colId": "ID",
@@ -91,7 +94,8 @@
       "colCondition": "Condition",
       "colMode": "Min Mode",
       "colTools": "Tools",
-      "colReview": "Review"
+      "colReview": "Review",
+      "success": "Workflow updated with {{count}} enabled steps"
     }
   },
   "llm": {
