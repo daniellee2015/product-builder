@@ -208,15 +208,31 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
   console.log('');
 
   // Build options with table format
-  const allSteps: Array<{ id: string; name: string; phase: string; enabled: boolean; step: WorkflowStep }> = [];
+  const allSteps: Array<{
+    id: string;
+    name: string;
+    phase: string;
+    phaseId: string;
+    enabled: boolean;
+    step: WorkflowStep;
+    isPhaseHeader: boolean;
+  }> = [];
   const options: string[] = [];
 
   for (const phase of data.phases) {
     // Add phase header as a disabled option
     const phaseNumber = phase.id.replace(/^phase-/, '');
     const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
-    options.push(chalk.cyan.bold(`\n${phaseLabel}: ${phase.name}`));
-    allSteps.push({ id: '', name: '', phase: '', enabled: false, step: {} as WorkflowStep });
+    options.push(chalk.cyan.bold(`${phaseLabel}: ${phase.name}`));
+    allSteps.push({
+      id: '',
+      name: '',
+      phase: phase.name,
+      phaseId: phase.id,
+      enabled: false,
+      step: {} as WorkflowStep,
+      isPhaseHeader: true
+    });
 
     for (const step of phase.steps) {
       const enabled = isStepActive(step, data.mode);
@@ -244,7 +260,15 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
         chalk.gray(tools.padEnd(colWidths.tools));
 
       options.push(row);
-      allSteps.push({ id: step.id, name: step.name, phase: phase.name, enabled, step });
+      allSteps.push({
+        id: step.id,
+        name: step.name,
+        phase: phase.name,
+        phaseId: phase.id,
+        enabled,
+        step,
+        isPhaseHeader: false
+      });
     }
   }
 
@@ -258,10 +282,33 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
       .filter(i => i >= 0)
   });
 
+  // Process selection: if a phase header is selected, include all its children
+  const selectedIndices = new Set(result.indices);
+  const expandedSelection = new Set<number>();
+
+  for (let i = 0; i < allSteps.length; i++) {
+    const item = allSteps[i];
+
+    if (item.isPhaseHeader && selectedIndices.has(i)) {
+      // Phase header is selected, add all children in this phase
+      const phaseId = item.phaseId;
+      for (let j = i + 1; j < allSteps.length; j++) {
+        const childItem = allSteps[j];
+        if (childItem.isPhaseHeader) break; // Next phase header
+        if (childItem.phaseId === phaseId) {
+          expandedSelection.add(j);
+        }
+      }
+    } else if (!item.isPhaseHeader && selectedIndices.has(i)) {
+      // Regular step is selected
+      expandedSelection.add(i);
+    }
+  }
+
   // Filter out phase headers and get selected step IDs
-  const selectedSteps = result.indices
+  const selectedSteps = Array.from(expandedSelection)
     .map(index => allSteps[index])
-    .filter(step => step.id !== '') // Remove phase headers
+    .filter(step => !step.isPhaseHeader && step.id !== '')
     .map(step => step.id);
 
   return selectedSteps;
