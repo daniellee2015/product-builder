@@ -181,6 +181,32 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
   renderSimpleHeader(i18n.t('workflow.edit.title'));
   console.log(chalk.gray(`  ${i18n.t('workflow.edit.description')}\n`));
 
+  // Column widths (accounting for checkbox column)
+  const colWidths = {
+    checkbox: 4,  // [ ] or [x]
+    id: 10,
+    name: 35,
+    condition: 22,
+    mode: 12,
+    tools: 18
+  };
+
+  // Print table header
+  const header =
+    ''.padEnd(colWidths.checkbox) +
+    chalk.cyan.bold(i18n.t('workflow.edit.colId').padEnd(colWidths.id)) +
+    chalk.cyan.bold(i18n.t('workflow.edit.colName').padEnd(colWidths.name)) +
+    chalk.cyan.bold(i18n.t('workflow.edit.colCondition').padEnd(colWidths.condition)) +
+    chalk.cyan.bold(i18n.t('workflow.edit.colMode').padEnd(colWidths.mode)) +
+    chalk.cyan.bold(i18n.t('workflow.edit.colTools').padEnd(colWidths.tools));
+
+  console.log(`  ${header}`);
+  const totalWidth = colWidths.checkbox + colWidths.id + colWidths.name + colWidths.condition + colWidths.mode + colWidths.tools;
+  console.log(`  ${chalk.gray('─'.repeat(totalWidth))}\n`);
+
+  showInfo(i18n.t('workflow.edit.instructions'));
+  console.log('');
+
   // Build options with table format
   const allSteps: Array<{ id: string; name: string; phase: string; enabled: boolean; step: WorkflowStep }> = [];
   const options: string[] = [];
@@ -189,27 +215,25 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
     // Add phase header as a disabled option
     const phaseNumber = phase.id.replace(/^phase-/, '');
     const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
-    options.push(chalk.cyan.bold(`${phaseLabel}: ${phase.name}`));
+    options.push(chalk.cyan.bold(`\n${phaseLabel}: ${phase.name}`));
     allSteps.push({ id: '', name: '', phase: '', enabled: false, step: {} as WorkflowStep });
 
     for (const step of phase.steps) {
       const enabled = isStepActive(step, data.mode);
 
-      // Format table row
-      const colWidths = { id: 8, name: 30, condition: 18, mode: 10, tools: 12 };
-
-      const name = step.name.length > colWidths.name - 2
-        ? step.name.substring(0, colWidths.name - 5) + '...'
+      // Format table row with proper spacing
+      const name = step.name.length > colWidths.name - 3
+        ? step.name.substring(0, colWidths.name - 6) + '...'
         : step.name;
 
       const condition = step.condition
-        ? i18n.t(`workflow.conditions.${step.condition}`).substring(0, colWidths.condition - 2)
+        ? i18n.t(`workflow.conditions.${step.condition}`).substring(0, colWidths.condition - 3)
         : '-';
 
       const mode = step.min_mode !== 'lite' ? `${step.min_mode}+` : '-';
 
       const tools = step.required_tools && step.required_tools.length > 0
-        ? step.required_tools.join(',').substring(0, colWidths.tools - 2)
+        ? step.required_tools.join(', ').substring(0, colWidths.tools - 3)
         : '-';
 
       const row =
@@ -223,9 +247,6 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
       allSteps.push({ id: step.id, name: step.name, phase: phase.name, enabled, step });
     }
   }
-
-  showInfo(i18n.t('workflow.edit.instructions'));
-  console.log('');
 
   const { menu } = await import('cli-menu-kit');
 
