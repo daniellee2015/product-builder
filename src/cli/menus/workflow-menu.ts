@@ -42,7 +42,7 @@ function displayWorkflow(data: WorkflowData): void {
   }));
 
   renderSummaryTable({
-    title: `Workflow Overview - ${currentMode.label} Mode (${phaseCount} phases, ${activeSteps}/${totalSteps} steps active)`,
+    title: `Workflow Overview - ${currentMode.label} Mode`,
     titleAlign: 'left',
     sections: [
       {
@@ -50,8 +50,7 @@ function displayWorkflow(data: WorkflowData): void {
           { key: 'Mode', value: currentMode.label },
           { key: 'Description', value: currentMode.description },
           { key: 'Tools', value: currentMode.required_tools.length > 0 ? currentMode.required_tools.join(', ') : 'Any single CLI' },
-          { key: 'Phases', value: `${phaseCount} phases, ${totalSteps} steps total` },
-          { key: 'Active Steps', value: `${activeSteps} / ${totalSteps}` },
+          { key: 'Active Steps', value: `${phaseCount} phases, ${activeSteps}/${totalSteps} steps active` },
           { key: 'Review Gates', value: String(countReviewGates(data)) },
           { key: 'Version', value: data.version }
         ]
