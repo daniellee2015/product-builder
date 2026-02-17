@@ -221,7 +221,7 @@
           "output": [
             "exports/jobs/{job_id}/parsed/clarified-requirement.md"
           ],
-          "condition": "当需求简短时",
+          "condition": "when_requirement_brief",
           "min_mode": "standard",
           "required_tools": [
             "ccb"
@@ -237,7 +237,7 @@
           "output": [
             "exports/jobs/{job_id}/parsed/expanded-requirement.md"
           ],
-          "condition": "当需求简短时",
+          "condition": "when_requirement_brief",
           "min_mode": "standard",
           "required_tools": [
             "ccb"
@@ -478,7 +478,7 @@
             "exports/jobs/{job_id}/metadata.json",
             "git.branch.name"
           ],
-          "condition": "done('P1-01') && done('P1-02')",
+          "condition": "after_p1_01_and_p1_02",
           "min_mode": "lite"
         },
         {
@@ -748,7 +748,7 @@
           "output": [
             "exports/jobs/{job_id}/source/openspec.mdx"
           ],
-          "condition": "task_verify.status == 'pass'",
+          "condition": "when_task_passes",
           "min_mode": "standard"
         },
         {
@@ -762,7 +762,7 @@
           "output": [
             "exports/jobs/{job_id}/analysis/progress.json"
           ],
-          "condition": "task_verify.status == 'pass'",
+          "condition": "when_task_passes",
           "min_mode": "standard"
         },
         {
@@ -776,7 +776,7 @@
           "output": [
             "git.commit.task"
           ],
-          "condition": "task_verify.status == 'pass'",
+          "condition": "when_task_passes",
           "min_mode": "lite"
         }
       ],
@@ -885,7 +885,7 @@
           "output": [
             "git.merge.commit"
           ],
-          "condition": "human_approved == true",
+          "condition": "when_human_approved",
           "min_mode": "lite"
         },
         {

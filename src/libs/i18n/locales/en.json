@@ -31,7 +31,18 @@
       "phaseNumber": "Phase {{number}}",
       "reviewGateInfo": "★ = multi-model review gate with auto-repair",
       "phasesCount": "{{count}} phases, {{active}}/{{total}} steps active",
-      "anyCLI": "Any single CLI"
+      "anyCLI": "Any single CLI",
+      "condition": "Condition",
+      "minMode": "Min Mode",
+      "review": "Review",
+      "yes": "Yes",
+      "skipped": "skipped in {{mode}} mode"
+    },
+    "conditions": {
+      "when_requirement_brief": "When requirement is brief",
+      "after_p1_01_and_p1_02": "After P1-01 and P1-02 complete",
+      "when_task_passes": "When task verification passes",
+      "when_human_approved": "When human approves"
     },
     "switchMode": {
       "title": "Switch Workflow Mode",
