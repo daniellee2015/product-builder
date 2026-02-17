@@ -43,8 +43,8 @@ function displayWorkflow(data: WorkflowData): void {
         { key: 'Review Gates', value: String(countReviewGates(data)) },
         { key: 'Version', value: data.version }
       ]
-    }],
-    width: 70
+    }]
+    // No width specified - will use full terminal width
   });
 
   renderProgressIndicator({
