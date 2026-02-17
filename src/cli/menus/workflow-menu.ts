@@ -33,15 +33,16 @@ function displayWorkflow(data: WorkflowData): void {
   const currentMode = data.available_modes[data.mode];
   const activeSteps = countActiveSteps(data);
   const totalSteps = countTotalSteps(data);
+  const phaseCount = data.phases.length;
 
-  // Build phase items - each phase as a separate row
+  // Build phase items - each phase as a separate row with gray color
   const phaseItems = data.phases.map((p, i) => ({
     key: `Phase ${i + 1}`,
-    value: p.name
+    value: chalk.gray(p.name)
   }));
 
   renderSummaryTable({
-    title: `Workflow Overview - ${currentMode.label} Mode (${activeSteps}/${totalSteps} steps active)`,
+    title: `Workflow Overview - ${currentMode.label} Mode (${phaseCount} phases, ${activeSteps}/${totalSteps} steps active)`,
     titleAlign: 'left',
     sections: [
       {
@@ -49,13 +50,13 @@ function displayWorkflow(data: WorkflowData): void {
           { key: 'Mode', value: currentMode.label },
           { key: 'Description', value: currentMode.description },
           { key: 'Tools', value: currentMode.required_tools.length > 0 ? currentMode.required_tools.join(', ') : 'Any single CLI' },
+          { key: 'Phases', value: `${phaseCount} phases, ${totalSteps} steps total` },
           { key: 'Active Steps', value: `${activeSteps} / ${totalSteps}` },
           { key: 'Review Gates', value: String(countReviewGates(data)) },
           { key: 'Version', value: data.version }
         ]
       },
       {
-        header: 'Workflow Phases',
         items: phaseItems
       }
     ]
