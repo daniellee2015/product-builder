@@ -1,11 +1,11 @@
 import {
   renderPageV2,
-  createFullHeaderComponent,
-  createCustomComponent,
-  createHintsComponent,
+  createFullHeaderComponentV2,
+  createRadioMenuComponentV2,
+  createDynamicHintsComponent,
   generateMenuHints,
   setLanguage,
-  menu
+  hintManager
 } from 'cli-menu-kit';
 import chalk from 'chalk';
 import {
@@ -67,7 +67,7 @@ export async function showMainMenu(): Promise<void> {
     // Header area - Full header with ASCII art
     header: {
       components: [
-        createFullHeaderComponent({
+        createFullHeaderComponentV2({
           asciiArt: [
             '██╗    ██╗ █████╗  ██████╗  ██████╗  ██████╗  ██████╗ ',
             '██║    ██║██╔══██╗██╔═══██╗██╔═══██╗██╔═══██╗██╔═══██╗',
@@ -87,25 +87,26 @@ export async function showMainMenu(): Promise<void> {
     // Main area - Menu options
     mainArea: {
       components: [
-        createCustomComponent('menu', async () => {
-          const result = await menu.radio({
+        createRadioMenuComponentV2({
+          menuConfig: {
             options: menuOptions,
             allowLetterKeys: true,
             allowNumberKeys: true,
             preserveOnSelect: true
-          });
+          },
+          onResult: async (result) => {
+            const selected = findSelectedItem(config, result.value);
+            if (!selected) return;
 
-          const selected = findSelectedItem(config, result.value);
-          if (!selected) return;
+            if (selected.id === 'exit') {
+              console.log(chalk.green('\n👋 Goodbye!\n'));
+              process.exit(0);
+            }
 
-          if (selected.id === 'exit') {
-            console.log(chalk.green('\n👋 Goodbye!\n'));
-            process.exit(0);
-          }
-
-          const handler = MAIN_ROUTES[selected.id];
-          if (handler) {
-            await handler(showMainMenu);
+            const handler = MAIN_ROUTES[selected.id];
+            if (handler) {
+              await handler(showMainMenu);
+            }
           }
         })
       ]
@@ -114,10 +115,13 @@ export async function showMainMenu(): Promise<void> {
     // Footer area - Hints
     footer: {
       components: [
-        createHintsComponent(hints)
+        createDynamicHintsComponent()
       ]
     }
   });
+
+  // Set initial hints
+  hintManager.set('menu', hints.join(' • '), 10);
 }
 
 /**
