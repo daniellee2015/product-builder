@@ -14,7 +14,7 @@
         "ralph",
         "openclaw"
       ],
-      "description": "Complete workflow with multi-model review, auto-repair, and monitoring",
+      "description": "Complete workflow with multi-model review, Ralph retry loop, auto-repair, and monitoring",
       "steps": 31,
       "review_gates": 3
     },
