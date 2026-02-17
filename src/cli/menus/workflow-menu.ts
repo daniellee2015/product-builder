@@ -34,28 +34,31 @@ function displayWorkflow(data: WorkflowData): void {
   const activeSteps = countActiveSteps(data);
   const totalSteps = countTotalSteps(data);
 
+  // Build phase list with numbering
+  const phaseList = data.phases.map((p, i) => `${i + 1}. ${p.name}`).join('\n                 ');
+
   renderSummaryTable({
     title: `Workflow Overview - ${currentMode.label} Mode (${activeSteps}/${totalSteps} steps active)`,
     titleAlign: 'left',
-    sections: [{
-      items: [
-        { key: 'Mode', value: currentMode.label },
-        { key: 'Description', value: currentMode.description },
-        { key: 'Tools', value: currentMode.required_tools.length > 0 ? currentMode.required_tools.join(', ') : 'Any single CLI' },
-        { key: 'Active Steps', value: `${activeSteps} / ${totalSteps}` },
-        { key: 'Review Gates', value: String(countReviewGates(data)) },
-        { key: 'Version', value: data.version }
-      ]
-    }]
+    sections: [
+      {
+        items: [
+          { key: 'Mode', value: currentMode.label },
+          { key: 'Description', value: currentMode.description },
+          { key: 'Tools', value: currentMode.required_tools.length > 0 ? currentMode.required_tools.join(', ') : 'Any single CLI' },
+          { key: 'Active Steps', value: `${activeSteps} / ${totalSteps}` },
+          { key: 'Review Gates', value: String(countReviewGates(data)) },
+          { key: 'Version', value: data.version }
+        ]
+      },
+      {
+        header: 'Workflow Phases',
+        items: [
+          { key: 'Phases', value: phaseList }
+        ]
+      }
+    ]
     // No width specified - will use full terminal width
-  });
-
-  // Show phase progression
-  console.log(chalk.cyan.bold('\n  Phases:'));
-  renderProgressIndicator({
-    steps: data.phases.map(p => p.name),
-    currentStep: 0,
-    separator: ' → '
   });
 
   console.log('');
