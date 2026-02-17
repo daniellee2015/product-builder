@@ -204,9 +204,6 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
   const totalWidth = colWidths.checkbox + colWidths.id + colWidths.name + colWidths.condition + colWidths.mode + colWidths.tools;
   console.log(`  ${chalk.gray('─'.repeat(totalWidth))}\n`);
 
-  showInfo(i18n.t('workflow.edit.instructions'));
-  console.log('');
-
   // Build options with table format
   const allSteps: Array<{
     id: string;
