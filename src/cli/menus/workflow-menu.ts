@@ -34,8 +34,11 @@ function displayWorkflow(data: WorkflowData): void {
   const activeSteps = countActiveSteps(data);
   const totalSteps = countTotalSteps(data);
 
-  // Build phase list with numbering
-  const phaseList = data.phases.map((p, i) => `${i + 1}. ${p.name}`).join('\n                 ');
+  // Build phase items - each phase as a separate row
+  const phaseItems = data.phases.map((p, i) => ({
+    key: `Phase ${i + 1}`,
+    value: p.name
+  }));
 
   renderSummaryTable({
     title: `Workflow Overview - ${currentMode.label} Mode (${activeSteps}/${totalSteps} steps active)`,
@@ -53,9 +56,7 @@ function displayWorkflow(data: WorkflowData): void {
       },
       {
         header: 'Workflow Phases',
-        items: [
-          { key: 'Phases', value: phaseList }
-        ]
+        items: phaseItems
       }
     ]
     // No width specified - will use full terminal width
