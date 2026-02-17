@@ -24,7 +24,7 @@ import {
   listCustomWorkflows,
   resetToBaseMode
 } from '../../services/workflow-service';
-import { displayWorkflow } from './display';
+import { displayWorkflow, displayWorkflowTable } from './display';
 import i18n from '../../libs/i18n';
 
 /**
@@ -324,9 +324,19 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
       await showWorkflowMenu(showMainMenu);
     }
   } else if (selected?.id === 'edit') {
-    showInfo('Edit workflow coming soon...');
-    console.log('');
-    await promptContinue();
-    await showWorkflowMenu(showMainMenu);
+    if (data) {
+      displayWorkflowTable(data);
+      // Simple back option
+      await menu.radio({
+        options: [`b. ${i18n.t('common.back')}`],
+        allowLetterKeys: true,
+        preserveOnSelect: true
+      });
+      await showWorkflowMenu(showMainMenu);
+    } else {
+      showError('No workflow.json found.');
+      await promptContinue();
+      await showWorkflowMenu(showMainMenu);
+    }
   }
 }

@@ -82,6 +82,16 @@
       "success": "Reset to {{mode}} mode",
       "error": "Failed to reset workflow: {{message}}",
       "cancelled": "Reset cancelled"
+    },
+    "edit": {
+      "tableTitle": "Workflow Steps - Detailed View",
+      "tableDesc": "Detailed metadata for all workflow steps",
+      "colId": "ID",
+      "colName": "Name",
+      "colCondition": "Condition",
+      "colMode": "Min Mode",
+      "colTools": "Tools",
+      "colReview": "Review"
     }
   },
   "llm": {
