@@ -1,4 +1,4 @@
-import { menu, renderHeader, setLanguage } from 'cli-menu-kit';
+import { renderPage, generateMenuHints, setLanguage } from 'cli-menu-kit';
 import chalk from 'chalk';
 import {
   showLLMCLIMenu,
@@ -45,27 +45,38 @@ const MAIN_ROUTES: Record<string, (back: () => Promise<void>) => Promise<void>> 
 export async function showMainMenu(): Promise<void> {
   const config = MENUS.main;
 
-  renderHeader({
-    asciiArt: [
-      '██╗    ██╗ █████╗  ██████╗  ██████╗  ██████╗  ██████╗ ',
-      '██║    ██║██╔══██╗██╔═══██╗██╔═══██╗██╔═══██╗██╔═══██╗',
-      '██║ █╗ ██║███████║██║   ██║██║   ██║██║   ██║██║   ██║',
-      '██║███╗██║██╔══██║██║   ██║██║   ██║██║   ██║██║   ██║',
-      '╚███╔███╔╝██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝',
-      ' ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ '
-    ],
-    title: config.title,
-    description: config.desc,
-    version: '0.1.0',
-    url: 'https://github.com/product-builder/cli',
-    menuTitle: 'Select an option:'
-  });
-
-  const result = await menu.radio({
-    options: buildMenuOptions(config),
-    allowLetterKeys: true,
-    allowNumberKeys: true,
-    preserveOnSelect: true
+  const result = await renderPage({
+    header: {
+      type: 'full',
+      asciiArt: [
+        '██╗    ██╗ █████╗  ██████╗  ██████╗  ██████╗  ██████╗ ',
+        '██║    ██║██╔══██╗██╔═══██╗██╔═══██╗██╔═══██╗██╔═══██╗',
+        '██║ █╗ ██║███████║██║   ██║██║   ██║██║   ██║██║   ██║',
+        '██║███╗██║██╔══██║██║   ██║██║   ██║██║   ██║██║   ██║',
+        '╚███╔███╔╝██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝',
+        ' ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ '
+      ],
+      title: config.title,
+      description: config.desc,
+      version: '0.1.0',
+      url: 'https://github.com/product-builder/cli'
+    },
+    mainArea: {
+      type: 'menu',
+      render: () => {}
+    },
+    footer: {
+      menu: {
+        options: buildMenuOptions(config),
+        allowLetterKeys: true,
+        allowNumberKeys: true
+      },
+      hints: generateMenuHints({
+        hasMultipleOptions: true,
+        allowNumberKeys: true,
+        allowLetterKeys: true
+      })
+    }
   });
 
   const selected = findSelectedItem(config, result.value);
