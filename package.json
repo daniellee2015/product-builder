@@ -7,7 +7,7 @@
     "pb": "./bin/pb.js"
   },
   "scripts": {
-    "build": "tsc && cp src/config/workflow.json dist/config/",
+    "build": "tsc && cp src/config/workflow.json dist/config/ && cp -r src/libs/i18n/locales dist/libs/i18n/",
     "dev": "tsc --watch",
     "test": "jest",
     "lint": "eslint src/**/*.ts"
