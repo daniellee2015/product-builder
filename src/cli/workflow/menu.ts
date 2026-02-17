@@ -267,9 +267,10 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
   if (selected?.id === 'view') {
     if (data) {
       displayWorkflow(data);
-      // Simple back option
+      // Use radio menu with hints for proper layout
       await menu.radio({
-        options: [`b. ${i18n.t('common.back')}`],
+        options: [],
+        hints: [`b. ${i18n.t('common.back')}`],
         allowLetterKeys: true,
         preserveOnSelect: true
       });
