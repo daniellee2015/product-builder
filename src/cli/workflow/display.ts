@@ -74,8 +74,9 @@ export function displayWorkflow(data: WorkflowData): void {
   // Display detailed phase and step information
   for (const phase of data.phases) {
     const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : '';
-    // Format phase ID: "phase-0" -> "Phase 0"
-    const phaseLabel = phase.id.replace(/^phase-(\d+)$/, 'Phase $1');
+    // Extract phase number from ID (e.g., "phase-0" -> "0")
+    const phaseNumber = phase.id.replace(/^phase-/, '');
+    const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
     console.log(chalk.cyan.bold(`  ${phaseLabel}: ${phase.name}`) + modeLabel);
     console.log(chalk.gray(`  ${phase.description}\n`));
 

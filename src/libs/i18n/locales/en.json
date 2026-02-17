@@ -28,6 +28,7 @@
       "reviewGates": "Review Gates",
       "version": "Version",
       "phase": "Phase",
+      "phaseNumber": "Phase {{number}}",
       "reviewGateInfo": "★ = multi-model review gate with auto-repair",
       "phasesCount": "{{count}} phases, {{active}}/{{total}} steps active",
       "anyCLI": "Any single CLI"
