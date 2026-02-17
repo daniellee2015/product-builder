@@ -97,6 +97,7 @@
       "colReview": "Review",
       "save": "Save changes",
       "cancel": "Cancel (discard changes)",
+      "confirmDiscard": "You have unsaved changes. Discard them?",
       "success": "Workflow updated with {{count}} enabled steps",
       "cancelled": "Changes discarded"
     }

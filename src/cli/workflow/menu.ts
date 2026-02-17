@@ -267,10 +267,9 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
   if (selected?.id === 'view') {
     if (data) {
       displayWorkflow(data);
-      // Use radio menu with hints for proper layout
+      // Show back option in footer
       await menu.radio({
-        options: [],
-        hints: [`b. ${i18n.t('common.back')}`],
+        options: [`b. ${i18n.t('common.back')}`],
         allowLetterKeys: true,
         preserveOnSelect: true
       });
@@ -336,58 +335,61 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
       // Check if there are changes
       const hasChanges = JSON.stringify(selectedSteps.sort()) !== JSON.stringify(originalEnabledSteps.sort());
 
-      if (hasChanges) {
-        // Show confirmation menu
-        console.log('');
-        const confirmOptions = [
-          i18n.t('workflow.edit.save'),
-          i18n.t('workflow.edit.cancel'),
-          `b. ${i18n.t('common.back')}`
-        ];
+      // Show footer menu with Save/Cancel/Back
+      const footerOptions = hasChanges
+        ? [
+            `1. ${i18n.t('workflow.edit.save')}`,
+            `2. ${i18n.t('workflow.edit.cancel')}`,
+            `b. ${i18n.t('common.back')}`
+          ]
+        : [`b. ${i18n.t('common.back')}`];
 
-        const confirmResult = await menu.radio({
-          options: confirmOptions,
-          allowLetterKeys: true,
-          allowNumberKeys: true,
-          preserveOnSelect: true
-        });
+      const footerResult = await menu.radio({
+        options: footerOptions,
+        allowLetterKeys: true,
+        allowNumberKeys: true,
+        preserveOnSelect: true
+      });
 
-        if (confirmResult.index === 0) {
-          // Save
-          const currentMode = data.available_modes[data.mode];
-          if (currentMode.is_custom) {
-            currentMode.enabled_steps = selectedSteps;
-            currentMode.steps = selectedSteps.length;
-          } else {
-            const customModeName = `custom-${data.mode}`;
-            data.available_modes[customModeName] = {
-              label: `Custom (${currentMode.label})`,
-              required_tools: currentMode.required_tools,
-              enabled_steps: selectedSteps,
-              description: `Custom workflow based on ${currentMode.label} mode`,
-              steps: selectedSteps.length,
-              review_gates: 0,
-              is_custom: true,
-              base_mode: data.mode
-            };
-            data.mode = customModeName as any;
-          }
-
-          saveWorkflow(data);
-          showSuccess(i18n.t('workflow.edit.success', { count: String(selectedSteps.length) }));
-          console.log('');
+      if (hasChanges && footerResult.index === 0) {
+        // Save
+        const currentMode = data.available_modes[data.mode];
+        if (currentMode.is_custom) {
+          currentMode.enabled_steps = selectedSteps;
+          currentMode.steps = selectedSteps.length;
         } else {
-          // Cancel or Back
-          showInfo(i18n.t('workflow.edit.cancelled'));
-          console.log('');
+          const customModeName = `custom-${data.mode}`;
+          data.available_modes[customModeName] = {
+            label: `Custom (${currentMode.label})`,
+            required_tools: currentMode.required_tools,
+            enabled_steps: selectedSteps,
+            description: `Custom workflow based on ${currentMode.label} mode`,
+            steps: selectedSteps.length,
+            review_gates: 0,
+            is_custom: true,
+            base_mode: data.mode
+          };
+          data.mode = customModeName as any;
         }
-      } else {
-        // No changes, just show back
-        await menu.radio({
-          options: [`b. ${i18n.t('common.back')}`],
-          allowLetterKeys: true,
-          preserveOnSelect: true
-        });
+
+        saveWorkflow(data);
+        showSuccess(i18n.t('workflow.edit.success', { count: String(selectedSteps.length) }));
+        console.log('');
+      } else if (hasChanges && (footerResult.index === 1 || footerResult.index === 2)) {
+        // Cancel or Back with unsaved changes - ask for confirmation
+        const confirm = await menu.booleanH(
+          i18n.t('workflow.edit.confirmDiscard'),
+          false  // defaultValue: No
+        );
+
+        if (!confirm) {
+          // User chose not to discard, go back to edit
+          await showWorkflowMenu(showMainMenu);
+          return;
+        }
+
+        showInfo(i18n.t('workflow.edit.cancelled'));
+        console.log('');
       }
 
       await showWorkflowMenu(showMainMenu);
