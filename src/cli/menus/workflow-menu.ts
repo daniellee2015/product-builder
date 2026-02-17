@@ -44,7 +44,7 @@ function displayWorkflow(data: WorkflowData): void {
   // Build phase items - each phase with title (black) and description (gray)
   const phaseItems = data.phases.map((p, i) => ({
     key: `Phase ${i + 1}`,
-    value: `${p.name}\n${chalk.gray(p.description)}`
+    value: `${p.name} ${chalk.gray('— ' + p.description)}`
   }));
 
   renderSummaryTable({
@@ -52,7 +52,7 @@ function displayWorkflow(data: WorkflowData): void {
     titleAlign: 'left',
     sections: [
       {
-        header: 'Configuration',
+        header: 'Basic Information',
         items: [
           { key: 'Mode', value: currentMode.label },
           { key: 'Description', value: currentMode.description },
@@ -63,7 +63,7 @@ function displayWorkflow(data: WorkflowData): void {
         ]
       },
       {
-        header: 'Phases',
+        header: 'Workflow Phases',
         items: phaseItems
       }
     ]
