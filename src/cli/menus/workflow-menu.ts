@@ -2,6 +2,8 @@
  * Workflow Configuration Menu
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import {
   menu,
   input,
@@ -23,7 +25,11 @@ import {
   isStepActive,
   countActiveSteps,
   countReviewGates,
-  countTotalSteps
+  countTotalSteps,
+  exportCustomWorkflow,
+  importCustomWorkflow,
+  listCustomWorkflows,
+  resetToBaseMode
 } from '../../services/workflow-service';
 
 function displayWorkflow(data: WorkflowData): void {
@@ -128,6 +134,150 @@ async function switchMode(data: WorkflowData): Promise<boolean> {
   return true; // Show continue prompt
 }
 
+async function importWorkflow(data: WorkflowData): Promise<boolean> {
+  console.log('');
+  renderSimpleHeader('Import Custom Workflow');
+
+  const filepaths = listCustomWorkflows();
+  if (filepaths.length === 0) {
+    showInfo('No custom workflows found in ~/.pb/workflows/');
+    console.log('');
+    return true;
+  }
+
+  // Read each workflow file to get metadata
+  const workflows = filepaths.map(filepath => {
+    try {
+      const content = fs.readFileSync(filepath, 'utf-8');
+      const config = JSON.parse(content);
+      const filename = path.basename(filepath);
+      return { filepath, filename, config };
+    } catch (e) {
+      return null;
+    }
+  }).filter((w): w is { filepath: string; filename: string; config: any } => w !== null);
+
+  if (workflows.length === 0) {
+    showError('No valid workflow files found');
+    console.log('');
+    return true;
+  }
+
+  const options = workflows.map(w => {
+    const baseModeLabel = data.available_modes[w.config.base_mode]?.label || w.config.base_mode;
+    return `${w.config.name}` + chalk.gray(` — based on ${baseModeLabel}, ${w.config.enabled_steps.length} steps`);
+  });
+  options.push('b. Back' + chalk.gray(' - Return to workflow menu'));
+
+  const result = await menu.radio({
+    options,
+    allowNumberKeys: true,
+    allowLetterKeys: true,
+    preserveOnSelect: true
+  });
+
+  if (result.value.includes('Back')) {
+    return false;
+  }
+
+  const selected = workflows[result.index];
+  if (!selected) {
+    showError('Invalid selection');
+    console.log('');
+    return true;
+  }
+
+  try {
+    importCustomWorkflow(selected.filepath, data);
+    showSuccess(`Imported workflow: ${selected.config.name}`);
+  } catch (e) {
+    const error = e as Error;
+    showError(`Failed to import workflow: ${error.message}`);
+  }
+
+  console.log('');
+  return true;
+}
+
+async function exportWorkflow(data: WorkflowData): Promise<boolean> {
+  console.log('');
+  renderSimpleHeader('Export Custom Workflow');
+
+  // Check if current mode is custom
+  const currentMode = data.available_modes[data.mode];
+  if (!currentMode.is_custom) {
+    showInfo('Current mode is not a custom workflow. Switch to custom mode first or create one by editing workflow.');
+    console.log('');
+    return true;
+  }
+
+  // Prompt for workflow name
+  const name = await input.text({
+    prompt: 'Enter workflow name:',
+    defaultValue: `custom-${data.mode}`,
+    allowEmpty: false
+  });
+
+  if (!name || name.trim() === '') {
+    showError('Workflow name cannot be empty');
+    console.log('');
+    return true;
+  }
+
+  try {
+    const filepath = exportCustomWorkflow(data, name.trim());
+    showSuccess(`Exported workflow to ${filepath}`);
+  } catch (e) {
+    const error = e as Error;
+    showError(`Failed to export workflow: ${error.message}`);
+  }
+
+  console.log('');
+  return true;
+}
+
+async function resetWorkflow(data: WorkflowData): Promise<boolean> {
+  console.log('');
+  renderSimpleHeader('Reset to Base Mode');
+
+  const currentMode = data.available_modes[data.mode];
+  if (!currentMode.is_custom) {
+    showInfo('Current mode is not a custom workflow. Nothing to reset.');
+    console.log('');
+    return true;
+  }
+
+  const baseMode = currentMode.base_mode || 'standard';
+  const baseModeLabel = data.available_modes[baseMode]?.label || baseMode;
+
+  showInfo(`This will reset your custom workflow to the base mode: ${baseModeLabel}`);
+  console.log('');
+
+  const confirm = await menu.radio({
+    options: [
+      'Yes, reset to base mode',
+      'No, keep custom workflow'
+    ],
+    allowNumberKeys: true,
+    preserveOnSelect: true
+  });
+
+  if (confirm.index === 0) {
+    try {
+      resetToBaseMode(data, baseMode);
+      showSuccess(`Reset to ${baseModeLabel} mode`);
+    } catch (e) {
+      const error = e as Error;
+      showError(`Failed to reset workflow: ${error.message}`);
+    }
+  } else {
+    showInfo('Reset cancelled');
+  }
+
+  console.log('');
+  return true;
+}
+
 export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promise<void> {
   const data = loadWorkflow();
   const modeLabel = data ? `${data.available_modes[data.mode]?.label || data.mode}` : '?';
@@ -162,11 +312,11 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
         allowLetterKeys: true,
         preserveOnSelect: true
       });
-      await showMainMenu();
+      await showWorkflowMenu(showMainMenu);
     } else {
       showError('No workflow.json found.');
       await promptContinue();
-      await showMainMenu();
+      await showWorkflowMenu(showMainMenu);
     }
   } else if (selected?.id === 'switch-mode') {
     if (data) {
@@ -174,16 +324,52 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
       if (shouldContinue) {
         await promptContinue();
       }
-      await showMainMenu();
+      await showWorkflowMenu(showMainMenu);
     } else {
       showError('No workflow.json found.');
       await promptContinue();
-      await showMainMenu();
+      await showWorkflowMenu(showMainMenu);
+    }
+  } else if (selected?.id === 'import') {
+    if (data) {
+      const shouldContinue = await importWorkflow(data);
+      if (shouldContinue) {
+        await promptContinue();
+      }
+      await showWorkflowMenu(showMainMenu);
+    } else {
+      showError('No workflow.json found.');
+      await promptContinue();
+      await showWorkflowMenu(showMainMenu);
+    }
+  } else if (selected?.id === 'export') {
+    if (data) {
+      const shouldContinue = await exportWorkflow(data);
+      if (shouldContinue) {
+        await promptContinue();
+      }
+      await showWorkflowMenu(showMainMenu);
+    } else {
+      showError('No workflow.json found.');
+      await promptContinue();
+      await showWorkflowMenu(showMainMenu);
+    }
+  } else if (selected?.id === 'reset') {
+    if (data) {
+      const shouldContinue = await resetWorkflow(data);
+      if (shouldContinue) {
+        await promptContinue();
+      }
+      await showWorkflowMenu(showMainMenu);
+    } else {
+      showError('No workflow.json found.');
+      await promptContinue();
+      await showWorkflowMenu(showMainMenu);
     }
   } else if (selected?.id === 'edit') {
     showInfo('Edit workflow coming soon...');
     console.log('');
     await promptContinue();
-    await showMainMenu();
+    await showWorkflowMenu(showMainMenu);
   }
 }
