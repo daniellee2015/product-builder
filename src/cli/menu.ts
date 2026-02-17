@@ -1,4 +1,12 @@
-import { renderPage, generateMenuHints, setLanguage } from 'cli-menu-kit';
+import {
+  renderPageV2,
+  createFullHeaderComponent,
+  createCustomComponent,
+  createHintsComponent,
+  generateMenuHints,
+  setLanguage,
+  menu
+} from 'cli-menu-kit';
 import chalk from 'chalk';
 import {
   showLLMCLIMenu,
@@ -41,56 +49,75 @@ const MAIN_ROUTES: Record<string, (back: () => Promise<void>) => Promise<void>> 
 
 /**
  * Main interactive menu for Product Builder
+ * Using Page Layout V2 with component-based architecture
  */
 export async function showMainMenu(): Promise<void> {
   const config = MENUS.main;
+  const menuOptions = buildMenuOptions(config);
 
-  const result = await renderPage({
-    header: {
-      type: 'full',
-      asciiArt: [
-        '██╗    ██╗ █████╗  ██████╗  ██████╗  ██████╗  ██████╗ ',
-        '██║    ██║██╔══██╗██╔═══██╗██╔═══██╗██╔═══██╗██╔═══██╗',
-        '██║ █╗ ██║███████║██║   ██║██║   ██║██║   ██║██║   ██║',
-        '██║███╗██║██╔══██║██║   ██║██║   ██║██║   ██║██║   ██║',
-        '╚███╔███╔╝██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝',
-        ' ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ '
-      ],
-      title: config.title,
-      description: config.desc,
-      version: '0.1.0',
-      url: 'https://github.com/product-builder/cli'
-    },
-    mainArea: {
-      type: 'menu',
-      render: () => {}
-    },
-    footer: {
-      menu: {
-        options: buildMenuOptions(config),
-        allowLetterKeys: true,
-        allowNumberKeys: true
-      },
-      hints: generateMenuHints({
-        hasMultipleOptions: true,
-        allowNumberKeys: true,
-        allowLetterKeys: true
-      })
-    }
+  // Generate hints based on menu options (caller handles logic)
+  const hints = generateMenuHints({
+    hasMultipleOptions: true,
+    allowNumberKeys: true,
+    allowLetterKeys: true
   });
 
-  const selected = findSelectedItem(config, result.value);
-  if (!selected) return;
+  // Render page using Page Layout V2
+  await renderPageV2({
+    // Header area - Full header with ASCII art
+    header: {
+      components: [
+        createFullHeaderComponent({
+          asciiArt: [
+            '██╗    ██╗ █████╗  ██████╗  ██████╗  ██████╗  ██████╗ ',
+            '██║    ██║██╔══██╗██╔═══██╗██╔═══██╗██╔═══██╗██╔═══██╗',
+            '██║ █╗ ██║███████║██║   ██║██║   ██║██║   ██║██║   ██║',
+            '██║███╗██║██╔══██║██║   ██║██║   ██║██║   ██║██║   ██║',
+            '╚███╔███╔╝██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝',
+            ' ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ '
+          ],
+          title: config.title,
+          description: config.desc,
+          version: '0.1.0',
+          url: 'https://github.com/product-builder/cli'
+        })
+      ]
+    },
 
-  if (selected.id === 'exit') {
-    console.log(chalk.green('\n👋 Goodbye!\n'));
-    process.exit(0);
-  }
+    // Main area - Menu options
+    mainArea: {
+      components: [
+        createCustomComponent('menu', async () => {
+          const result = await menu.radio({
+            options: menuOptions,
+            allowLetterKeys: true,
+            allowNumberKeys: true,
+            preserveOnSelect: true
+          });
 
-  const handler = MAIN_ROUTES[selected.id];
-  if (handler) {
-    await handler(showMainMenu);
-  }
+          const selected = findSelectedItem(config, result.value);
+          if (!selected) return;
+
+          if (selected.id === 'exit') {
+            console.log(chalk.green('\n👋 Goodbye!\n'));
+            process.exit(0);
+          }
+
+          const handler = MAIN_ROUTES[selected.id];
+          if (handler) {
+            await handler(showMainMenu);
+          }
+        })
+      ]
+    },
+
+    // Footer area - Hints
+    footer: {
+      components: [
+        createHintsComponent(hints)
+      ]
+    }
+  });
 }
 
 /**
