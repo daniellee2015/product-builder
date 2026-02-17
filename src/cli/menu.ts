@@ -1,14 +1,4 @@
-import {
-  renderPageV2,
-  createFullHeaderComponentV2,
-  createRadioMenuComponentV2,
-  createDynamicHintsComponent,
-  createCustomComponent,
-  generateMenuHints,
-  setLanguage,
-  hintManager,
-  type Rect
-} from 'cli-menu-kit';
+import { renderPage, generateMenuHints, setLanguage } from 'cli-menu-kit';
 import chalk from 'chalk';
 import {
   showLLMCLIMenu,
@@ -51,85 +41,57 @@ const MAIN_ROUTES: Record<string, (back: () => Promise<void>) => Promise<void>> 
 
 /**
  * Main interactive menu for Product Builder
- * Using Page Layout V2 with component-based architecture
  */
 export async function showMainMenu(): Promise<void> {
   const config = MENUS.main;
-  const menuOptions = buildMenuOptions(config);
 
-  // Generate hints based on menu options (caller handles logic)
-  const hints = generateMenuHints({
-    hasMultipleOptions: true,
-    allowNumberKeys: true,
-    allowLetterKeys: true
-  });
-
-  // Set initial hints BEFORE rendering
-  hintManager.set('menu', hints.join(' • '), 10);
-
-  // Render page using Page Layout V2
-  await renderPageV2({
-    // Header area - Full header with ASCII art
+  const result = await renderPage({
     header: {
-      components: [
-        createFullHeaderComponentV2({
-          asciiArt: [
-            '██╗    ██╗ █████╗  ██████╗  ██████╗  ██████╗  ██████╗ ',
-            '██║    ██║██╔══██╗██╔═══██╗██╔═══██╗██╔═══██╗██╔═══██╗',
-            '██║ █╗ ██║███████║██║   ██║██║   ██║██║   ██║██║   ██║',
-            '██║███╗██║██╔══██║██║   ██║██║   ██║██║   ██║██║   ██║',
-            '╚███╔███╔╝██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝',
-            ' ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ '
-          ],
-          title: config.title,
-          description: config.desc,
-          version: '0.1.0',
-          url: 'https://github.com/product-builder/cli'
-        })
-      ]
+      type: 'full',
+      asciiArt: [
+        '██╗    ██╗ █████╗  ██████╗  ██████╗  ██████╗  ██████╗ ',
+        '██║    ██║██╔══██╗██╔═══██╗██╔═══██╗██╔═══██╗██╔═══██╗',
+        '██║ █╗ ██║███████║██║   ██║██║   ██║██║   ██║██║   ██║',
+        '██║███╗██║██╔══██║██║   ██║██║   ██║██║   ██║██║   ██║',
+        '╚███╔███╔╝██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝',
+        ' ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ '
+      ],
+      title: config.title,
+      description: config.desc,
+      version: '0.1.0',
+      url: 'https://github.com/product-builder/cli',
+      menuTitle: 'Select an option:'
     },
-
-    // Main area - Menu options
     mainArea: {
-      components: [
-        createRadioMenuComponentV2({
-          menuConfig: {
-            options: menuOptions,
-            allowLetterKeys: true,
-            allowNumberKeys: true,
-            preserveOnSelect: true
-          },
-          onResult: async (result) => {
-            const selected = findSelectedItem(config, result.value);
-            if (!selected) return;
-
-            if (selected.id === 'exit') {
-              console.log(chalk.green('\n👋 Goodbye!\n'));
-              process.exit(0);
-            }
-
-            const handler = MAIN_ROUTES[selected.id];
-            if (handler) {
-              await handler(showMainMenu);
-            }
-          }
-        })
-      ]
+      type: 'menu',
+      menu: {
+        options: buildMenuOptions(config),
+        allowLetterKeys: true,
+        allowNumberKeys: true,
+        preserveOnSelect: true
+      }
     },
-
-    // Footer area - Hints and Prompt
     footer: {
-      components: [
-        createDynamicHintsComponent(),
-        createCustomComponent(
-          'prompt',
-          'footerPrompt',
-          (rect: Rect) => [''], // Empty prompt for now
-          undefined
-        )
-      ]
+      hints: generateMenuHints({
+        hasMultipleOptions: true,
+        allowNumberKeys: true,
+        allowLetterKeys: true
+      })
     }
   });
+
+  const selected = findSelectedItem(config, result.value);
+  if (!selected) return;
+
+  if (selected.id === 'exit') {
+    console.log(chalk.green('\n👋 Goodbye!\n'));
+    process.exit(0);
+  }
+
+  const handler = MAIN_ROUTES[selected.id];
+  if (handler) {
+    await handler(showMainMenu);
+  }
 }
 
 /**
