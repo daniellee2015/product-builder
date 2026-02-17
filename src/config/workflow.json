@@ -91,7 +91,7 @@
   "phases": [
     {
       "id": "phase-0",
-      "name": "Requirement Analysis & MDX Generation",
+      "name": "Requirement Analysis",
       "description": "Create a normalized MDX requirement source from raw request or UI form input.",
       "execution": {
         "mode": "sequential"
