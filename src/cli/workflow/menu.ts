@@ -26,7 +26,7 @@ import {
   resetToBaseMode,
   isStepActive
 } from '../../services/workflow-service';
-import { displayWorkflow, displayWorkflowTable } from './display';
+import { displayWorkflow, displayWorkflowTable, displayEditableWorkflowTable } from './display';
 import i18n from '../../libs/i18n';
 
 /**
@@ -228,65 +228,24 @@ async function resetWorkflow(data: WorkflowData): Promise<boolean> {
  * Edit workflow - enable/disable steps
  */
 async function editWorkflow(data: WorkflowData): Promise<boolean> {
-  console.log('');
-  renderSimpleHeader(i18n.t('workflow.edit.title'));
-  console.log(chalk.gray(`  ${i18n.t('workflow.edit.description')}\n`));
-
-  // Build list of all steps with their current enabled state
-  const allSteps: Array<{ id: string; name: string; phase: string; enabled: boolean }> = [];
-
-  for (const phase of data.phases) {
-    for (const step of phase.steps) {
-      const enabled = isStepActive(step, data.mode);
-      allSteps.push({
-        id: step.id,
-        name: step.name,
-        phase: phase.name,
-        enabled
-      });
-    }
-  }
-
-  // Create options for multi-select
-  const options = allSteps.map(step => {
-    const status = step.enabled ? chalk.green('✓') : chalk.gray('○');
-    const phaseName = chalk.gray(`[${step.phase}]`);
-    return `${status} ${step.id}  ${step.name} ${phaseName}`;
-  });
-
-  showInfo(i18n.t('workflow.edit.instructions'));
-  console.log('');
-
-  const result = await menu.checkbox({
-    options,
-    preserveOnSelect: true,
-    // Pre-select currently enabled steps
-    defaultSelected: allSteps
-      .map((step, index) => step.enabled ? index : -1)
-      .filter(i => i >= 0)
-  });
-
-  // Update enabled steps based on selection
-  const selectedIndices = new Set(result.indices);
-  const enabledSteps = allSteps
-    .filter((_, index) => selectedIndices.has(index))
-    .map(step => step.id);
+  // Call the editable table component
+  const selectedSteps = await displayEditableWorkflowTable(data);
 
   // Create or update custom mode
   const currentMode = data.available_modes[data.mode];
   if (currentMode.is_custom) {
     // Update existing custom mode
-    currentMode.enabled_steps = enabledSteps;
-    currentMode.steps = enabledSteps.length;
+    currentMode.enabled_steps = selectedSteps;
+    currentMode.steps = selectedSteps.length;
   } else {
     // Create new custom mode based on current mode
     const customModeName = `custom-${data.mode}`;
     data.available_modes[customModeName] = {
       label: `Custom (${currentMode.label})`,
       required_tools: currentMode.required_tools,
-      enabled_steps: enabledSteps,
+      enabled_steps: selectedSteps,
       description: `Custom workflow based on ${currentMode.label} mode`,
-      steps: enabledSteps.length,
+      steps: selectedSteps.length,
       review_gates: 0, // Will be recalculated
       is_custom: true,
       base_mode: data.mode
@@ -295,7 +254,7 @@ async function editWorkflow(data: WorkflowData): Promise<boolean> {
   }
 
   saveWorkflow(data);
-  showSuccess(i18n.t('workflow.edit.success', { count: String(enabledSteps.length) }));
+  showSuccess(i18n.t('workflow.edit.success', { count: String(selectedSteps.length) }));
   console.log('');
   return true;
 }

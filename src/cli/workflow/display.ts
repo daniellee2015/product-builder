@@ -8,7 +8,7 @@ import {
   showInfo
 } from 'cli-menu-kit';
 import chalk from 'chalk';
-import { WorkflowData } from '../../types/workflow';
+import { WorkflowData, WorkflowStep } from '../../types/workflow';
 import {
   isStepActive,
   countActiveSteps,
@@ -171,4 +171,79 @@ export function displayWorkflowTable(data: WorkflowData): void {
 
   console.log('');
 }
+
+/**
+ * Interactive table for editing workflow steps with checkboxes
+ * Returns array of selected step IDs
+ */
+export async function displayEditableWorkflowTable(data: WorkflowData): Promise<string[]> {
+  console.log('');
+  renderSimpleHeader(i18n.t('workflow.edit.title'));
+  console.log(chalk.gray(`  ${i18n.t('workflow.edit.description')}\n`));
+
+  // Build options with table format
+  const allSteps: Array<{ id: string; name: string; phase: string; enabled: boolean; step: WorkflowStep }> = [];
+  const options: string[] = [];
+
+  for (const phase of data.phases) {
+    // Add phase header as a disabled option
+    const phaseNumber = phase.id.replace(/^phase-/, '');
+    const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
+    options.push(chalk.cyan.bold(`${phaseLabel}: ${phase.name}`));
+    allSteps.push({ id: '', name: '', phase: '', enabled: false, step: {} as WorkflowStep });
+
+    for (const step of phase.steps) {
+      const enabled = isStepActive(step, data.mode);
+
+      // Format table row
+      const colWidths = { id: 8, name: 30, condition: 18, mode: 10, tools: 12 };
+
+      const name = step.name.length > colWidths.name - 2
+        ? step.name.substring(0, colWidths.name - 5) + '...'
+        : step.name;
+
+      const condition = step.condition
+        ? i18n.t(`workflow.conditions.${step.condition}`).substring(0, colWidths.condition - 2)
+        : '-';
+
+      const mode = step.min_mode !== 'lite' ? `${step.min_mode}+` : '-';
+
+      const tools = step.required_tools && step.required_tools.length > 0
+        ? step.required_tools.join(',').substring(0, colWidths.tools - 2)
+        : '-';
+
+      const row =
+        step.id.padEnd(colWidths.id) +
+        name.padEnd(colWidths.name) +
+        chalk.gray(condition.padEnd(colWidths.condition)) +
+        chalk.gray(mode.padEnd(colWidths.mode)) +
+        chalk.gray(tools.padEnd(colWidths.tools));
+
+      options.push(row);
+      allSteps.push({ id: step.id, name: step.name, phase: phase.name, enabled, step });
+    }
+  }
+
+  showInfo(i18n.t('workflow.edit.instructions'));
+  console.log('');
+
+  const { menu } = await import('cli-menu-kit');
+
+  const result = await menu.checkbox({
+    options,
+    preserveOnSelect: true,
+    defaultSelected: allSteps
+      .map((step, index) => step.enabled && step.id ? index : -1)
+      .filter(i => i >= 0)
+  });
+
+  // Filter out phase headers and get selected step IDs
+  const selectedSteps = result.indices
+    .map(index => allSteps[index])
+    .filter(step => step.id !== '') // Remove phase headers
+    .map(step => step.id);
+
+  return selectedSteps;
+}
+
 
