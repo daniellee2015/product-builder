@@ -84,28 +84,7 @@ export function displayWorkflow(data: WorkflowData): void {
       const active = isStepActive(step, data.mode);
 
       if (active) {
-        // Main step line
         console.log(`  ${chalk.white(step.id)}  ${step.name}`);
-
-        // Metadata line (only if there's metadata to show)
-        const metadata: string[] = [];
-
-        if (step.condition) {
-          const conditionText = i18n.t(`workflow.conditions.${step.condition}`);
-          metadata.push(chalk.gray(`${i18n.t('workflow.display.condition')}: ${conditionText}`));
-        }
-
-        if (step.min_mode && step.min_mode !== 'lite') {
-          metadata.push(chalk.gray(`${i18n.t('workflow.display.minMode')}: ${step.min_mode}+`));
-        }
-
-        if (step.review_config) {
-          metadata.push(chalk.magenta(`${i18n.t('workflow.display.review')}: ${i18n.t('workflow.display.yes')}`));
-        }
-
-        if (metadata.length > 0) {
-          console.log(`          ${metadata.join(chalk.gray(' | '))}`);
-        }
       } else {
         console.log(chalk.gray(`  ${step.id}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`));
       }
