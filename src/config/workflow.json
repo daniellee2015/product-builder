@@ -392,227 +392,40 @@
           "id": "0.1",
           "name": "Initial Requirement Collection",
           "description": "Initial requirement collection",
-          "steps": [
-            {
-              "id": "P0-01",
-              "name": "Collect User Requirement",
-              "description": "收集用户需求：从用户对话/文本/文档中提取原始需求",
-              "input": [
-                "user_input.raw"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/source/raw-requirement.txt"
-              ],
-              "min_mode": "lite"
-            },
-            {
-              "id": "P0-02",
-              "name": "Detect Requirement Type",
-              "description": "检测需求类型：判断是简短需求（一句话）还是详细需求（已有规划）",
-              "input": [
-                "exports/jobs/{job_id}/source/raw-requirement.txt"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/parsed/requirement-type.json"
-              ],
-              "min_mode": "lite"
-            },
-            {
-              "id": "P0-03",
-              "name": "Requirement Clarification",
-              "description": "需求澄清：询问目标用户、核心问题、关键功能、约束条件",
-              "input": [
-                "exports/jobs/{job_id}/source/raw-requirement.txt"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/parsed/clarified-requirement.md"
-              ],
-              "condition": "当需求简短时",
-              "min_mode": "standard",
-              "required_tools": [
-                "ccb"
-              ]
-            },
-            {
-              "id": "P0-04",
-              "name": "Requirement Expansion",
-              "description": "需求扩展：将简短需求扩展为详细描述",
-              "input": [
-                "exports/jobs/{job_id}/parsed/clarified-requirement.md"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/parsed/expanded-requirement.md"
-              ],
-              "condition": "当需求简短时",
-              "min_mode": "standard",
-              "required_tools": [
-                "ccb"
-              ]
-            }
+          "step_ids": [
+            "P0-01",
+            "P0-02",
+            "P0-03",
+            "P0-04"
           ]
         },
         {
           "id": "0.2",
           "name": "Market Research",
           "description": "Market research",
-          "steps": [
-            {
-              "id": "P0-05",
-              "name": "Competitor Research",
-              "description": "竞品研究：使用 web_search 和 context7 查找竞品",
-              "input": [
-                "exports/jobs/{job_id}/parsed/expanded-requirement.md"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/competitor-list.json"
-              ],
-              "min_mode": "standard",
-              "required_tools": [
-                "ccb"
-              ],
-              "optional_tools": [
-                "web_search",
-                "context7"
-              ]
-            },
-            {
-              "id": "P0-06",
-              "name": "Competitor Analysis",
-              "description": "竞品分析：分析功能对比、定价、用户评价、市场定位",
-              "input": [
-                "exports/jobs/{job_id}/analysis/competitor-list.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/competitor-analysis.md"
-              ],
-              "min_mode": "standard",
-              "required_tools": [
-                "ccb"
-              ]
-            },
-            {
-              "id": "P0-07",
-              "name": "Market Positioning",
-              "description": "市场定位：确定差异化优势和目标市场",
-              "input": [
-                "exports/jobs/{job_id}/analysis/competitor-analysis.md"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/market-positioning.md"
-              ],
-              "min_mode": "full",
-              "required_tools": [
-                "ccb"
-              ]
-            }
+          "step_ids": [
+            "P0-05",
+            "P0-06",
+            "P0-07"
           ]
         },
         {
           "id": "0.3",
           "name": "Requirement Analysis",
           "description": "Requirement analysis",
-          "steps": [
-            {
-              "id": "P0-08",
-              "name": "Feature Breakdown",
-              "description": "功能拆解：拆解核心功能和子功能",
-              "input": [
-                "exports/jobs/{job_id}/parsed/expanded-requirement.md"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/feature-breakdown.json"
-              ],
-              "min_mode": "lite",
-              "required_tools": [
-                "ccb"
-              ]
-            },
-            {
-              "id": "P0-09",
-              "name": "User Story Generation",
-              "description": "用户故事生成：生成用户故事和使用场景",
-              "input": [
-                "exports/jobs/{job_id}/analysis/feature-breakdown.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/user-stories.md"
-              ],
-              "min_mode": "standard",
-              "required_tools": [
-                "ccb"
-              ]
-            },
-            {
-              "id": "P0-10",
-              "name": "Technical Feasibility Analysis",
-              "description": "技术可行性分析：评估技术栈、依赖、风险",
-              "input": [
-                "exports/jobs/{job_id}/analysis/feature-breakdown.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/feasibility-analysis.md"
-              ],
-              "min_mode": "standard",
-              "required_tools": [
-                "ccb"
-              ]
-            }
+          "step_ids": [
+            "P0-08",
+            "P0-09",
+            "P0-10"
           ]
         },
         {
           "id": "0.4",
           "name": "MDX Generation",
           "description": "MDX generation",
-          "steps": [
-            {
-              "id": "P0-11",
-              "name": "Generate Requirement MDX",
-              "description": "生成需求 MDX：整合所有分析结果",
-              "input": [
-                "exports/jobs/{job_id}/analysis/feature-breakdown.json",
-                "exports/jobs/{job_id}/analysis/user-stories.md",
-                "exports/jobs/{job_id}/analysis/feasibility-analysis.md"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/source/requirement.mdx"
-              ],
-              "min_mode": "lite",
-              "required_tools": [
-                "ccb"
-              ]
-            },
-            {
-              "id": "P0-12",
-              "name": "Review Requirement MDX",
-              "description": "审查需求 MDX：多模型审查 + 自动修复（最多 3 次）",
-              "input": [
-                "exports/jobs/{job_id}/source/requirement.mdx"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/source/requirement.mdx",
-                "exports/jobs/{job_id}/reviews/requirement-review.json"
-              ],
-              "min_mode": "standard",
-              "required_tools": [
-                "ccb",
-                "cca"
-              ],
-              "review_config": {
-                "models": [
-                  "gemini",
-                  "claude",
-                  "codex"
-                ],
-                "pass_threshold": 0.75,
-                "max_critical": 0,
-                "max_medium": 2,
-                "auto_repair": {
-                  "enabled": true,
-                  "max_attempts": 3,
-                  "ask_user_on_exhausted": true
-                }
-              }
-            }
+          "step_ids": [
+            "P0-11",
+            "P0-12"
           ]
         }
       ]
@@ -853,249 +666,35 @@
           "id": "1.1",
           "name": "Capability Analysis",
           "description": "Capability analysis",
-          "steps": [
-            {
-              "id": "P1-01",
-              "name": "Find Existing Work",
-              "description": "Discover related jobs, branches, specs, and reusable outputs.",
-              "skill": "find-existing-work",
-              "input": [
-                "exports/jobs/index.json",
-                "repo/specs/**",
-                "repo/docs/**"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/existing-work.json"
-              ],
-              "min_mode": "standard"
-            },
-            {
-              "id": "P1-02",
-              "name": "Update Capability Tree",
-              "description": "Rebuild capability map using build-capability-tree.ts.",
-              "skill": "build-capability-tree",
-              "input": [
-                "repo/specs/**",
-                "repo/src/**"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/capability-tree.json"
-              ],
-              "min_mode": "standard"
-            },
-            {
-              "id": "P1-03",
-              "name": "Create Job and Git Branch",
-              "description": "Create job directory and working branch.",
-              "skill": "job-create",
-              "input": [
-                "CCB_REQ_ID",
-                "exports/jobs/{job_id}/analysis/existing-work.json",
-                "exports/jobs/{job_id}/analysis/capability-tree.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/metadata.json",
-                "git.branch.name"
-              ],
-              "condition": "done('P1-01') && done('P1-02')",
-              "min_mode": "lite"
-            }
+          "step_ids": [
+            "P1-01",
+            "P1-02",
+            "P1-03"
           ]
         },
         {
           "id": "1.2",
           "name": "OpenSpec Generation",
           "description": "OpenSpec generation",
-          "steps": [
-            {
-              "id": "P1-04",
-              "name": "Convert MDX to OpenSpec",
-              "description": "Generate OpenSpec from canonical requirements.mdx.",
-              "skill": "mdx-to-openspec",
-              "input": [
-                "exports/jobs/{job_id}/source/requirements.mdx",
-                "exports/jobs/{job_id}/metadata.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/source/openspec.mdx"
-              ],
-              "min_mode": "lite"
-            },
-            {
-              "id": "P1-05",
-              "name": "Review OpenSpec",
-              "description": "Run multi-model review gate and auto-repair before passing.",
-              "skill": "openspec-review",
-              "input": [
-                "exports/jobs/{job_id}/source/openspec.mdx"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/reviews/openspec-review.json",
-                "exports/jobs/{job_id}/source/openspec.mdx"
-              ],
-              "review_config": {
-                "models": [
-                  "gemini",
-                  "claude",
-                  "codex"
-                ],
-                "pass_threshold": 0.75,
-                "max_critical": 0,
-                "max_medium": 2,
-                "auto_repair": {
-                  "enabled": true,
-                  "max_attempts": 3,
-                  "ask_user_on_exhausted": true
-                }
-              },
-              "min_mode": "standard"
-            },
-            {
-              "id": "P1-06",
-              "name": "Parse OpenSpec to docs.json",
-              "description": "Extract structured requirement docs from reviewed OpenSpec.",
-              "skill": "parse-openspec",
-              "input": [
-                "exports/jobs/{job_id}/source/openspec.mdx"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/parsed/docs.json"
-              ],
-              "min_mode": "standard"
-            }
+          "step_ids": [
+            "P1-04",
+            "P1-05",
+            "P1-06"
           ]
         },
         {
           "id": "1.3",
           "name": "Development Specs",
           "description": "Development specs generation",
-          "steps": [
-            {
-              "id": "P1-07",
-              "name": "Check or Infer form.json",
-              "description": "Use existing form.json when valid, otherwise infer it.",
-              "skill": "infer-builder-config",
-              "input": [
-                "exports/jobs/{job_id}/parsed/docs.json",
-                "source/form.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/parsed/form.json"
-              ],
-              "min_mode": "standard"
-            },
-            {
-              "id": "P1-08",
-              "name": "Merge to unified.json",
-              "description": "Merge docs.json and form.json into one execution model.",
-              "skill": "merge-requirements",
-              "input": [
-                "exports/jobs/{job_id}/parsed/docs.json",
-                "exports/jobs/{job_id}/parsed/form.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/parsed/unified.json"
-              ],
-              "min_mode": "standard"
-            },
-            {
-              "id": "P1-09",
-              "name": "Analyze Capability Dependencies",
-              "description": "Map feature requirements to capabilities and dependency graph.",
-              "skill": "capability-analyze",
-              "input": [
-                "exports/jobs/{job_id}/parsed/unified.json",
-                "exports/jobs/{job_id}/analysis/capability-tree.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/capability-dependencies.json"
-              ],
-              "min_mode": "standard"
-            },
-            {
-              "id": "P1-10",
-              "name": "Generate Development Specs",
-              "description": "Generate detailed implementation specs under specs/.",
-              "skill": "spec-generate",
-              "input": [
-                "exports/jobs/{job_id}/parsed/unified.json",
-                "exports/jobs/{job_id}/analysis/capability-dependencies.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/specs/*.mdx"
-              ],
-              "min_mode": "lite"
-            },
-            {
-              "id": "P1-11",
-              "name": "Review Development Specs",
-              "description": "Run multi-model quality gate and auto-repair for generated specs.",
-              "skill": "specs-review",
-              "input": [
-                "exports/jobs/{job_id}/specs/*.mdx"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/reviews/specs-review.json",
-                "exports/jobs/{job_id}/specs/*.mdx"
-              ],
-              "review_config": {
-                "models": [
-                  "gemini",
-                  "claude",
-                  "codex"
-                ],
-                "pass_threshold": 0.75,
-                "max_critical": 0,
-                "max_medium": 2,
-                "auto_repair": {
-                  "enabled": true,
-                  "max_attempts": 3,
-                  "ask_user_on_exhausted": true
-                }
-              },
-              "min_mode": "standard"
-            },
-            {
-              "id": "P1-12",
-              "name": "Generate Global Roadmap View",
-              "description": "Build cross-capability planning graph and milestones.",
-              "skill": "roadmap-generate",
-              "input": [
-                "exports/jobs/{job_id}/analysis/capability-dependencies.json",
-                "exports/jobs/{job_id}/specs/*.mdx"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/roadmap.json"
-              ],
-              "min_mode": "standard"
-            },
-            {
-              "id": "P1-13",
-              "name": "Generate Planning Docs",
-              "description": "Render planning documents from roadmap JSON to MDX.",
-              "skill": "roadmap-docs-generate",
-              "input": [
-                "exports/jobs/{job_id}/analysis/roadmap.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/docs/roadmap.mdx"
-              ],
-              "min_mode": "standard"
-            },
-            {
-              "id": "P1-14",
-              "name": "Commit Planning Changes",
-              "description": "Commit planning artifacts to job branch.",
-              "skill": "git-commit",
-              "input": [
-                "exports/jobs/{job_id}/**",
-                "git.branch.name"
-              ],
-              "output": [
-                "git.commit.planning"
-              ],
-              "min_mode": "lite"
-            }
+          "step_ids": [
+            "P1-07",
+            "P1-08",
+            "P1-09",
+            "P1-10",
+            "P1-11",
+            "P1-12",
+            "P1-13",
+            "P1-14"
           ]
         }
       ]
@@ -1186,82 +785,12 @@
           "id": "2.1",
           "name": "Task Loop",
           "description": "Task loop",
-          "steps": [
-            {
-              "id": "P2-15",
-              "name": "Execute Task",
-              "description": "Implement next planned task from unified execution queue.",
-              "skill": "task-execute",
-              "input": [
-                "exports/jobs/{job_id}/parsed/unified.json",
-                "exports/jobs/{job_id}/analysis/roadmap.json",
-                "tasks.next"
-              ],
-              "output": [
-                "workspace.code_changes",
-                "tasks.current_result"
-              ],
-              "min_mode": "lite"
-            },
-            {
-              "id": "P2-16",
-              "name": "Verify Task",
-              "description": "Run automated checks for correctness and regressions.",
-              "skill": "task-verify",
-              "input": [
-                "workspace.code_changes",
-                "tasks.current_result"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/reviews/task-verify.json"
-              ],
-              "min_mode": "standard"
-            },
-            {
-              "id": "P2-17",
-              "name": "Update OpenSpec Status",
-              "description": "Reflect task completion and state in OpenSpec.",
-              "skill": "task-update-status",
-              "input": [
-                "exports/jobs/{job_id}/source/openspec.mdx",
-                "exports/jobs/{job_id}/reviews/task-verify.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/source/openspec.mdx"
-              ],
-              "condition": "task_verify.status == 'pass'",
-              "min_mode": "standard"
-            },
-            {
-              "id": "P2-18",
-              "name": "Update Progress",
-              "description": "Update progress metrics and execution tracking files.",
-              "skill": "progress-update",
-              "input": [
-                "exports/jobs/{job_id}/source/openspec.mdx",
-                "tasks.current_result"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/analysis/progress.json"
-              ],
-              "condition": "task_verify.status == 'pass'",
-              "min_mode": "standard"
-            },
-            {
-              "id": "P2-19",
-              "name": "Commit Task Changes",
-              "description": "Commit verified task changes on job branch.",
-              "skill": "git-commit",
-              "input": [
-                "workspace.code_changes",
-                "exports/jobs/{job_id}/analysis/progress.json"
-              ],
-              "output": [
-                "git.commit.task"
-              ],
-              "condition": "task_verify.status == 'pass'",
-              "min_mode": "lite"
-            }
+          "step_ids": [
+            "P2-15",
+            "P2-16",
+            "P2-17",
+            "P2-18",
+            "P2-19"
           ]
         }
       ]
@@ -1330,55 +859,9 @@
           "id": "3.1",
           "name": "Review & Confirmation",
           "description": "Review and confirmation",
-          "steps": [
-            {
-              "id": "P3-20",
-              "name": "Multi-Model Acceptance Review",
-              "description": "Run final acceptance review with auto-repair up to 3 attempts.",
-              "skill": "acceptance-review",
-              "input": [
-                "workspace.final_changes",
-                "exports/jobs/{job_id}/source/openspec.mdx",
-                "exports/jobs/{job_id}/specs/*.mdx"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/reviews/acceptance-review.json",
-                "workspace.final_changes"
-              ],
-              "review_config": {
-                "models": [
-                  "gemini",
-                  "claude",
-                  "codex"
-                ],
-                "pass_threshold": 0.75,
-                "max_critical": 0,
-                "max_medium": 2,
-                "auto_repair": {
-                  "enabled": true,
-                  "max_attempts": 3,
-                  "ask_user_on_exhausted": true,
-                  "user_options": [
-                    "continue",
-                    "cancel"
-                  ]
-                }
-              },
-              "min_mode": "standard"
-            },
-            {
-              "id": "P3-21",
-              "name": "Human Final Confirmation",
-              "description": "Require explicit human decision before merge and archive.",
-              "skill": "human-confirm",
-              "input": [
-                "exports/jobs/{job_id}/reviews/acceptance-review.json"
-              ],
-              "output": [
-                "exports/jobs/{job_id}/reviews/human-approval.json"
-              ],
-              "min_mode": "lite"
-            }
+          "step_ids": [
+            "P3-20",
+            "P3-21"
           ]
         }
       ]
@@ -1475,91 +958,13 @@
           "id": "4.1",
           "name": "Merge & Update",
           "description": "Merge and update",
-          "steps": [
-            {
-              "id": "P4-22",
-              "name": "Merge Git Branch",
-              "description": "Merge approved job branch into target integration branch.",
-              "skill": "git-merge-branch",
-              "input": [
-                "git.branch.name",
-                "exports/jobs/{job_id}/reviews/human-approval.json"
-              ],
-              "output": [
-                "git.merge.commit"
-              ],
-              "condition": "human_approved == true",
-              "min_mode": "lite"
-            },
-            {
-              "id": "P4-23",
-              "name": "Archive OpenSpec",
-              "description": "Archive OpenSpec and related review artifacts.",
-              "skill": "openspec-archive",
-              "input": [
-                "exports/jobs/{job_id}/source/openspec.mdx",
-                "exports/jobs/{job_id}/reviews/*.json"
-              ],
-              "output": [
-                "exports/archive/openspec/{job_id}.mdx"
-              ],
-              "min_mode": "full"
-            },
-            {
-              "id": "P4-24",
-              "name": "Update specs/",
-              "description": "Refresh repository-level specs from approved job specs.",
-              "skill": "spec-generate",
-              "input": [
-                "exports/jobs/{job_id}/specs/*.mdx"
-              ],
-              "output": [
-                "repo/specs/**"
-              ],
-              "min_mode": "full"
-            },
-            {
-              "id": "P4-25",
-              "name": "Update Development Docs",
-              "description": "Regenerate development documentation after merge.",
-              "skill": "docs-generate",
-              "input": [
-                "repo/specs/**",
-                "workspace.final_changes"
-              ],
-              "output": [
-                "repo/docs/**"
-              ],
-              "min_mode": "full"
-            },
-            {
-              "id": "P4-26",
-              "name": "Update Roadmap Docs",
-              "description": "Regenerate roadmap docs for latest merged state.",
-              "skill": "roadmap-docs-generate",
-              "input": [
-                "exports/jobs/{job_id}/analysis/roadmap.json",
-                "repo/specs/**"
-              ],
-              "output": [
-                "repo/docs/roadmap/**"
-              ],
-              "min_mode": "full"
-            },
-            {
-              "id": "P4-27",
-              "name": "Rebuild Capability Tree",
-              "description": "Rebuild capability tree after merge and docs/spec updates.",
-              "skill": "build-capability-tree",
-              "input": [
-                "repo/specs/**",
-                "repo/src/**"
-              ],
-              "output": [
-                "repo/.ccb/capability-tree.json"
-              ],
-              "min_mode": "full"
-            }
+          "step_ids": [
+            "P4-22",
+            "P4-23",
+            "P4-24",
+            "P4-25",
+            "P4-26",
+            "P4-27"
           ]
         }
       ]

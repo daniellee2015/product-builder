@@ -27,6 +27,13 @@ export interface WorkflowStep {
   };
 }
 
+export interface StepGroup {
+  id: string;
+  name: string;
+  description: string;
+  step_ids: string[];
+}
+
 export interface WorkflowPhase {
   id: string;
   name: string;
@@ -37,6 +44,7 @@ export interface WorkflowPhase {
     exit_condition?: string;
   };
   steps: WorkflowStep[];
+  groups?: StepGroup[];
 }
 
 export interface ModeConfig {
