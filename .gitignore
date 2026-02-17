@@ -36,3 +36,15 @@ coverage/
 tmp/
 temp/
 *.tmp
+
+# CCB instances and cache
+.ccb/
+.ccb-instances/
+.claude/
+
+# Package tarballs
+*.tgz
+
+# Test files
+test-*.js
+test-*.sh

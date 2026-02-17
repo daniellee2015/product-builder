@@ -1,0 +1,32 @@
+# Source files
+src/
+tsconfig.json
+
+# Tests
+**/*.test.ts
+**/*.spec.ts
+jest.config.js
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation (keep only essential)
+docs/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
