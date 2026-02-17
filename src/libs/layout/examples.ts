@@ -1,12 +1,12 @@
 /**
- * Page Layout 使用示例
+ * Page Layout Usage Examples
  */
 
-import { renderPage } from './page-layout';
+import { renderPage, generateMenuHints, generateInputHints } from 'cli-menu-kit';
 import { displayWorkflow } from '../../cli/workflow/display';
 
 /**
- * 示例 1: Display 类型页面 (View Workflow)
+ * Example 1: Display type page (View Workflow)
  * Header + Display + Footer(Menu + Hint)
  */
 export async function exampleDisplayPage(data: any) {
@@ -31,7 +31,7 @@ export async function exampleDisplayPage(data: any) {
         options: ['b. Back'],
         allowLetterKeys: true
       },
-      hints: ['b Back']
+      hints: generateMenuHints({ allowLetterKeys: true })
     }
   });
 
@@ -39,7 +39,7 @@ export async function exampleDisplayPage(data: any) {
 }
 
 /**
- * 示例 2: Interactive 类型页面 (Edit Workflow)
+ * Example 2: Interactive type page (Edit Workflow)
  * Header + Interactive + Footer(Menu + Hint)
  */
 export async function exampleInteractivePage(data: any) {
@@ -55,8 +55,8 @@ export async function exampleInteractivePage(data: any) {
     mainArea: {
       type: 'interactive',
       render: async () => {
-        // Checkbox menu 在这里渲染
-        // 返回选中的步骤
+        // Checkbox menu renders here
+        // Returns selected steps
       }
     },
 
@@ -71,7 +71,11 @@ export async function exampleInteractivePage(data: any) {
         allowNumberKeys: true,
         allowLetterKeys: true
       },
-      hints: ['↑↓ Navigate  Enter Confirm  b Back']
+      hints: generateMenuHints({
+        hasMultipleOptions: true,
+        allowNumberKeys: true,
+        allowLetterKeys: true
+      })
     }
   });
 
@@ -79,11 +83,11 @@ export async function exampleInteractivePage(data: any) {
 }
 
 /**
- * 示例 3: 带二次确认的页面
+ * Example 3: Page with confirmation
  * Header + Interactive + Footer(Menu + Ask + Hint)
  */
 export async function exampleWithConfirmation(data: any, hasChanges: boolean) {
-  // Step 1: 显示主页面
+  // Step 1: Show main page
   const result = await renderPage({
     header: {
       type: 'section',
@@ -99,11 +103,11 @@ export async function exampleWithConfirmation(data: any, hasChanges: boolean) {
       menu: {
         options: ['1. Save', '2. Cancel', 'b. Back']
       },
-      hints: ['↑↓ Navigate  Enter Confirm']
+      hints: generateMenuHints({ hasMultipleOptions: true, allowNumberKeys: true })
     }
   });
 
-  // Step 2: 如果需要确认
+  // Step 2: If confirmation needed
   if (hasChanges && (result.index === 1 || result.index === 2)) {
     const confirmResult = await renderPage({
       header: {
@@ -112,7 +116,7 @@ export async function exampleWithConfirmation(data: any, hasChanges: boolean) {
       mainArea: {
         type: 'display',
         render: () => {
-          // 不显示内容
+          // No content
         }
       },
       footer: {
@@ -131,7 +135,7 @@ export async function exampleWithConfirmation(data: any, hasChanges: boolean) {
 }
 
 /**
- * 示例 4: Input 类型页面
+ * Example 4: Input type page
  * Header + Display + Footer(Input + Hint)
  */
 export async function exampleInputPage() {
@@ -151,7 +155,7 @@ export async function exampleInputPage() {
         prompt: 'Workflow name',
         defaultValue: 'custom-workflow'
       },
-      hints: ['Enter to submit  Esc to cancel']
+      hints: generateInputHints()
     }
   });
 

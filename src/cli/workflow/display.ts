@@ -300,12 +300,7 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
   const result = await menu.checkbox({
     options,
     preserveOnSelect: true,
-    defaultSelected,
-    hints: [
-      '1. Save changes',
-      '2. Cancel (discard changes)',
-      `b. ${i18n.t('common.back')}`
-    ]
+    defaultSelected
   }) as { indices: number[]; values: string[]; cancelled?: boolean };
 
   // Process selection: handle phase-level and step-level selections
