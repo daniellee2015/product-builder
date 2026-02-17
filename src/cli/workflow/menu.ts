@@ -8,6 +8,7 @@ import * as path from 'path';
 import {
   menu,
   input,
+  renderSectionHeader,
   renderSimpleHeader,
   showInfo,
   showError,
@@ -240,8 +241,10 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
   const modeLabel = data ? `${data.available_modes[data.mode]?.label || data.mode}` : '?';
   const menuConfig = MENUS.workflow;
 
-  console.log('');
-  renderSimpleHeader(menuConfig.title);
+  renderSectionHeader(menuConfig.title, menuConfig.headerWidth);
+  if (menuConfig.desc) {
+    console.log(chalk.gray(menuConfig.desc + '\n'));
+  }
   console.log(chalk.gray(`  Current mode: ${chalk.white(modeLabel)}\n`));
 
   const result = await menu.radio({
