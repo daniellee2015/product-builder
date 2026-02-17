@@ -2,7 +2,7 @@
  * Workflow type definitions
  */
 
-export type WorkflowMode = 'lite' | 'standard' | 'full';
+export type WorkflowMode = 'lite' | 'standard' | 'full' | 'custom';
 
 export interface WorkflowStep {
   id: string;
@@ -42,9 +42,21 @@ export interface WorkflowPhase {
 export interface ModeConfig {
   label: string;
   required_tools: string[];
+  enabled_steps?: string[];
   description: string;
   steps: number;
   review_gates: number;
+  is_custom?: boolean;
+  base_mode?: WorkflowMode;
+}
+
+export interface CustomWorkflowConfig {
+  name: string;
+  description?: string;
+  base_mode: WorkflowMode;
+  enabled_steps: string[];
+  created_at: string;
+  modified_at: string;
 }
 
 export interface WorkflowTransition {

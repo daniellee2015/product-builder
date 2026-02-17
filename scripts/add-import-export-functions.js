@@ -1,52 +1,31 @@
 /**
- * Workflow data service
- * Handles loading, saving, and querying workflow configuration
+ * Add import/export/reset functionality to workflow service and menu
  */
 
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import { WorkflowData, WorkflowStep, WorkflowMode, CustomWorkflowConfig } from '../types/workflow';
+const fs = require('fs');
+const path = require('path');
 
-const MODE_ORDER: WorkflowMode[] = ['lite', 'standard', 'full'];
+// 1. Update workflow-service.ts to add new functions
+const servicePath = path.join(__dirname, '../src/services/workflow-service.ts');
+let serviceContent = fs.readFileSync(servicePath, 'utf-8');
 
-function getWorkflowPath(): string {
-  return path.join(__dirname, '../config/workflow.json');
+// Add imports
+if (!serviceContent.includes('import os from')) {
+  serviceContent = serviceContent.replace(
+    "import path from 'path';",
+    "import path from 'path';\nimport os from 'os';"
+  );
 }
 
-export function loadWorkflow(): WorkflowData | null {
-  try {
-    return JSON.parse(fs.readFileSync(getWorkflowPath(), 'utf-8'));
-  } catch {
-    return null;
-  }
+if (!serviceContent.includes('CustomWorkflowConfig')) {
+  serviceContent = serviceContent.replace(
+    "import { WorkflowData, WorkflowStep, WorkflowMode } from '../types/workflow';",
+    "import { WorkflowData, WorkflowStep, WorkflowMode, CustomWorkflowConfig } from '../types/workflow';"
+  );
 }
 
-export function saveWorkflow(data: WorkflowData): void {
-  fs.writeFileSync(getWorkflowPath(), JSON.stringify(data, null, 2), 'utf-8');
-}
-
-export function isStepActive(step: WorkflowStep, currentMode: WorkflowMode): boolean {
-  const modeLevel = MODE_ORDER.indexOf(currentMode);
-  const stepLevel = MODE_ORDER.indexOf(step.min_mode);
-  return stepLevel <= modeLevel;
-}
-
-export function countActiveSteps(data: WorkflowData): number {
-  return data.phases.reduce((sum, p) =>
-    sum + p.steps.filter(s => isStepActive(s, data.mode)).length, 0);
-}
-
-export function countReviewGates(data: WorkflowData): number {
-  return data.phases.reduce((sum, p) =>
-    sum + p.steps.filter(s => s.review_config && isStepActive(s, data.mode)).length, 0);
-}
-
-export function countTotalSteps(data: WorkflowData): number {
-  return data.phases.reduce((sum, p) => sum + p.steps.length, 0);
-}
-
-
+// Add helper function for custom workflow directory
+const customWorkflowDirFunction = `
 function getCustomWorkflowDir(): string {
   const dir = path.join(os.homedir(), '.pb', 'workflows');
   if (!fs.existsSync(dir)) {
@@ -54,13 +33,16 @@ function getCustomWorkflowDir(): string {
   }
   return dir;
 }
+`;
 
+// Add export function
+const exportFunction = `
 export function exportCustomWorkflow(data: WorkflowData, filename: string): string {
   const modeConfig = data.available_modes[data.mode];
 
   const customConfig: CustomWorkflowConfig = {
-    name: filename.replace(/\.json$/, ''),
-    description: `Custom workflow based on ${modeConfig.label} mode`,
+    name: filename.replace(/\\.json$/, ''),
+    description: \`Custom workflow based on \${modeConfig.label} mode\`,
     base_mode: (modeConfig.base_mode || data.mode) as WorkflowMode,
     enabled_steps: modeConfig.enabled_steps || [],
     created_at: new Date().toISOString(),
@@ -72,7 +54,10 @@ export function exportCustomWorkflow(data: WorkflowData, filename: string): stri
 
   return filepath;
 }
+`;
 
+// Add import function
+const importFunction = `
 export function importCustomWorkflow(filepath: string, data: WorkflowData): void {
   const customConfig: CustomWorkflowConfig = JSON.parse(
     fs.readFileSync(filepath, 'utf-8')
@@ -83,7 +68,7 @@ export function importCustomWorkflow(filepath: string, data: WorkflowData): void
   const invalidSteps = customConfig.enabled_steps.filter(id => !allStepIds.includes(id));
 
   if (invalidSteps.length > 0) {
-    throw new Error(`Invalid step IDs in custom workflow: ${invalidSteps.join(', ')}`);
+    throw new Error(\`Invalid step IDs in custom workflow: \${invalidSteps.join(', ')}\`);
   }
 
   // Create or update custom mode
@@ -104,7 +89,10 @@ export function importCustomWorkflow(filepath: string, data: WorkflowData): void
   // Save the updated workflow
   saveWorkflow(data);
 }
+`;
 
+// Add list function
+const listFunction = `
 export function listCustomWorkflows(): string[] {
   const dir = getCustomWorkflowDir();
   try {
@@ -115,7 +103,10 @@ export function listCustomWorkflows(): string[] {
     return [];
   }
 }
+`;
 
+// Add reset function
+const resetFunction = `
 export function resetToBaseMode(data: WorkflowData, baseMode: WorkflowMode): void {
   if (baseMode === 'custom') {
     throw new Error('Cannot reset to custom mode');
@@ -131,5 +122,17 @@ export function resetToBaseMode(data: WorkflowData, baseMode: WorkflowMode): voi
 
   saveWorkflow(data);
 }
+`;
 
-export { MODE_ORDER };
+// Insert functions before the export statement at the end
+const exportStatement = 'export { MODE_ORDER };';
+const insertPoint = serviceContent.lastIndexOf(exportStatement);
+
+if (insertPoint > 0 && !serviceContent.includes('exportCustomWorkflow')) {
+  const newFunctions = customWorkflowDirFunction + exportFunction + importFunction + listFunction + resetFunction + '\n';
+  serviceContent = serviceContent.slice(0, insertPoint) + newFunctions + serviceContent.slice(insertPoint);
+}
+
+fs.writeFileSync(servicePath, serviceContent, 'utf-8');
+
+console.log('✓ Added import/export/reset functions to workflow-service.ts');
