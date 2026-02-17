@@ -225,48 +225,6 @@ async function resetWorkflow(data: WorkflowData): Promise<boolean> {
 }
 
 /**
- * Edit workflow - enable/disable steps
- */
-async function editWorkflow(data: WorkflowData): Promise<boolean> {
-  // Call the editable table component
-  const selectedSteps = await displayEditableWorkflowTable(data);
-
-  // Check if user cancelled (empty array means back was selected or ESC pressed)
-  if (selectedSteps.length === 0) {
-    showInfo(i18n.t('workflow.edit.cancelled'));
-    console.log('');
-    return false;
-  }
-
-  // Create or update custom mode
-  const currentMode = data.available_modes[data.mode];
-  if (currentMode.is_custom) {
-    // Update existing custom mode
-    currentMode.enabled_steps = selectedSteps;
-    currentMode.steps = selectedSteps.length;
-  } else {
-    // Create new custom mode based on current mode
-    const customModeName = `custom-${data.mode}`;
-    data.available_modes[customModeName] = {
-      label: `Custom (${currentMode.label})`,
-      required_tools: currentMode.required_tools,
-      enabled_steps: selectedSteps,
-      description: `Custom workflow based on ${currentMode.label} mode`,
-      steps: selectedSteps.length,
-      review_gates: 0, // Will be recalculated
-      is_custom: true,
-      base_mode: data.mode
-    };
-    data.mode = customModeName as any;
-  }
-
-  saveWorkflow(data);
-  showSuccess(i18n.t('workflow.edit.success', { count: String(selectedSteps.length) }));
-  console.log('');
-  return true;
-}
-
-/**
  * Prompt to continue
  */
 async function promptContinue(): Promise<void> {
@@ -371,10 +329,66 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
     }
   } else if (selected?.id === 'edit') {
     if (data) {
-      const shouldContinue = await editWorkflow(data);
-      if (shouldContinue) {
-        await promptContinue();
+      const originalEnabledSteps = data.available_modes[data.mode].enabled_steps || [];
+      const selectedSteps = await displayEditableWorkflowTable(data);
+
+      // Check if there are changes
+      const hasChanges = JSON.stringify(selectedSteps.sort()) !== JSON.stringify(originalEnabledSteps.sort());
+
+      if (hasChanges) {
+        // Show confirmation menu
+        console.log('');
+        const confirmOptions = [
+          i18n.t('workflow.edit.save'),
+          i18n.t('workflow.edit.cancel'),
+          `b. ${i18n.t('common.back')}`
+        ];
+
+        const confirmResult = await menu.radio({
+          options: confirmOptions,
+          allowLetterKeys: true,
+          allowNumberKeys: true,
+          preserveOnSelect: true
+        });
+
+        if (confirmResult.index === 0) {
+          // Save
+          const currentMode = data.available_modes[data.mode];
+          if (currentMode.is_custom) {
+            currentMode.enabled_steps = selectedSteps;
+            currentMode.steps = selectedSteps.length;
+          } else {
+            const customModeName = `custom-${data.mode}`;
+            data.available_modes[customModeName] = {
+              label: `Custom (${currentMode.label})`,
+              required_tools: currentMode.required_tools,
+              enabled_steps: selectedSteps,
+              description: `Custom workflow based on ${currentMode.label} mode`,
+              steps: selectedSteps.length,
+              review_gates: 0,
+              is_custom: true,
+              base_mode: data.mode
+            };
+            data.mode = customModeName as any;
+          }
+
+          saveWorkflow(data);
+          showSuccess(i18n.t('workflow.edit.success', { count: String(selectedSteps.length) }));
+          console.log('');
+        } else {
+          // Cancel or Back
+          showInfo(i18n.t('workflow.edit.cancelled'));
+          console.log('');
+        }
+      } else {
+        // No changes, just show back
+        await menu.radio({
+          options: [`b. ${i18n.t('common.back')}`],
+          allowLetterKeys: true,
+          preserveOnSelect: true
+        });
       }
+
       await showWorkflowMenu(showMainMenu);
     } else {
       showError('No workflow.json found.');

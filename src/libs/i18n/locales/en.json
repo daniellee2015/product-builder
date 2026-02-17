@@ -95,8 +95,10 @@
       "colMode": "Min Mode",
       "colTools": "Tools",
       "colReview": "Review",
+      "save": "Save changes",
+      "cancel": "Cancel (discard changes)",
       "success": "Workflow updated with {{count}} enabled steps",
-      "cancelled": "Edit cancelled"
+      "cancelled": "Changes discarded"
     }
   },
   "llm": {

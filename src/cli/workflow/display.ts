@@ -302,8 +302,8 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
     preserveOnSelect: true,
     defaultSelected,
     hints: [
-      i18n.t('workflow.edit.instructions'),
-      '',
+      '1. Save changes',
+      '2. Cancel (discard changes)',
       `b. ${i18n.t('common.back')}`
     ]
   }) as { indices: number[]; values: string[]; cancelled?: boolean };
