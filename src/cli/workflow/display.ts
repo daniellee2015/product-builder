@@ -271,18 +271,43 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
 
   const { menu } = await import('cli-menu-kit');
 
+  // Calculate initial phase selection state
+  const phaseSelectionState = new Map<string, { total: number; selected: number }>();
+
+  for (const item of allSteps) {
+    if (!item.isPhaseHeader && item.id) {
+      const state = phaseSelectionState.get(item.phaseId) || { total: 0, selected: 0 };
+      state.total++;
+      if (item.enabled) state.selected++;
+      phaseSelectionState.set(item.phaseId, state);
+    }
+  }
+
+  // Build default selection including phase headers if all children are selected
+  const defaultSelected: number[] = [];
+  for (let i = 0; i < allSteps.length; i++) {
+    const item = allSteps[i];
+    if (item.isPhaseHeader) {
+      const state = phaseSelectionState.get(item.phaseId);
+      if (state && state.selected === state.total && state.total > 0) {
+        defaultSelected.push(i); // Select phase if all children are selected
+      }
+    } else if (item.enabled && item.id) {
+      defaultSelected.push(i);
+    }
+  }
+
   const result = await menu.checkbox({
     options,
     preserveOnSelect: true,
-    defaultSelected: allSteps
-      .map((step, index) => step.enabled && step.id ? index : -1)
-      .filter(i => i >= 0)
+    defaultSelected
   });
 
-  // Process selection: if a phase header is selected, include all its children
+  // Process selection: handle phase-level and step-level selections
   const selectedIndices = new Set(result.indices);
   const expandedSelection = new Set<number>();
 
+  // First pass: expand phase selections to include all children
   for (let i = 0; i < allSteps.length; i++) {
     const item = allSteps[i];
 
@@ -292,13 +317,38 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
       for (let j = i + 1; j < allSteps.length; j++) {
         const childItem = allSteps[j];
         if (childItem.isPhaseHeader) break; // Next phase header
-        if (childItem.phaseId === phaseId) {
+        if (childItem.phaseId === phaseId && childItem.id) {
           expandedSelection.add(j);
         }
       }
-    } else if (!item.isPhaseHeader && selectedIndices.has(i)) {
+    } else if (!item.isPhaseHeader && selectedIndices.has(i) && item.id) {
       // Regular step is selected
       expandedSelection.add(i);
+    }
+  }
+
+  // Second pass: if all children in a phase are selected, consider phase as selected too
+  for (let i = 0; i < allSteps.length; i++) {
+    const item = allSteps[i];
+    if (item.isPhaseHeader) {
+      const phaseId = item.phaseId;
+      let allChildrenSelected = true;
+      let hasChildren = false;
+
+      for (let j = i + 1; j < allSteps.length; j++) {
+        const childItem = allSteps[j];
+        if (childItem.isPhaseHeader) break;
+        if (childItem.phaseId === phaseId && childItem.id) {
+          hasChildren = true;
+          if (!expandedSelection.has(j)) {
+            allChildrenSelected = false;
+            break;
+          }
+        }
+      }
+
+      // If all children are selected, the phase selection is implicit
+      // (This is for display purposes, actual selection is in expandedSelection)
     }
   }
 
