@@ -91,7 +91,4 @@ export function displayWorkflow(data: WorkflowData): void {
     }
     console.log('');
   }
-
-  showInfo(i18n.t('workflow.display.reviewGateInfo'));
-  console.log('');
 }
