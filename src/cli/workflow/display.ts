@@ -269,19 +269,6 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
     }
   }
 
-  // Add back option at the end
-  options.push('');
-  options.push(chalk.gray(`b. ${i18n.t('common.back')}`));
-  allSteps.push({
-    id: '__back__',
-    name: 'Back',
-    phase: '',
-    phaseId: '',
-    enabled: false,
-    step: {} as WorkflowStep,
-    isPhaseHeader: false
-  });
-
   const { menu } = await import('cli-menu-kit');
 
   // Calculate initial phase selection state
@@ -313,8 +300,13 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
   const result = await menu.checkbox({
     options,
     preserveOnSelect: true,
-    defaultSelected
-  });
+    defaultSelected,
+    hints: [
+      i18n.t('workflow.edit.instructions'),
+      '',
+      `b. ${i18n.t('common.back')}`
+    ]
+  }) as { indices: number[]; values: string[]; cancelled?: boolean };
 
   // Process selection: handle phase-level and step-level selections
   const selectedIndices = new Set(result.indices);
@@ -368,14 +360,8 @@ export async function displayEditableWorkflowTable(data: WorkflowData): Promise<
   // Filter out phase headers and get selected step IDs
   const selectedSteps = Array.from(expandedSelection)
     .map(index => allSteps[index])
-    .filter(step => !step.isPhaseHeader && step.id !== '' && step.id !== '__back__')
+    .filter(step => !step.isPhaseHeader && step.id !== '')
     .map(step => step.id);
-
-  // Check if back was selected
-  const backIndex = allSteps.findIndex(s => s.id === '__back__');
-  if (backIndex >= 0 && selectedIndices.has(backIndex)) {
-    return []; // Return empty array to signal cancellation
-  }
 
   return selectedSteps;
 }
