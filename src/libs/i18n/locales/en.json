@@ -1,0 +1,83 @@
+{
+  "workflow": {
+    "menu": {
+      "title": "Workflow Configuration",
+      "view": "View workflow",
+      "viewDesc": "Show current workflow definition",
+      "switchMode": "Switch mode",
+      "switchModeDesc": "Change to base mode (lite/standard/full)",
+      "edit": "Edit workflow",
+      "editDesc": "Enable/disable steps (multi-select)",
+      "import": "Import workflow",
+      "importDesc": "Load custom workflow configuration",
+      "export": "Export workflow",
+      "exportDesc": "Save current workflow configuration",
+      "reset": "Reset workflow",
+      "resetDesc": "Reset to base mode defaults",
+      "back": "Back",
+      "backDesc": "Return to main menu"
+    },
+    "display": {
+      "overview": "Workflow Overview",
+      "basicInfo": "Basic Information",
+      "workflowPhases": "Workflow Phases",
+      "mode": "Mode",
+      "description": "Description",
+      "tools": "Tools",
+      "activeSteps": "Active Steps",
+      "reviewGates": "Review Gates",
+      "version": "Version",
+      "phase": "Phase",
+      "reviewGateInfo": "★ = multi-model review gate with auto-repair",
+      "phasesCount": "{{count}} phases, {{active}}/{{total}} steps active",
+      "anyCLI": "Any single CLI"
+    },
+    "switchMode": {
+      "title": "Switch Workflow Mode",
+      "current": "(current)",
+      "back": "Back",
+      "backDesc": "Return to workflow menu",
+      "success": "Switched to {{mode}} mode",
+      "alreadyIn": "Already in {{mode}} mode",
+      "stepsInfo": "{{steps}} steps, {{tools}}"
+    },
+    "import": {
+      "title": "Import Custom Workflow",
+      "noWorkflows": "No custom workflows found in ~/.pb/workflows/",
+      "noValidFiles": "No valid workflow files found",
+      "back": "Back",
+      "backDesc": "Return to workflow menu",
+      "success": "Imported workflow: {{name}}",
+      "error": "Failed to import workflow: {{message}}",
+      "invalidSelection": "Invalid selection",
+      "basedOn": "based on {{mode}}, {{steps}} steps"
+    },
+    "export": {
+      "title": "Export Custom Workflow",
+      "notCustom": "Current mode is not a custom workflow. Switch to custom mode first or create one by editing workflow.",
+      "promptName": "Enter workflow name:",
+      "defaultName": "custom-{{mode}}",
+      "emptyName": "Workflow name cannot be empty",
+      "success": "Exported workflow to {{path}}",
+      "error": "Failed to export workflow: {{message}}"
+    },
+    "reset": {
+      "title": "Reset to Base Mode",
+      "notCustom": "Current mode is not a custom workflow. Nothing to reset.",
+      "confirmMessage": "This will reset your custom workflow to the base mode: {{mode}}",
+      "confirmYes": "Yes, reset to base mode",
+      "confirmNo": "No, keep custom workflow",
+      "success": "Reset to {{mode}} mode",
+      "error": "Failed to reset workflow: {{message}}",
+      "cancelled": "Reset cancelled"
+    }
+  },
+  "common": {
+    "back": "Back",
+    "continue": "Press Enter to continue...",
+    "error": "Error",
+    "success": "Success",
+    "info": "Info",
+    "warning": "Warning"
+  }
+}
