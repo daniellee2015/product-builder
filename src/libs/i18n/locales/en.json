@@ -72,6 +72,43 @@
       "cancelled": "Reset cancelled"
     }
   },
+  "llm": {
+    "menu": {
+      "title": "LLM CLI Configuration",
+      "viewAPI": "View API config",
+      "viewAPIDesc": "Display current API configuration",
+      "sync": "Sync LLM configs",
+      "syncDesc": "Synchronize LLM configurations",
+      "claude": "Configure Claude",
+      "claudeDesc": "Set up Claude API",
+      "gemini": "Configure Gemini",
+      "geminiDesc": "Set up Gemini API",
+      "codex": "Configure Codex",
+      "codexDesc": "Set up Codex API",
+      "opencode": "Configure OpenCode",
+      "opencodeDesc": "Set up OpenCode API",
+      "defaultLLM": "Set default LLM",
+      "defaultLLMDesc": "Choose default language model",
+      "routing": "Configure routing",
+      "routingDesc": "Set up LLM routing rules",
+      "codeHub": "Enable Claude Code Hub",
+      "codeHubDesc": "Enable Claude Code Hub integration"
+    },
+    "display": {
+      "apiConfig": "API Configuration",
+      "llmAPIs": "LLM APIs",
+      "enabled": "✓ Enabled",
+      "disabled": "✗ Disabled",
+      "notConfigured": "Not configured",
+      "apiKey": "API Key",
+      "model": "Model",
+      "apiUrl": "API URL",
+      "priority": "Priority",
+      "defaultLLM": "Default LLM",
+      "routing": "Routing",
+      "codeHub": "Claude Code Hub"
+    }
+  },
   "common": {
     "back": "Back",
     "continue": "Press Enter to continue...",
