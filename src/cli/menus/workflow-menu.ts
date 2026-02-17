@@ -80,12 +80,12 @@ function displayWorkflow(data: WorkflowData): void {
     for (const step of phase.steps) {
       const active = isStepActive(step, data.mode);
       const review = step.review_config ? chalk.magenta(' ★') : '';
-      const cond = step.condition ? chalk.gray(` if ${step.condition}`) : '';
+      const cond = step.condition ? chalk.gray(` if ${step.condition}`) : ''
+;
       const modeTag = step.min_mode !== 'lite' ? chalk.gray(` [${step.min_mode}+]`) : '';
 
       if (active) {
         console.log(`  ${chalk.white(step.id)}  ${step.name}${review}${cond}${modeTag}`);
-        console.log(chalk.gray(`          skill: ${step.skill}`));
       } else {
         console.log(chalk.gray(`  ${step.id}  ${step.name} (skipped in ${data.mode} mode)`));
       }

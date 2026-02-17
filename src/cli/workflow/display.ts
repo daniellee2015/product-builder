@@ -85,7 +85,6 @@ export function displayWorkflow(data: WorkflowData): void {
 
       if (active) {
         console.log(`  ${chalk.white(step.id)}  ${step.name}${review}${cond}${modeTag}`);
-        console.log(chalk.gray(`          skill: ${step.skill}`));
       } else {
         console.log(chalk.gray(`  ${step.id}  ${step.name} (skipped in ${data.mode} mode)`));
       }

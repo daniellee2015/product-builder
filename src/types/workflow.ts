@@ -8,11 +8,12 @@ export interface WorkflowStep {
   id: string;
   name: string;
   description: string;
-  skill: string;
   min_mode: WorkflowMode;
   input: string[];
   output: string[];
   condition?: string;
+  required_tools?: string[];
+  optional_tools?: string[];
   review_config?: {
     models: string[];
     pass_threshold: number;
