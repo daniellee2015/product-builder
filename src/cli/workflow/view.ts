@@ -108,7 +108,7 @@ export async function viewWorkflow(data: WorkflowData): Promise<void> {
         allowLetterKeys: true,
         preserveOnSelect: true
       },
-      hints: ['Enter Back']
+      hints: ['Enter Confirm']
     }
   });
 }
