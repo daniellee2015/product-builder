@@ -7,11 +7,12 @@ import {
   renderPage,
   showSuccess,
   showInfo,
-  generateMenuHints
+  generateMenuHints,
+  menu
 } from 'cli-menu-kit';
 import chalk from 'chalk';
 import { WorkflowData } from '../../types/workflow';
-import { saveWorkflow } from '../../services/workflow-service';
+import { saveWorkflow, deleteCurrentCustomWorkflow } from '../../services/workflow-service';
 import i18n from '../../libs/i18n';
 
 /**
@@ -77,6 +78,19 @@ export async function switchWorkflowMode(data: WorkflowData): Promise<string> {
 
   const selectedKey = modeKeys[result.index];
   if (selectedKey !== data.mode) {
+    // If switching from custom to standard mode, ask to delete custom config
+    if (data.mode === 'custom' && selectedKey !== 'custom') {
+      console.log('');
+      const confirmDelete = await menu.booleanH(
+        i18n.t('workflow.switchMode.confirmDeleteCustom') || 'Delete custom workflow configuration?',
+        false
+      );
+
+      if (confirmDelete) {
+        deleteCurrentCustomWorkflow();
+      }
+    }
+
     data.mode = selectedKey as any;
     saveWorkflow(data);
     showSuccess(i18n.t('workflow.switchMode.success', {

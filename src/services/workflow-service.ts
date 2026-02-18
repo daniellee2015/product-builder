@@ -33,9 +33,12 @@ export function loadWorkflow(): WorkflowData | null {
         base_mode: currentCustom.base_mode
       };
 
-      // If current mode is custom, keep it; otherwise use the mode from workflow.json
-      if (data.mode === 'custom' || data.available_modes[data.mode]?.is_custom) {
-        data.mode = 'custom';
+      // Always use custom mode if current.json exists
+      data.mode = 'custom';
+    } else {
+      // If no current.json but mode is 'custom', reset to base mode
+      if (data.mode === 'custom') {
+        data.mode = 'full';
       }
     }
 
@@ -133,6 +136,16 @@ export function loadCurrentCustomWorkflow(): CustomWorkflowConfig | null {
     return JSON.parse(fs.readFileSync(filepath, 'utf-8'));
   } catch {
     return null;
+  }
+}
+
+/**
+ * Delete current custom workflow
+ */
+export function deleteCurrentCustomWorkflow(): void {
+  const filepath = path.join(getCustomWorkflowDir(), 'current.json');
+  if (fs.existsSync(filepath)) {
+    fs.unlinkSync(filepath);
   }
 }
 
