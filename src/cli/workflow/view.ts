@@ -120,9 +120,12 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
 
             const noteText = notes.length > 0 ? ` (${notes.join(', ')})` : '';
 
+            // Pad step ID to ensure consistent spacing (max 8 chars for IDs like P2-11a)
+            const paddedId = step.id.padEnd(8);
+
             const stepText = active
-              ? `${step.id}  ${step.name}${noteText}`
-              : chalk.gray(`${step.id}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`);
+              ? `${paddedId}  ${step.name}${noteText}`
+              : chalk.gray(`${paddedId}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`);
 
             listItems.push({
               text: stepText,
