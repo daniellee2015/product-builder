@@ -103,12 +103,10 @@ export async function viewWorkflow(data: WorkflowData): Promise<void> {
       }
     },
     footer: {
-      menu: {
-        options: [`b. ${i18n.t('common.back')}`],
-        allowLetterKeys: true,
-        preserveOnSelect: true
-      },
-      hints: ['Enter Confirm']
+      input: {
+        prompt: i18n.t('common.continue'),
+        allowEmpty: true
+      }
     }
   });
 }
