@@ -124,12 +124,12 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
             const paddedId = step.id.padEnd(7);
 
             const stepText = active
-              ? `${paddedId}  ${step.name}${noteText}`
-              : chalk.gray(`${paddedId}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`);
+              ? `  ${paddedId}  ${step.name}${noteText}`
+              : chalk.gray(`  ${paddedId}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`);
 
             listItems.push({
               text: stepText,
-              indent: 2
+              indent: 1
             });
           }
 
