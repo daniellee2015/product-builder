@@ -4,7 +4,6 @@
  */
 
 import {
-  renderPage,
   renderSummaryTable,
   showInfo
 } from 'cli-menu-kit';
@@ -19,19 +18,6 @@ import {
 import i18n from '../../libs/i18n';
 
 /**
- * Simple pause function that doesn't use raw mode
- * Allows terminal scrolling while waiting for user input
- */
-async function waitForEnter(): Promise<void> {
-  return new Promise((resolve) => {
-    console.log(chalk.gray(`\n  ${i18n.t('common.continue')}: `));
-    process.stdin.once('data', () => {
-      resolve();
-    });
-  });
-}
-
-/**
  * Display workflow overview and details
  */
 export async function viewWorkflow(data: WorkflowData): Promise<void> {
@@ -40,7 +26,7 @@ export async function viewWorkflow(data: WorkflowData): Promise<void> {
   const totalSteps = countTotalSteps(data);
   const phaseCount = data.phases.length;
 
-  // Build phase items - each phase with title (black) and description (gray)
+  // Build phase items
   const phaseItems = data.phases.map((p, i) => ({
     key: `${i18n.t('workflow.display.phase')} ${i + 1}`,
     value: `${p.name} ${chalk.gray('— ' + p.description)}`
@@ -51,7 +37,7 @@ export async function viewWorkflow(data: WorkflowData): Promise<void> {
   console.log(chalk.cyan.bold(`  ${data.name}`));
   console.log('');
 
-  // Render content
+  // Render summary table
   renderSummaryTable({
     title: `${i18n.t('workflow.display.overview')} - ${currentMode.label} Mode`,
     titleAlign: 'left',
@@ -91,7 +77,6 @@ export async function viewWorkflow(data: WorkflowData): Promise<void> {
   // Display detailed phase and step information
   for (const phase of data.phases) {
     const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : '';
-    // Extract phase number from ID (e.g., "phase-0" -> "0")
     const phaseNumber = phase.id.replace(/^phase-/, '');
     const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
     console.log(chalk.cyan.bold(`  ${phaseLabel}: ${phase.name}`) + modeLabel);
@@ -112,6 +97,24 @@ export async function viewWorkflow(data: WorkflowData): Promise<void> {
   showInfo('★ = multi-model review gate with auto-repair');
   console.log('');
 
-  // Wait for user to press Enter (without raw mode, allows scrolling)
-  await waitForEnter();
+  // Simple wait without raw mode - allows scrolling
+  console.log(chalk.gray(`  Press Enter to return...`));
+
+  return new Promise((resolve) => {
+    // Explicitly ensure NOT in raw mode
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(false);
+    }
+    process.stdin.resume();
+    process.stdin.setEncoding('utf8');
+
+    // Wait for any input
+    const handler = () => {
+      process.stdin.removeListener('data', handler);
+      process.stdin.pause();
+      resolve();
+    };
+
+    process.stdin.once('data', handler);
+  });
 }
