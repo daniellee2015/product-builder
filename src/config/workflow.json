@@ -841,16 +841,20 @@
         {
           "id": "P2-15",
           "name": "Fix Issue",
-          "description": "Fix issues found during testing.",
+          "description": "Fix issues found during testing. Add comment to GitHub Issue tracking the fix attempt.",
           "input": [
             "test.results",
-            "workspace.code_changes"
+            "workspace.code_changes",
+            "github.issue.number"
           ],
           "output": [
             "workspace.code_changes"
           ],
           "condition": "test_failed",
-          "min_mode": "lite"
+          "min_mode": "lite",
+          "required_tools": [
+            "gh"
+          ]
         },
         {
           "id": "P2-16",
@@ -978,16 +982,20 @@
         {
           "id": "P3-21",
           "name": "Auto Fix",
-          "description": "Automatically fix issues found in review (max 3 attempts). If exhausted, return to Phase 2.",
+          "description": "Automatically fix issues found in review (max 3 attempts). Add comment to GitHub Issue tracking the fix attempt. If exhausted, return to Phase 2.",
           "input": [
             "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
-            "workspace.all_changes"
+            "workspace.all_changes",
+            "github.issue.number"
           ],
           "output": [
             "workspace.all_changes"
           ],
           "condition": "review_needs_fix",
-          "min_mode": "standard"
+          "min_mode": "standard",
+          "required_tools": [
+            "gh"
+          ]
         },
         {
           "id": "P3-22",
