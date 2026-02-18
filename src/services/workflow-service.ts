@@ -5,8 +5,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 import { WorkflowData, WorkflowStep, WorkflowMode, CustomWorkflowConfig } from '../types/workflow';
+import { getConfigDir } from '../cli/checkers';
 
 const MODE_ORDER: WorkflowMode[] = ['lite', 'standard', 'full'];
 
@@ -48,7 +48,7 @@ export function countTotalSteps(data: WorkflowData): number {
 
 
 function getCustomWorkflowDir(): string {
-  const dir = path.join(os.homedir(), '.pb', 'workflows');
+  const dir = path.join(getConfigDir(), 'workflows');
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -67,7 +67,8 @@ export function exportCustomWorkflow(data: WorkflowData, filename: string): stri
     modified_at: new Date().toISOString()
   };
 
-  const filepath = path.join(getCustomWorkflowDir(), filename);
+  const safeName = filename.endsWith('.json') ? filename : `${filename}.json`;
+  const filepath = path.join(getCustomWorkflowDir(), safeName);
   fs.writeFileSync(filepath, JSON.stringify(customConfig, null, 2), 'utf-8');
 
   return filepath;

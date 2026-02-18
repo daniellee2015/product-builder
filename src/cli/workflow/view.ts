@@ -6,8 +6,10 @@
 import {
   renderPage,
   renderSummaryTable,
+  renderList,
   showInfo,
-  generateMenuHints
+  generateMenuHints,
+  type ListItem
 } from 'cli-menu-kit';
 import chalk from 'chalk';
 import { WorkflowData } from '../../types/workflow';
@@ -79,27 +81,67 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
 
         console.log('');
 
-        // Display detailed phase and step information
+        // Display detailed phase and step information using list component
+        const listItems: ListItem[] = [];
+
         for (const phase of data.phases) {
           const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : '';
           const phaseNumber = phase.id.replace(/^phase-/, '');
           const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
-          console.log(chalk.cyan.bold(`  ${phaseLabel}: ${phase.name}`) + modeLabel);
-          console.log(chalk.gray(`  ${phase.description}\n`));
 
+          // Add phase as list item (base indent)
+          listItems.push({
+            text: chalk.cyan.bold(`${phaseLabel}: ${phase.name}`) + modeLabel,
+            indent: 1
+          });
+
+          // Add phase description (same indent as title)
+          listItems.push({
+            text: chalk.gray(phase.description),
+            indent: 1
+          });
+
+          // Add steps (more indent than phase)
           for (const step of phase.steps) {
             const active = isStepActive(step, data.mode);
 
-            if (active) {
-              console.log(`  ${chalk.white(step.id)}  ${step.name}`);
-            } else {
-              console.log(chalk.gray(`  ${step.id}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`));
+            // Build step notes with different colors
+            const notes: string[] = [];
+
+            // Check if step requires human approval (use yellow for visibility)
+            if (step.requires_human_approval) {
+              notes.push(chalk.yellow('requires human approval'));
             }
+
+            // Check if step has review_config (use gray)
+            if (step.review_config && step.review_config.models && step.review_config.models.length > 0) {
+              notes.push(chalk.gray('multi-model review'));
+            }
+
+            const noteText = notes.length > 0 ? ` (${notes.join(', ')})` : '';
+
+            const stepText = active
+              ? `${step.id}  ${step.name}${noteText}`
+              : chalk.gray(`${step.id}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`);
+
+            listItems.push({
+              text: stepText,
+              indent: 2
+            });
           }
-          console.log('');
+
+          // Add blank line after each phase
+          listItems.push({
+            text: '',
+            indent: 0
+          });
         }
 
-        showInfo('★ = multi-model review gate with auto-repair');
+        renderList({
+          items: listItems,
+          style: 'none'
+        });
+
         console.log('');
       }
     },

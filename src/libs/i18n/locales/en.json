@@ -42,7 +42,13 @@
       "when_requirement_brief": "When requirement is brief",
       "after_p1_01_and_p1_02": "After P1-01 and P1-02 complete",
       "when_task_passes": "When task verification passes",
-      "when_human_approved": "When human approves"
+      "when_human_approved": "When human approves",
+      "has_executable_task": "Has executable task",
+      "test_failed": "Test failed",
+      "test_passed": "Test passed",
+      "all_tasks_done": "All tasks done",
+      "review_needs_fix": "Review needs fix",
+      "review_passed_with_issues": "Review passed with issues"
     },
     "switchMode": {
       "title": "Switch Workflow Mode",
@@ -55,7 +61,8 @@
     },
     "import": {
       "title": "Import Custom Workflow",
-      "noWorkflows": "No custom workflows found in ~/.pb/workflows/",
+      "description": "Found {{count}} custom workflow(s) available for import",
+      "noWorkflows": "No custom workflows found in .product-builder/workflows/",
       "noValidFiles": "No valid workflow files found",
       "back": "Back",
       "backDesc": "Return to workflow menu",
@@ -99,7 +106,11 @@
       "cancel": "Cancel (discard changes)",
       "confirmDiscard": "You have unsaved changes. Discard them?",
       "success": "Workflow updated with {{count}} enabled steps",
-      "cancelled": "Changes discarded"
+      "cancelled": "Changes discarded",
+      "footerTitle": "Confirm Changes",
+      "changesDetected": "Changes detected: {{count}} steps selected (was {{original}})",
+      "noChanges": "No changes made",
+      "confirmSave": "Save changes?"
     },
     "view": {
       "edit": "Edit workflow"

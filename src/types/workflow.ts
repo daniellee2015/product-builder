@@ -14,6 +14,7 @@ export interface WorkflowStep {
   condition?: string;
   required_tools?: string[];
   optional_tools?: string[];
+  requires_human_approval?: boolean;
   review_config?: {
     models: string[];
     pass_threshold: number;
