@@ -120,8 +120,8 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
 
             const noteText = notes.length > 0 ? ` (${notes.join(', ')})` : '';
 
-            // Pad step ID to ensure consistent spacing (max 8 chars for IDs like P2-11a)
-            const paddedId = step.id.padEnd(8);
+            // Pad step ID to ensure consistent spacing (max 7 chars for IDs like P2-11a)
+            const paddedId = step.id.padEnd(7);
 
             const stepText = active
               ? `${paddedId}  ${step.name}${noteText}`
