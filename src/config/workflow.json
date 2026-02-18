@@ -46,6 +46,7 @@
         "P1-14",
         "P1-15",
         "P2-11",
+        "P2-11a",
         "P2-12",
         "P2-13",
         "P2-14",
@@ -57,7 +58,12 @@
         "P2-20",
         "P2-21",
         "P2-22",
+        "P3-19",
+        "P3-20",
         "P3-21",
+        "P3-22",
+        "P3-23",
+        "P3-24",
         "P4-22",
         "P4-23",
         "P4-24",
@@ -68,7 +74,8 @@
         "P4-29",
         "P4-30",
         "P4-31",
-        "P4-32"
+        "P4-32",
+        "P4-33"
       ]
     },
     "standard": {
@@ -106,6 +113,7 @@
         "P1-14",
         "P1-15",
         "P2-11",
+        "P2-11a",
         "P2-12",
         "P2-13",
         "P2-14",
@@ -117,7 +125,12 @@
         "P2-20",
         "P2-21",
         "P2-22",
+        "P3-19",
+        "P3-20",
         "P3-21",
+        "P3-22",
+        "P3-23",
+        "P3-24",
         "P4-22",
         "P4-23",
         "P4-24",
@@ -128,7 +141,8 @@
         "P4-29",
         "P4-30",
         "P4-31",
-        "P4-32"
+        "P4-32",
+        "P4-33"
       ]
     },
     "lite": {
@@ -745,11 +759,11 @@
     {
       "id": "phase-2",
       "name": "Execution",
-      "description": "Execute tasks in a loop with automated testing, review, and repair until all tasks are completed.",
+      "description": "Execute tasks in a loop with automated testing and repair for each task until all tasks are completed.",
       "execution": {
         "mode": "loop",
         "entry_step": "P2-11",
-        "exit_condition": "all_tasks_done && review_passed"
+        "exit_condition": "all_tasks_done"
       },
       "steps": [
         {
@@ -765,6 +779,24 @@
           ],
           "requires_human_approval": true,
           "min_mode": "lite"
+        },
+        {
+          "id": "P2-11a",
+          "name": "Create GitHub Issue",
+          "description": "Create GitHub issue to track this job. Link issue to branch and record issue number.",
+          "input": [
+            "exports/jobs/{job_id}/metadata.json",
+            "git.branch.name",
+            "exports/jobs/{job_id}/docs/roadmap.mdx"
+          ],
+          "output": [
+            "github.issue.number",
+            "github.issue.url"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "gh"
+          ]
         },
         {
           "id": "P2-12",
@@ -860,82 +892,6 @@
             "git.commit.task"
           ],
           "min_mode": "lite"
-        },
-        {
-          "id": "P2-19",
-          "name": "Final Review",
-          "description": "Multi-model review gate for final acceptance.",
-          "input": [
-            "workspace.all_changes",
-            "exports/jobs/{job_id}/specs/*.mdx"
-          ],
-          "output": [
-            "exports/jobs/{job_id}/reviews/final-review.json"
-          ],
-          "condition": "all_tasks_done",
-          "review_config": {
-            "models": [
-              "gemini",
-              "claude",
-              "codex"
-            ],
-            "pass_threshold": 0.75,
-            "max_critical": 0,
-            "max_medium": 2,
-            "auto_repair": {
-              "enabled": true,
-              "max_attempts": 3,
-              "ask_user_on_exhausted": true,
-              "user_options": [
-                "continue",
-                "create_new_job"
-              ]
-            }
-          },
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb",
-            "cca"
-          ]
-        },
-        {
-          "id": "P2-20",
-          "name": "Aggregate Review Results",
-          "description": "Aggregate multi-model review results and calculate pass rate.",
-          "input": [
-            "exports/jobs/{job_id}/reviews/final-review.json"
-          ],
-          "output": [
-            "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
-          ],
-          "min_mode": "standard"
-        },
-        {
-          "id": "P2-21",
-          "name": "Auto Fix",
-          "description": "Automatically fix issues found in review (max 3 attempts).",
-          "input": [
-            "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
-            "workspace.all_changes"
-          ],
-          "output": [
-            "workspace.all_changes"
-          ],
-          "condition": "review_needs_fix",
-          "min_mode": "standard"
-        },
-        {
-          "id": "P2-22",
-          "name": "Record Technical Debt",
-          "description": "Record issues to TECHNICAL_DEBT.md if review passed with minor issues.",
-          "input": [
-            "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
-          ],
-          "output": [
-            "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
-          ],
-          "condition": "review_passed_with_issues",
-          "min_mode": "standard"
         }
       ],
       "groups": [
@@ -960,32 +916,96 @@
             "P2-17",
             "P2-18"
           ]
-        },
-        {
-          "id": "2.3",
-          "name": "Final Review",
-          "description": "Multi-model review with auto-repair",
-          "step_ids": [
-            "P2-19",
-            "P2-20",
-            "P2-21",
-            "P2-22"
-          ]
         }
       ]
     },
     {
       "id": "phase-3",
       "name": "Acceptance",
-      "description": "Human final confirmation before archiving.",
+      "description": "Final acceptance with multi-model review and human confirmation before archiving.",
       "execution": {
         "mode": "sequential"
       },
       "steps": [
         {
+          "id": "P3-19",
+          "name": "Final Review",
+          "description": "Multi-model review gate for final acceptance of all completed work.",
+          "input": [
+            "workspace.all_changes",
+            "exports/jobs/{job_id}/specs/*.mdx"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/reviews/final-review.json"
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true,
+              "user_options": [
+                "retry_phase2",
+                "continue"
+              ]
+            }
+          },
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb",
+            "cca"
+          ]
+        },
+        {
+          "id": "P3-20",
+          "name": "Aggregate Review Results",
+          "description": "Aggregate multi-model review results and calculate pass rate.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
+          ],
+          "min_mode": "standard"
+        },
+        {
           "id": "P3-21",
+          "name": "Auto Fix",
+          "description": "Automatically fix issues found in review (max 3 attempts). If exhausted, return to Phase 2.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+            "workspace.all_changes"
+          ],
+          "output": [
+            "workspace.all_changes"
+          ],
+          "condition": "review_needs_fix",
+          "min_mode": "standard"
+        },
+        {
+          "id": "P3-22",
+          "name": "Record Technical Debt",
+          "description": "Record issues to TECHNICAL_DEBT.md if review passed with minor issues.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
+          ],
+          "condition": "review_passed_with_issues",
+          "min_mode": "standard"
+        },
+        {
+          "id": "P3-23",
           "name": "Human Final Confirmation",
-          "description": "Final human approval to proceed with archiving and deployment.",
+          "description": "Final human approval to proceed with archiving and deployment. Only executed after machine review passes.",
           "input": [
             "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
             "exports/jobs/{job_id}/TECHNICAL_DEBT.md",
@@ -995,16 +1015,55 @@
             "human_approval.final"
           ],
           "requires_human_approval": true,
+          "condition": "review_passed",
           "min_mode": "lite"
+        },
+        {
+          "id": "P3-24",
+          "name": "Create Pull Request",
+          "description": "Create GitHub Pull Request for code review. Link to issue and include review results.",
+          "input": [
+            "git.branch.name",
+            "github.issue.number",
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+            "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
+          ],
+          "output": [
+            "github.pr.number",
+            "github.pr.url"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "gh"
+          ]
         }
       ],
       "groups": [
         {
           "id": "3.1",
+          "name": "Machine Review",
+          "description": "Multi-model review with auto-repair",
+          "step_ids": [
+            "P3-19",
+            "P3-20",
+            "P3-21",
+            "P3-22"
+          ]
+        },
+        {
+          "id": "3.2",
           "name": "Human Approval",
           "description": "Final human approval gate",
           "step_ids": [
-            "P3-21"
+            "P3-23"
+          ]
+        },
+        {
+          "id": "3.3",
+          "name": "Pull Request",
+          "description": "Create GitHub Pull Request",
+          "step_ids": [
+            "P3-24"
           ]
         }
       ]
@@ -1151,6 +1210,24 @@
             "git.commit.capability_tree"
           ],
           "min_mode": "lite"
+        },
+        {
+          "id": "P4-33",
+          "name": "Create Release",
+          "description": "Create GitHub Release with changelog and version tag.",
+          "input": [
+            "github.pr.number",
+            "git.merge.result",
+            "exports/jobs/{job_id}/metadata.json"
+          ],
+          "output": [
+            "github.release.tag",
+            "github.release.url"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "gh"
+          ]
         }
       ],
       "groups": [
@@ -1184,6 +1261,14 @@
           "step_ids": [
             "P4-31",
             "P4-32"
+          ]
+        },
+        {
+          "id": "4.4",
+          "name": "Create Release",
+          "description": "Create GitHub Release",
+          "step_ids": [
+            "P4-33"
           ]
         }
       ]
@@ -1277,34 +1362,74 @@
       "to": "P1-14"
     },
     {
-      "from": "P3-20",
-      "to": "P3-20",
-      "condition": "review_failed('P3-20') && auto_repair_attempts < 3"
+      "from": "P2-11",
+      "to": "P2-11a"
+    },
+    {
+      "from": "P2-11a",
+      "to": "P2-12"
+    },
+    {
+      "from": "P2-18",
+      "to": "P2-12",
+      "condition": "has_more_tasks"
+    },
+    {
+      "from": "P2-12",
+      "to": "P3-19",
+      "condition": "all_tasks_done"
+    },
+    {
+      "from": "P3-19",
+      "to": "P3-20"
     },
     {
       "from": "P3-20",
       "to": "P3-21",
-      "condition": "review_passed('P3-20')"
+      "condition": "review_needs_fix"
     },
     {
       "from": "P3-20",
-      "to": "P3-21",
-      "condition": "review_failed('P3-20') && auto_repair_attempts == 3 && user_decision == 'continue'"
+      "to": "P3-22",
+      "condition": "review_passed_with_issues"
     },
     {
       "from": "P3-20",
-      "to": "END",
-      "condition": "review_failed('P3-20') && auto_repair_attempts == 3 && user_decision == 'cancel'"
+      "to": "P3-23",
+      "condition": "review_passed"
     },
     {
       "from": "P3-21",
-      "to": "P4-22",
+      "to": "P3-19",
+      "condition": "retry_review && auto_repair_attempts < 3"
+    },
+    {
+      "from": "P3-21",
+      "to": "P2-12",
+      "condition": "max_retries_exhausted && user_chooses_retry_phase2"
+    },
+    {
+      "from": "P3-21",
+      "to": "P3-22",
+      "condition": "max_retries_exhausted && user_chooses_continue"
+    },
+    {
+      "from": "P3-22",
+      "to": "P3-23"
+    },
+    {
+      "from": "P3-23",
+      "to": "P3-24",
       "condition": "human_approved == true"
     },
     {
-      "from": "P3-21",
+      "from": "P3-23",
       "to": "END",
       "condition": "human_approved == false"
+    },
+    {
+      "from": "P3-24",
+      "to": "P4-22"
     },
     {
       "from": "P4-22",
@@ -1328,57 +1453,31 @@
     },
     {
       "from": "P4-27",
+      "to": "P4-28"
+    },
+    {
+      "from": "P4-28",
+      "to": "P4-29"
+    },
+    {
+      "from": "P4-29",
+      "to": "P4-30"
+    },
+    {
+      "from": "P4-30",
+      "to": "P4-31"
+    },
+    {
+      "from": "P4-31",
+      "to": "P4-32"
+    },
+    {
+      "from": "P4-32",
+      "to": "P4-33"
+    },
+    {
+      "from": "P4-33",
       "to": "END"
-    },
-    {
-      "from": "P2-14",
-      "to": "P2-15",
-      "condition": "test_failed"
-    },
-    {
-      "from": "P2-15",
-      "to": "P2-14",
-      "condition": "after_fix"
-    },
-    {
-      "from": "P2-14",
-      "to": "P2-16",
-      "condition": "test_passed"
-    },
-    {
-      "from": "P2-18",
-      "to": "P2-12",
-      "condition": "has_more_tasks"
-    },
-    {
-      "from": "P2-12",
-      "to": "P2-19",
-      "condition": "all_tasks_done"
-    },
-    {
-      "from": "P2-19",
-      "to": "P2-21",
-      "condition": "review_needs_fix"
-    },
-    {
-      "from": "P2-21",
-      "to": "P2-19",
-      "condition": "retry_review"
-    },
-    {
-      "from": "P2-21",
-      "to": "P2-22",
-      "condition": "max_retries_exhausted && user_chooses_continue"
-    },
-    {
-      "from": "P2-19",
-      "to": "P2-22",
-      "condition": "review_passed_with_issues"
-    },
-    {
-      "from": "P2-22",
-      "to": "P2-23",
-      "condition": "always"
     }
   ],
   "tool_registry": {
