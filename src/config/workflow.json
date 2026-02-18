@@ -15,7 +15,7 @@
         "openclaw"
       ],
       "description": "Complete workflow with multi-model review, Ralph retry loop, auto-repair, and monitoring",
-      "steps": 51,
+      "steps": 54,
       "review_gates": 3,
       "enabled_steps": [
         "P0-01",
@@ -54,10 +54,6 @@
         "P2-16",
         "P2-17",
         "P2-18",
-        "P2-19",
-        "P2-20",
-        "P2-21",
-        "P2-22",
         "P3-19",
         "P3-20",
         "P3-21",
@@ -85,7 +81,7 @@
         "cca"
       ],
       "description": "Multi-model review without auto-retry or monitoring",
-      "steps": 48,
+      "steps": 51,
       "review_gates": 3,
       "enabled_steps": [
         "P0-01",
@@ -121,10 +117,6 @@
         "P2-16",
         "P2-17",
         "P2-18",
-        "P2-19",
-        "P2-20",
-        "P2-21",
-        "P2-22",
         "P3-19",
         "P3-20",
         "P3-21",
