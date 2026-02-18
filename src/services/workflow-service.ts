@@ -16,7 +16,30 @@ function getWorkflowPath(): string {
 
 export function loadWorkflow(): WorkflowData | null {
   try {
-    return JSON.parse(fs.readFileSync(getWorkflowPath(), 'utf-8'));
+    const data = JSON.parse(fs.readFileSync(getWorkflowPath(), 'utf-8'));
+
+    // Load current custom workflow if exists
+    const currentCustom = loadCurrentCustomWorkflow();
+    if (currentCustom) {
+      // Add custom mode to available_modes
+      data.available_modes['custom'] = {
+        label: 'Custom',
+        required_tools: data.available_modes[currentCustom.base_mode]?.required_tools || [],
+        enabled_steps: currentCustom.enabled_steps,
+        description: currentCustom.description,
+        steps: currentCustom.enabled_steps.length,
+        review_gates: 0,
+        is_custom: true,
+        base_mode: currentCustom.base_mode
+      };
+
+      // If current mode is custom, keep it; otherwise use the mode from workflow.json
+      if (data.mode === 'custom' || data.available_modes[data.mode]?.is_custom) {
+        data.mode = 'custom';
+      }
+    }
+
+    return data;
   } catch {
     return null;
   }
@@ -78,6 +101,39 @@ function getCustomWorkflowDir(): string {
     fs.mkdirSync(dir, { recursive: true });
   }
   return dir;
+}
+
+/**
+ * Save current custom workflow (replaces previous)
+ */
+export function saveCurrentCustomWorkflow(data: WorkflowData, selectedSteps: string[], baseMode: WorkflowMode): void {
+  const customConfig: CustomWorkflowConfig = {
+    name: 'current',
+    description: `Custom workflow based on ${data.available_modes[baseMode].label} mode`,
+    base_mode: baseMode,
+    enabled_steps: selectedSteps,
+    created_at: new Date().toISOString(),
+    modified_at: new Date().toISOString()
+  };
+
+  const filepath = path.join(getCustomWorkflowDir(), 'current.json');
+  fs.writeFileSync(filepath, JSON.stringify(customConfig, null, 2), 'utf-8');
+}
+
+/**
+ * Load current custom workflow if exists
+ */
+export function loadCurrentCustomWorkflow(): CustomWorkflowConfig | null {
+  const filepath = path.join(getCustomWorkflowDir(), 'current.json');
+  if (!fs.existsSync(filepath)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(fs.readFileSync(filepath, 'utf-8'));
+  } catch {
+    return null;
+  }
 }
 
 export function exportCustomWorkflow(data: WorkflowData, filename: string): string {

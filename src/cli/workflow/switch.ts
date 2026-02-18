@@ -18,7 +18,10 @@ import i18n from '../../libs/i18n';
  * Switch workflow mode
  */
 export async function switchWorkflowMode(data: WorkflowData): Promise<string> {
-  const modeKeys = Object.keys(data.available_modes);
+  // Only show standard modes (not custom modes)
+  const modeKeys = Object.keys(data.available_modes).filter(key =>
+    !data.available_modes[key].is_custom
+  );
 
   // Build mode options for footer menu
   const options = modeKeys.map(key => {

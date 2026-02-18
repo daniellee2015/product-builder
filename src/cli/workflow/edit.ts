@@ -12,14 +12,17 @@ import {
 } from 'cli-menu-kit';
 import chalk from 'chalk';
 import { WorkflowData, WorkflowStep } from '../../types/workflow';
-import { saveWorkflow, isStepActive } from '../../services/workflow-service';
+import { saveCurrentCustomWorkflow } from '../../services/workflow-service';
 import i18n from '../../libs/i18n';
 
 /**
  * Edit workflow steps
  */
 export async function editWorkflow(data: WorkflowData): Promise<string> {
-  const originalEnabledSteps = data.available_modes[data.mode].enabled_steps || [];
+  // Get base mode (if current mode is custom, use its base_mode)
+  const currentModeConfig = data.available_modes[data.mode];
+  const baseMode = currentModeConfig?.base_mode || data.mode;
+  const originalEnabledSteps = currentModeConfig?.enabled_steps || data.available_modes[baseMode].enabled_steps || [];
 
   // Header
   console.log('');
@@ -120,27 +123,9 @@ export async function editWorkflow(data: WorkflowData): Promise<string> {
       return 'back';
     }
 
-    const currentMode = data.available_modes[data.mode];
-    if (currentMode.is_custom) {
-      currentMode.enabled_steps = selectedSteps;
-      currentMode.steps = selectedSteps.length;
-    } else {
-      const customModeName = `custom-${data.mode}`;
-      data.available_modes[customModeName] = {
-        label: `Custom (${currentMode.label})`,
-        required_tools: currentMode.required_tools,
-        enabled_steps: selectedSteps,
-        description: `Custom workflow based on ${currentMode.label} mode`,
-        steps: selectedSteps.length,
-        review_gates: 0,
-        is_custom: true,
-        base_mode: data.mode
-      };
-      data.mode = customModeName as any;
-    }
-
     try {
-      saveWorkflow(data);
+      // Save to user config directory (not to workflow.json)
+      saveCurrentCustomWorkflow(data, selectedSteps, baseMode);
       showSuccess(i18n.t('workflow.edit.success', { count: String(selectedSteps.length) }));
     } catch (error) {
       console.log('');
