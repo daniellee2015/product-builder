@@ -84,20 +84,30 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
         // Display detailed phase and step information using list component
         const listItems: ListItem[] = [];
 
+        // Calculate consistent padding width for alignment
+        // Step format: "  P0-01  " (2 spaces + 7 chars padEnd + 2 spaces = 11 chars before step name)
+        const stepPrefixWidth = 11;
+
         for (const phase of data.phases) {
-          const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : '';
+          const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : ''
           const phaseNumber = phase.id.replace(/^phase-/, '');
           const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
 
-          // Add phase as list item (base indent)
+          // Pad phase label to align with step names
+          // "Phase 0:" should be padded to match step prefix width
+          const phaseLabelWithColon = `${phaseLabel}:`;
+          const paddedPhaseLabel = phaseLabelWithColon.padEnd(stepPrefixWidth);
+
+          // Add phase as list item with aligned format
           listItems.push({
-            text: chalk.cyan.bold(`${phaseLabel}: ${phase.name}`) + modeLabel,
+            text: chalk.cyan.bold(`${paddedPhaseLabel}${phase.name}`) + modeLabel,
             indent: 1
           });
 
-          // Add phase description (same indent as title)
+          // Add phase description with same padding to align with phase name
+          const descriptionPadding = ' '.repeat(stepPrefixWidth);
           listItems.push({
-            text: chalk.gray(phase.description),
+            text: chalk.gray(`${descriptionPadding}${phase.description}`),
             indent: 1
           });
 
