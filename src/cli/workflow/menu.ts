@@ -288,7 +288,15 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
 
   if (selected?.id === 'view') {
     if (data) {
-      await viewWorkflow(data);
+      const action = await viewWorkflow(data);
+
+      // Check if user selected edit
+      if (action.includes(i18n.t('workflow.view.edit'))) {
+        // TODO: Navigate to edit workflow
+        showInfo('Edit workflow - Coming soon');
+        await promptContinue();
+      }
+
       await showWorkflowMenu(showMainMenu);
     } else {
       showError('No workflow.json found.');

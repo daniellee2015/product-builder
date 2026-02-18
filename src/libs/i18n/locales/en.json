@@ -100,6 +100,9 @@
       "confirmDiscard": "You have unsaved changes. Discard them?",
       "success": "Workflow updated with {{count}} enabled steps",
       "cancelled": "Changes discarded"
+    },
+    "view": {
+      "edit": "Edit workflow"
     }
   },
   "llm": {
