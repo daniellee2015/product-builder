@@ -114,7 +114,7 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
 
           // Add steps (more indent than phase)
           for (const step of phase.steps) {
-            const active = isStepActive(step, data.mode);
+            const active = isStepActive(step, data.mode, data);
 
             // Build step notes with different colors
             const notes: string[] = [];

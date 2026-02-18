@@ -43,7 +43,6 @@ export async function editWorkflow(data: WorkflowData): Promise<string> {
 
     // Add steps
     for (const step of phase.steps) {
-      const enabled = isStepActive(step, data.mode);
       const cond = step.condition
         ? i18n.t(`workflow.conditions.${step.condition}`) : '-';
       const mode = step.min_mode !== 'lite' ? `${step.min_mode}+` : '-';
@@ -56,15 +55,14 @@ export async function editWorkflow(data: WorkflowData): Promise<string> {
         condition: cond,
         mode,
         tools,
-        _phaseId: phase.id,
-        _enabled: enabled
+        _phaseId: phase.id
       });
     }
   }
 
-  // Default selection
+  // Default selection based on originalEnabledSteps
   const defaultSelected = tableData
-    .map((row, index) => row._enabled ? index : -1)
+    .map((row, index) => originalEnabledSteps.includes(row.id as string) ? index : -1)
     .filter(i => i >= 0);
 
   // Show checkbox table
@@ -114,6 +112,14 @@ export async function editWorkflow(data: WorkflowData): Promise<string> {
   );
 
   if (confirmSave) {
+    // Validate selected steps
+    if (selectedSteps.length === 0) {
+      console.log('');
+      showInfo(i18n.t('workflow.edit.noStepsSelected') || 'No steps selected. Changes not saved.');
+      console.log('');
+      return 'back';
+    }
+
     const currentMode = data.available_modes[data.mode];
     if (currentMode.is_custom) {
       currentMode.enabled_steps = selectedSteps;
@@ -132,8 +138,16 @@ export async function editWorkflow(data: WorkflowData): Promise<string> {
       };
       data.mode = customModeName as any;
     }
-    saveWorkflow(data);
-    showSuccess(i18n.t('workflow.edit.success', { count: String(selectedSteps.length) }));
+
+    try {
+      saveWorkflow(data);
+      showSuccess(i18n.t('workflow.edit.success', { count: String(selectedSteps.length) }));
+    } catch (error) {
+      console.log('');
+      showInfo(`Failed to save workflow: ${error instanceof Error ? error.message : String(error)}`);
+      console.log('');
+      return 'back';
+    }
   } else {
     showInfo(i18n.t('workflow.edit.cancelled'));
   }
