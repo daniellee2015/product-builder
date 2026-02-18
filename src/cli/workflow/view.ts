@@ -19,6 +19,19 @@ import {
 import i18n from '../../libs/i18n';
 
 /**
+ * Simple pause function that doesn't use raw mode
+ * Allows terminal scrolling while waiting for user input
+ */
+async function waitForEnter(): Promise<void> {
+  return new Promise((resolve) => {
+    console.log(chalk.gray(`\n  ${i18n.t('common.continue')}: `));
+    process.stdin.once('data', () => {
+      resolve();
+    });
+  });
+}
+
+/**
  * Display workflow overview and details
  */
 export async function viewWorkflow(data: WorkflowData): Promise<void> {
@@ -33,80 +46,72 @@ export async function viewWorkflow(data: WorkflowData): Promise<void> {
     value: `${p.name} ${chalk.gray('— ' + p.description)}`
   }));
 
-  await renderPage({
-    header: {
-      type: 'simple',
-      text: data.name
-    },
-    mainArea: {
-      type: 'display',
-      render: () => {
-        renderSummaryTable({
-          title: `${i18n.t('workflow.display.overview')} - ${currentMode.label} Mode`,
-          titleAlign: 'left',
-          sections: [
-            {
-              header: i18n.t('workflow.display.basicInfo'),
-              items: [
-                { key: i18n.t('workflow.display.mode'), value: currentMode.label },
-                { key: i18n.t('workflow.display.description'), value: currentMode.description },
-                {
-                  key: i18n.t('workflow.display.tools'),
-                  value: currentMode.required_tools.length > 0
-                    ? currentMode.required_tools.join(', ')
-                    : i18n.t('workflow.display.anyCLI')
-                },
-                {
-                  key: i18n.t('workflow.display.activeSteps'),
-                  value: i18n.t('workflow.display.phasesCount', {
-                    count: String(phaseCount),
-                    active: String(activeSteps),
-                    total: String(totalSteps)
-                  })
-                },
-                { key: i18n.t('workflow.display.reviewGates'), value: String(countReviewGates(data)) },
-                { key: i18n.t('workflow.display.version'), value: data.version }
-              ]
-            },
-            {
-              header: i18n.t('workflow.display.workflowPhases'),
-              items: phaseItems
-            }
-          ]
-        });
+  // Render header
+  console.log('');
+  console.log(chalk.cyan.bold(`  ${data.name}`));
+  console.log('');
 
-        console.log('');
-
-        // Display detailed phase and step information
-        for (const phase of data.phases) {
-          const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : '';
-          // Extract phase number from ID (e.g., "phase-0" -> "0")
-          const phaseNumber = phase.id.replace(/^phase-/, '');
-          const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
-          console.log(chalk.cyan.bold(`  ${phaseLabel}: ${phase.name}`) + modeLabel);
-          console.log(chalk.gray(`  ${phase.description}\n`));
-
-          for (const step of phase.steps) {
-            const active = isStepActive(step, data.mode);
-
-            if (active) {
-              console.log(`  ${chalk.white(step.id)}  ${step.name}`);
-            } else {
-              console.log(chalk.gray(`  ${step.id}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`));
-            }
-          }
-          console.log('');
-        }
-
-        showInfo('★ = multi-model review gate with auto-repair');
-        console.log('');
+  // Render content
+  renderSummaryTable({
+    title: `${i18n.t('workflow.display.overview')} - ${currentMode.label} Mode`,
+    titleAlign: 'left',
+    sections: [
+      {
+        header: i18n.t('workflow.display.basicInfo'),
+        items: [
+          { key: i18n.t('workflow.display.mode'), value: currentMode.label },
+          { key: i18n.t('workflow.display.description'), value: currentMode.description },
+          {
+            key: i18n.t('workflow.display.tools'),
+            value: currentMode.required_tools.length > 0
+              ? currentMode.required_tools.join(', ')
+              : i18n.t('workflow.display.anyCLI')
+          },
+          {
+            key: i18n.t('workflow.display.activeSteps'),
+            value: i18n.t('workflow.display.phasesCount', {
+              count: String(phaseCount),
+              active: String(activeSteps),
+              total: String(totalSteps)
+            })
+          },
+          { key: i18n.t('workflow.display.reviewGates'), value: String(countReviewGates(data)) },
+          { key: i18n.t('workflow.display.version'), value: data.version }
+        ]
+      },
+      {
+        header: i18n.t('workflow.display.workflowPhases'),
+        items: phaseItems
       }
-    },
-    footer: {
-      input: {
-        prompt: i18n.t('common.continue'),
-        allowEmpty: true
+    ]
+  });
+
+  console.log('');
+
+  // Display detailed phase and step information
+  for (const phase of data.phases) {
+    const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : '';
+    // Extract phase number from ID (e.g., "phase-0" -> "0")
+    const phaseNumber = phase.id.replace(/^phase-/, '');
+    const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
+    console.log(chalk.cyan.bold(`  ${phaseLabel}: ${phase.name}`) + modeLabel);
+    console.log(chalk.gray(`  ${phase.description}\n`));
+
+    for (const step of phase.steps) {
+      const active = isStepActive(step, data.mode);
+
+      if (active) {
+        console.log(`  ${chalk.white(step.id)}  ${step.name}`);
+      } else {
+        console.log(chalk.gray(`  ${step.id}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`));
       }
     }
-  });
+    console.log('');
+  }
+
+  showInfo('★ = multi-model review gate with auto-repair');
+  console.log('');
+
+  // Wait for user to press Enter (without raw mode, allows scrolling)
+  await waitForEnter();
 }
