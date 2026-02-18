@@ -15,7 +15,7 @@
         "openclaw"
       ],
       "description": "Complete workflow with multi-model review, Ralph retry loop, auto-repair, and monitoring",
-      "steps": 39,
+      "steps": 51,
       "review_gates": 3,
       "enabled_steps": [
         "P0-01",
@@ -44,19 +44,31 @@
         "P1-12",
         "P1-13",
         "P1-14",
+        "P1-15",
+        "P2-11",
+        "P2-12",
+        "P2-13",
+        "P2-14",
         "P2-15",
         "P2-16",
         "P2-17",
         "P2-18",
         "P2-19",
-        "P3-20",
+        "P2-20",
+        "P2-21",
+        "P2-22",
         "P3-21",
         "P4-22",
         "P4-23",
         "P4-24",
         "P4-25",
         "P4-26",
-        "P4-27"
+        "P4-27",
+        "P4-28",
+        "P4-29",
+        "P4-30",
+        "P4-31",
+        "P4-32"
       ]
     },
     "standard": {
@@ -66,15 +78,13 @@
         "cca"
       ],
       "description": "Multi-model review without auto-retry or monitoring",
-      "steps": 33,
+      "steps": 48,
       "review_gates": 3,
       "enabled_steps": [
         "P0-01",
         "P0-02",
         "P0-03",
         "P0-04",
-        "P0-05",
-        "P0-06",
         "P0-08",
         "P0-09",
         "P0-10",
@@ -94,14 +104,31 @@
         "P1-12",
         "P1-13",
         "P1-14",
+        "P1-15",
+        "P2-11",
+        "P2-12",
+        "P2-13",
+        "P2-14",
         "P2-15",
         "P2-16",
         "P2-17",
         "P2-18",
         "P2-19",
-        "P3-20",
+        "P2-20",
+        "P2-21",
+        "P2-22",
         "P3-21",
-        "P4-22"
+        "P4-22",
+        "P4-23",
+        "P4-24",
+        "P4-25",
+        "P4-26",
+        "P4-27",
+        "P4-28",
+        "P4-29",
+        "P4-30",
+        "P4-31",
+        "P4-32"
       ]
     },
     "lite": {
@@ -358,6 +385,7 @@
           "id": "P0-12",
           "name": "Review Requirement MDX",
           "description": "Multi-model review with auto-repair (up to 3 attempts)",
+          "requires_human_approval": true,
           "input": [
             "exports/jobs/{job_id}/source/requirement.mdx"
           ],
@@ -659,6 +687,21 @@
             "git.commit.planning"
           ],
           "min_mode": "lite"
+        },
+        {
+          "id": "P1-15",
+          "name": "Review Planning Results",
+          "description": "User reviews planning artifacts and decides whether to proceed with execution.",
+          "input": [
+            "exports/jobs/{job_id}/docs/roadmap.mdx",
+            "exports/jobs/{job_id}/specs/*.mdx",
+            "exports/jobs/{job_id}/analysis/roadmap.json"
+          ],
+          "output": [
+            "user_decision.proceed"
+          ],
+          "requires_human_approval": true,
+          "min_mode": "lite"
         }
       ],
       "groups": [
@@ -702,120 +745,134 @@
     {
       "id": "phase-2",
       "name": "Execution",
-      "description": "Execute and verify tasks in a loop until no task remains.",
+      "description": "Execute tasks in a loop with automated testing, review, and repair until all tasks are completed.",
       "execution": {
         "mode": "loop",
-        "entry_step": "P2-15",
-        "exit_condition": "tasks.remaining == 0"
+        "entry_step": "P2-11",
+        "exit_condition": "all_tasks_done && review_passed"
       },
       "steps": [
         {
-          "id": "P2-15",
-          "name": "Execute Task",
-          "description": "Implement next planned task from unified execution queue.",
+          "id": "P2-11",
+          "name": "Start Execution Decision",
+          "description": "User decides whether to start execution or wait.",
           "input": [
-            "exports/jobs/{job_id}/parsed/unified.json",
-            "exports/jobs/{job_id}/analysis/roadmap.json",
-            "tasks.next"
+            "exports/jobs/{job_id}/docs/roadmap.mdx",
+            "user_decision.proceed"
           ],
           "output": [
-            "workspace.code_changes",
-            "tasks.current_result"
+            "execution.started"
+          ],
+          "requires_human_approval": true,
+          "min_mode": "lite"
+        },
+        {
+          "id": "P2-12",
+          "name": "Get Next Task",
+          "description": "Retrieve next executable task from queue, checking blockedBy dependencies.",
+          "input": [
+            "exports/jobs/{job_id}/parsed/unified.json",
+            "exports/jobs/{job_id}/analysis/progress.json"
+          ],
+          "output": [
+            "tasks.current"
           ],
           "min_mode": "lite"
         },
         {
-          "id": "P2-16",
-          "name": "Verify Task",
-          "description": "Run automated checks for correctness and regressions.",
+          "id": "P2-13",
+          "name": "Execute Task",
+          "description": "AI Agent implements the current task.",
           "input": [
-            "workspace.code_changes",
-            "tasks.current_result"
+            "tasks.current",
+            "exports/jobs/{job_id}/specs/*.mdx"
           ],
           "output": [
-            "exports/jobs/{job_id}/reviews/task-verify.json"
+            "workspace.code_changes"
+          ],
+          "condition": "has_executable_task",
+          "min_mode": "lite"
+        },
+        {
+          "id": "P2-14",
+          "name": "Auto Test",
+          "description": "Run automated tests from verification.json.",
+          "input": [
+            "workspace.code_changes",
+            "exports/jobs/{job_id}/specs/verification.json"
+          ],
+          "output": [
+            "test.results"
           ],
           "min_mode": "standard"
         },
         {
-          "id": "P2-17",
-          "name": "Update OpenSpec Status",
-          "description": "Reflect task completion and state in OpenSpec.",
+          "id": "P2-15",
+          "name": "Fix Issue",
+          "description": "Fix issues found during testing.",
           "input": [
-            "exports/jobs/{job_id}/source/openspec.mdx",
-            "exports/jobs/{job_id}/reviews/task-verify.json"
+            "test.results",
+            "workspace.code_changes"
+          ],
+          "output": [
+            "workspace.code_changes"
+          ],
+          "condition": "test_failed",
+          "min_mode": "lite"
+        },
+        {
+          "id": "P2-16",
+          "name": "Update OpenSpec",
+          "description": "Mark task as completed in tasks.md.",
+          "input": [
+            "tasks.current",
+            "exports/jobs/{job_id}/source/openspec.mdx"
           ],
           "output": [
             "exports/jobs/{job_id}/source/openspec.mdx"
           ],
-          "condition": "when_task_passes",
+          "condition": "test_passed",
           "min_mode": "standard"
         },
         {
-          "id": "P2-18",
+          "id": "P2-17",
           "name": "Update Progress",
-          "description": "Update progress metrics and execution tracking files.",
+          "description": "Update progress.json with task completion status.",
           "input": [
-            "exports/jobs/{job_id}/source/openspec.mdx",
-            "tasks.current_result"
+            "tasks.current",
+            "exports/jobs/{job_id}/analysis/progress.json"
           ],
           "output": [
             "exports/jobs/{job_id}/analysis/progress.json"
           ],
-          "condition": "when_task_passes",
           "min_mode": "standard"
         },
         {
-          "id": "P2-19",
-          "name": "Commit Task Changes",
-          "description": "Commit verified task changes on job branch.",
+          "id": "P2-18",
+          "name": "Commit Task",
+          "description": "Commit task changes to job branch (frontend/backend/OpenSpec).",
           "input": [
             "workspace.code_changes",
+            "exports/jobs/{job_id}/source/openspec.mdx",
             "exports/jobs/{job_id}/analysis/progress.json"
           ],
           "output": [
             "git.commit.task"
           ],
-          "condition": "when_task_passes",
           "min_mode": "lite"
-        }
-      ],
-      "groups": [
+        },
         {
-          "id": "2.1",
-          "name": "Task Loop",
-          "description": "Task loop",
-          "step_ids": [
-            "P2-15",
-            "P2-16",
-            "P2-17",
-            "P2-18",
-            "P2-19"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "phase-3",
-      "name": "Acceptance",
-      "description": "Multi-model acceptance gate followed by explicit human confirmation.",
-      "execution": {
-        "mode": "sequential"
-      },
-      "steps": [
-        {
-          "id": "P3-20",
-          "name": "Multi-Model Acceptance Review",
-          "description": "Run final acceptance review with auto-repair up to 3 attempts.",
+          "id": "P2-19",
+          "name": "Final Review",
+          "description": "Multi-model review gate for final acceptance.",
           "input": [
-            "workspace.final_changes",
-            "exports/jobs/{job_id}/source/openspec.mdx",
+            "workspace.all_changes",
             "exports/jobs/{job_id}/specs/*.mdx"
           ],
           "output": [
-            "exports/jobs/{job_id}/reviews/acceptance-review.json",
-            "workspace.final_changes"
+            "exports/jobs/{job_id}/reviews/final-review.json"
           ],
+          "condition": "all_tasks_done",
           "review_config": {
             "models": [
               "gemini",
@@ -831,7 +888,7 @@
               "ask_user_on_exhausted": true,
               "user_options": [
                 "continue",
-                "cancel"
+                "create_new_job"
               ]
             }
           },
@@ -842,25 +899,111 @@
           ]
         },
         {
-          "id": "P3-21",
-          "name": "Human Final Confirmation",
-          "description": "Require explicit human decision before merge and archive.",
+          "id": "P2-20",
+          "name": "Aggregate Review Results",
+          "description": "Aggregate multi-model review results and calculate pass rate.",
           "input": [
-            "exports/jobs/{job_id}/reviews/acceptance-review.json"
+            "exports/jobs/{job_id}/reviews/final-review.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/reviews/human-approval.json"
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
           ],
+          "min_mode": "standard"
+        },
+        {
+          "id": "P2-21",
+          "name": "Auto Fix",
+          "description": "Automatically fix issues found in review (max 3 attempts).",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+            "workspace.all_changes"
+          ],
+          "output": [
+            "workspace.all_changes"
+          ],
+          "condition": "review_needs_fix",
+          "min_mode": "standard"
+        },
+        {
+          "id": "P2-22",
+          "name": "Record Technical Debt",
+          "description": "Record issues to TECHNICAL_DEBT.md if review passed with minor issues.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
+          ],
+          "condition": "review_passed_with_issues",
+          "min_mode": "standard"
+        }
+      ],
+      "groups": [
+        {
+          "id": "2.1",
+          "name": "Execution Start",
+          "description": "User decision to start execution",
+          "step_ids": [
+            "P2-11"
+          ]
+        },
+        {
+          "id": "2.2",
+          "name": "Task Loop",
+          "description": "Task execution loop with testing and fixes",
+          "step_ids": [
+            "P2-12",
+            "P2-13",
+            "P2-14",
+            "P2-15",
+            "P2-16",
+            "P2-17",
+            "P2-18"
+          ]
+        },
+        {
+          "id": "2.3",
+          "name": "Final Review",
+          "description": "Multi-model review with auto-repair",
+          "step_ids": [
+            "P2-19",
+            "P2-20",
+            "P2-21",
+            "P2-22"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Acceptance",
+      "description": "Human final confirmation before archiving.",
+      "execution": {
+        "mode": "sequential"
+      },
+      "steps": [
+        {
+          "id": "P3-21",
+          "name": "Human Final Confirmation",
+          "description": "Final human approval to proceed with archiving and deployment.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+            "exports/jobs/{job_id}/TECHNICAL_DEBT.md",
+            "workspace.all_changes"
+          ],
+          "output": [
+            "human_approval.final"
+          ],
+          "requires_human_approval": true,
           "min_mode": "lite"
         }
       ],
       "groups": [
         {
           "id": "3.1",
-          "name": "Review & Confirmation",
-          "description": "Review and confirmation",
+          "name": "Human Approval",
+          "description": "Final human approval gate",
           "step_ids": [
-            "P3-20",
             "P3-21"
           ]
         }
@@ -869,7 +1012,7 @@
     {
       "id": "phase-4",
       "name": "Archive",
-      "description": "Merge, archive artifacts, refresh docs/spec snapshots, and rebuild capability tree.",
+      "description": "Archive OpenSpec, update documentation, and rebuild capability tree.",
       "execution": {
         "mode": "sequential"
       },
@@ -877,94 +1020,170 @@
         {
           "id": "P4-22",
           "name": "Merge Git Branch",
-          "description": "Merge approved job branch into target integration branch.",
+          "description": "Merge feature branch to main (frontend + backend).",
           "input": [
             "git.branch.name",
-            "exports/jobs/{job_id}/reviews/human-approval.json"
+            "human_approval.final"
           ],
           "output": [
-            "git.merge.commit"
+            "git.merge.result"
           ],
-          "condition": "when_human_approved",
           "min_mode": "lite"
         },
         {
           "id": "P4-23",
           "name": "Archive OpenSpec",
-          "description": "Archive OpenSpec and related review artifacts.",
+          "description": "Archive OpenSpec to openspec repository.",
           "input": [
-            "exports/jobs/{job_id}/source/openspec.mdx",
-            "exports/jobs/{job_id}/reviews/*.json"
+            "exports/jobs/{job_id}/source/openspec.mdx"
           ],
           "output": [
-            "exports/archive/openspec/{job_id}.mdx"
+            "openspec.archived_path"
           ],
-          "min_mode": "full"
+          "min_mode": "standard"
         },
         {
           "id": "P4-24",
-          "name": "Update specs/",
-          "description": "Refresh repository-level specs from approved job specs.",
+          "name": "Commit Archive",
+          "description": "Commit archived OpenSpec to openspec repository.",
           "input": [
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "openspec.archived_path"
+          ],
+          "output": [
+            "git.commit.archive"
+          ],
+          "min_mode": "lite"
+        },
+        {
+          "id": "P4-25",
+          "name": "Update Specs",
+          "description": "Apply changes to capability specifications in specs/.",
+          "input": [
+            "exports/jobs/{job_id}/specs/*.mdx",
+            "repo/specs/**"
           ],
           "output": [
             "repo/specs/**"
           ],
-          "min_mode": "full"
+          "min_mode": "standard"
         },
         {
-          "id": "P4-25",
-          "name": "Update Development Docs",
-          "description": "Regenerate development documentation after merge.",
+          "id": "P4-26",
+          "name": "Commit Specs",
+          "description": "Commit updated specs to waoooo-docs repository.",
           "input": [
-            "repo/specs/**",
-            "workspace.final_changes"
+            "repo/specs/**"
+          ],
+          "output": [
+            "git.commit.specs"
+          ],
+          "min_mode": "lite"
+        },
+        {
+          "id": "P4-27",
+          "name": "Update Development Docs",
+          "description": "Generate and update capability documentation.",
+          "input": [
+            "repo/specs/**"
           ],
           "output": [
             "repo/docs/**"
           ],
-          "min_mode": "full"
+          "min_mode": "standard"
         },
         {
-          "id": "P4-26",
-          "name": "Update Roadmap Docs",
-          "description": "Regenerate roadmap docs for latest merged state.",
+          "id": "P4-28",
+          "name": "Commit Docs",
+          "description": "Commit updated documentation to waoooo-docs repository.",
           "input": [
-            "exports/jobs/{job_id}/analysis/roadmap.json",
-            "repo/specs/**"
+            "repo/docs/**"
+          ],
+          "output": [
+            "git.commit.docs"
+          ],
+          "min_mode": "lite"
+        },
+        {
+          "id": "P4-29",
+          "name": "Update Roadmap Docs",
+          "description": "Update planning documents (JSON → MDX final state).",
+          "input": [
+            "exports/jobs/{job_id}/analysis/roadmap.json"
           ],
           "output": [
             "repo/docs/roadmap/**"
           ],
-          "min_mode": "full"
+          "min_mode": "standard"
         },
         {
-          "id": "P4-27",
+          "id": "P4-30",
+          "name": "Commit Roadmap",
+          "description": "Commit updated roadmap documents to waoooo-docs repository.",
+          "input": [
+            "repo/docs/roadmap/**"
+          ],
+          "output": [
+            "git.commit.roadmap"
+          ],
+          "min_mode": "lite"
+        },
+        {
+          "id": "P4-31",
           "name": "Rebuild Capability Tree",
-          "description": "Rebuild capability tree after merge and docs/spec updates.",
+          "description": "Rebuild capability tree using build-capability-tree.ts.",
           "input": [
             "repo/specs/**",
             "repo/src/**"
           ],
           "output": [
-            "repo/.ccb/capability-tree.json"
+            "repo/capability-tree.json"
           ],
-          "min_mode": "full"
+          "min_mode": "standard"
+        },
+        {
+          "id": "P4-32",
+          "name": "Commit Capability Tree",
+          "description": "Commit updated capability tree to waoooo-web repository.",
+          "input": [
+            "repo/capability-tree.json"
+          ],
+          "output": [
+            "git.commit.capability_tree"
+          ],
+          "min_mode": "lite"
         }
       ],
       "groups": [
         {
           "id": "4.1",
-          "name": "Merge & Update",
-          "description": "Merge and update",
+          "name": "Merge and Archive",
+          "description": "Merge branch and archive OpenSpec",
           "step_ids": [
             "P4-22",
             "P4-23",
-            "P4-24",
+            "P4-24"
+          ]
+        },
+        {
+          "id": "4.2",
+          "name": "Update Documentation",
+          "description": "Update specs, docs, and roadmap",
+          "step_ids": [
             "P4-25",
             "P4-26",
-            "P4-27"
+            "P4-27",
+            "P4-28",
+            "P4-29",
+            "P4-30"
+          ]
+        },
+        {
+          "id": "4.3",
+          "name": "Rebuild Capability Tree",
+          "description": "Rebuild and commit capability tree",
+          "step_ids": [
+            "P4-31",
+            "P4-32"
           ]
         }
       ]
@@ -1058,42 +1277,6 @@
       "to": "P1-14"
     },
     {
-      "from": "P1-14",
-      "to": "P2-15"
-    },
-    {
-      "from": "P2-15",
-      "to": "P2-16"
-    },
-    {
-      "from": "P2-16",
-      "to": "P2-15",
-      "condition": "task_verify.status == 'fail'"
-    },
-    {
-      "from": "P2-16",
-      "to": "P2-17",
-      "condition": "task_verify.status == 'pass'"
-    },
-    {
-      "from": "P2-17",
-      "to": "P2-18"
-    },
-    {
-      "from": "P2-18",
-      "to": "P2-19"
-    },
-    {
-      "from": "P2-19",
-      "to": "P2-15",
-      "condition": "tasks.remaining > 0"
-    },
-    {
-      "from": "P2-19",
-      "to": "P3-20",
-      "condition": "tasks.remaining == 0"
-    },
-    {
       "from": "P3-20",
       "to": "P3-20",
       "condition": "review_failed('P3-20') && auto_repair_attempts < 3"
@@ -1146,6 +1329,56 @@
     {
       "from": "P4-27",
       "to": "END"
+    },
+    {
+      "from": "P2-14",
+      "to": "P2-15",
+      "condition": "test_failed"
+    },
+    {
+      "from": "P2-15",
+      "to": "P2-14",
+      "condition": "after_fix"
+    },
+    {
+      "from": "P2-14",
+      "to": "P2-16",
+      "condition": "test_passed"
+    },
+    {
+      "from": "P2-18",
+      "to": "P2-12",
+      "condition": "has_more_tasks"
+    },
+    {
+      "from": "P2-12",
+      "to": "P2-19",
+      "condition": "all_tasks_done"
+    },
+    {
+      "from": "P2-19",
+      "to": "P2-21",
+      "condition": "review_needs_fix"
+    },
+    {
+      "from": "P2-21",
+      "to": "P2-19",
+      "condition": "retry_review"
+    },
+    {
+      "from": "P2-21",
+      "to": "P2-22",
+      "condition": "max_retries_exhausted && user_chooses_continue"
+    },
+    {
+      "from": "P2-19",
+      "to": "P2-22",
+      "condition": "review_passed_with_issues"
+    },
+    {
+      "from": "P2-22",
+      "to": "P2-23",
+      "condition": "always"
     }
   ],
   "tool_registry": {
