@@ -255,12 +255,11 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
       type: 'display',
       render: () => {
         if (menuConfig.desc) {
-          console.log(chalk.gray(`
-  ${menuConfig.desc}
-`));
+          console.log(chalk.gray(`  ${menuConfig.desc}`));
+          console.log('');
         }
-        console.log(chalk.gray(`  Current mode: ${chalk.white(modeLabel)}
-`));
+        console.log(chalk.gray(`  Current mode: ${chalk.white(modeLabel)}`));
+        console.log('');
       }
     },
     footer: {
