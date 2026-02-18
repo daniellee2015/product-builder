@@ -14,7 +14,7 @@
         "ralph",
         "openclaw"
       ],
-      "description": "Complete workflow with automatic loop, multi-model review, and all automation",
+      "description": "Complete workflow with automatic loop (Phase 2 uses ralph), multi-model review, and all automation. Openclaw is experimental top-level monitoring.",
       "steps": 54,
       "review_gates": 3,
       "enabled_steps": [
@@ -65,7 +65,29 @@
     "supported_input_modes": [
       "mdx",
       "ui_form"
-    ]
+    ],
+    "tools": {
+      "ccb": {
+        "description": "Primary LLM CLI for task execution",
+        "required_for": ["standard", "full"]
+      },
+      "cca": {
+        "description": "Secondary LLM CLI for multi-model review",
+        "required_for": ["standard", "full"]
+      },
+      "ralph": {
+        "description": "Phase 2 execution loop controller",
+        "required_for": ["full"],
+        "usage": "Manages automatic task loop in Phase 2"
+      },
+      "openclaw": {
+        "description": "Experimental top-level LLM monitoring (optional)",
+        "required_for": [],
+        "status": "experimental",
+        "usage": "Monitors all tmux terminal windows and unified requirement dispatch",
+        "note": "Not yet tested, will be configured last"
+      }
+    }
   },
   "job_structure": {
     "required_dirs": [
