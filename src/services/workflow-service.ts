@@ -71,13 +71,13 @@ export function saveWorkflow(data: WorkflowData): void {
 }
 
 export function isStepActive(step: WorkflowStep, currentMode: WorkflowMode, data?: WorkflowData): boolean {
-  // For custom modes, check enabled_steps array
-  if (data && data.available_modes[currentMode]?.is_custom) {
-    const customMode = data.available_modes[currentMode];
-    return customMode.enabled_steps?.includes(step.id) || false;
+  // Always check enabled_steps array if data is provided
+  if (data && data.available_modes[currentMode]) {
+    const mode = data.available_modes[currentMode];
+    return mode.enabled_steps?.includes(step.id) || false;
   }
 
-  // For standard modes, use min_mode logic
+  // Fallback to min_mode logic if data is not provided (backward compatibility)
   const modeLevel = MODE_ORDER.indexOf(currentMode);
   const stepLevel = MODE_ORDER.indexOf(step.min_mode);
   return stepLevel <= modeLevel;
