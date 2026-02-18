@@ -34,7 +34,10 @@ import {
   resetToBaseMode
 } from '../../services/workflow-service';
 
-async function displayWorkflow(data: WorkflowData): Promise<void> {
+function displayWorkflow(data: WorkflowData): void {
+  console.log('');
+  renderSimpleHeader(data.name);
+
   const currentMode = data.available_modes[data.mode];
   const activeSteps = countActiveSteps(data);
   const totalSteps = countTotalSteps(data);
@@ -46,72 +49,54 @@ async function displayWorkflow(data: WorkflowData): Promise<void> {
     value: `${p.name} ${chalk.gray('— ' + p.description)}`
   }));
 
-  await renderPage({
-    header: {
-      type: 'simple',
-      text: data.name
-    },
-    mainArea: {
-      type: 'display',
-      render: () => {
-        renderSummaryTable({
-          title: `Workflow Overview - ${currentMode.label} Mode`,
-          titleAlign: 'left',
-          sections: [
-            {
-              header: 'Basic Information',
-              items: [
-                { key: 'Mode', value: currentMode.label },
-                { key: 'Description', value: currentMode.description },
-                { key: 'Tools', value: currentMode.required_tools.length > 0 ? currentMode.required_tools.join(', ') : 'Any single CLI' },
-                { key: 'Active Steps', value: `${phaseCount} phases, ${activeSteps}/${totalSteps} steps active` },
-                { key: 'Review Gates', value: String(countReviewGates(data)) },
-                { key: 'Version', value: data.version }
-              ]
-            },
-            {
-              header: 'Workflow Phases',
-              items: phaseItems
-            }
-          ]
-        });
-
-        console.log('');
-
-        for (const phase of data.phases) {
-          const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : '';
-          console.log(chalk.cyan.bold(`  ${phase.id}: ${phase.name}`) + modeLabel);
-          console.log(chalk.gray(`  ${phase.description}
-`));
-
-          for (const step of phase.steps) {
-            const active = isStepActive(step, data.mode);
-            const review = step.review_config ? chalk.magenta(' ★') : '';
-            const cond = step.condition ? chalk.gray(` if ${step.condition}`) : '';
-            const modeTag = step.min_mode !== 'lite' ? chalk.gray(` [${step.min_mode}+]`) : '';
-
-            if (active) {
-              console.log(`  ${chalk.white(step.id)}  ${step.name}${review}${cond}${modeTag}`);
-            } else {
-              console.log(chalk.gray(`  ${step.id}  ${step.name} (skipped in ${data.mode} mode)`));
-            }
-          }
-          console.log('');
-        }
-
-        showInfo('★ = multi-model review gate with auto-repair');
-        console.log('');
-      }
-    },
-    footer: {
-      menu: {
-        options: ['b. Back'],
-        allowLetterKeys: true,
-        preserveOnSelect: true
+  renderSummaryTable({
+    title: `Workflow Overview - ${currentMode.label} Mode`,
+    titleAlign: 'left',
+    sections: [
+      {
+        header: 'Basic Information',
+        items: [
+          { key: 'Mode', value: currentMode.label },
+          { key: 'Description', value: currentMode.description },
+          { key: 'Tools', value: currentMode.required_tools.length > 0 ? currentMode.required_tools.join(', ') : 'Any single CLI' },
+          { key: 'Active Steps', value: `${phaseCount} phases, ${activeSteps}/${totalSteps} steps active` },
+          { key: 'Review Gates', value: String(countReviewGates(data)) },
+          { key: 'Version', value: data.version }
+        ]
       },
-      hints: ['Enter Back']
-    }
+      {
+        header: 'Workflow Phases',
+        items: phaseItems
+      }
+    ]
+    // No width specified - will use full terminal width
   });
+
+  console.log('');
+
+  for (const phase of data.phases) {
+    const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : '';
+    console.log(chalk.cyan.bold(`  ${phase.id}: ${phase.name}`) + modeLabel);
+    console.log(chalk.gray(`  ${phase.description}\n`));
+
+    for (const step of phase.steps) {
+      const active = isStepActive(step, data.mode);
+      const review = step.review_config ? chalk.magenta(' ★') : '';
+      const cond = step.condition ? chalk.gray(` if ${step.condition}`) : ''
+;
+      const modeTag = step.min_mode !== 'lite' ? chalk.gray(` [${step.min_mode}+]`) : '';
+
+      if (active) {
+        console.log(`  ${chalk.white(step.id)}  ${step.name}${review}${cond}${modeTag}`);
+      } else {
+        console.log(chalk.gray(`  ${step.id}  ${step.name} (skipped in ${data.mode} mode)`));
+      }
+    }
+    console.log('');
+  }
+
+  showInfo('★ = multi-model review gate with auto-repair');
+  console.log('');
 }
 
 async function switchMode(data: WorkflowData): Promise<boolean> {
@@ -302,35 +287,16 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
   const modeLabel = data ? `${data.available_modes[data.mode]?.label || data.mode}` : '?';
   const menuConfig = MENUS.workflow;
 
-  const result = await renderPage({
-    header: {
-      type: 'section',
-      text: menuConfig.title,
-      width: menuConfig.headerWidth
-    },
-    mainArea: {
-      type: 'display',
-      render: () => {
-        console.log(chalk.gray(`
-  ${menuConfig.desc}
-`));
-        console.log(chalk.gray(`  Current mode: ${chalk.white(modeLabel)}
-`));
-      }
-    },
-    footer: {
-      menu: {
-        options: buildMenuOptions(menuConfig),
-        allowLetterKeys: true,
-        allowNumberKeys: true,
-        preserveOnSelect: true
-      },
-      hints: generateMenuHints({
-        hasMultipleOptions: true,
-        allowNumberKeys: true,
-        allowLetterKeys: true
-      })
-    }
+  console.log('');
+  renderSectionHeader(menuConfig.title, menuConfig.headerWidth);
+  console.log(chalk.gray(`  ${menuConfig.desc}\n`));
+  console.log(chalk.gray(`  Current mode: ${chalk.white(modeLabel)}\n`));
+
+  const result = await menu.radio({
+    options: buildMenuOptions(menuConfig),
+    allowLetterKeys: true,
+    allowNumberKeys: true,
+    preserveOnSelect: true
   });
 
   const action = result.value;
@@ -344,7 +310,13 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
 
   if (selected?.id === 'view') {
     if (data) {
-      await displayWorkflow(data);
+      displayWorkflow(data);
+      // Simple back option
+      await menu.radio({
+        options: ['b. Back'],
+        allowLetterKeys: true,
+        preserveOnSelect: true
+      });
       await showWorkflowMenu(showMainMenu);
     } else {
       showError('No workflow.json found.');

@@ -8,8 +8,10 @@ import * as path from 'path';
 import {
   menu,
   input,
+  renderPage,
   renderSectionHeader,
   renderSimpleHeader,
+  generateMenuHints,
   showInfo,
   showError,
   showSuccess
@@ -27,6 +29,7 @@ import {
   isStepActive
 } from '../../services/workflow-service';
 import { displayWorkflow, displayWorkflowTable, displayEditableWorkflowTable } from './display';
+import { viewWorkflow } from './view';
 import i18n from '../../libs/i18n';
 
 /**
@@ -242,17 +245,37 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
   const modeLabel = data ? `${data.available_modes[data.mode]?.label || data.mode}` : '?';
   const menuConfig = MENUS.workflow;
 
-  renderSectionHeader(menuConfig.title, menuConfig.headerWidth);
-  if (menuConfig.desc) {
-    console.log(chalk.gray(menuConfig.desc + '\n'));
-  }
-  console.log(chalk.gray(`  Current mode: ${chalk.white(modeLabel)}\n`));
-
-  const result = await menu.radio({
-    options: buildMenuOptions(menuConfig),
-    allowLetterKeys: true,
-    allowNumberKeys: true,
-    preserveOnSelect: true
+  const result = await renderPage({
+    header: {
+      type: 'section',
+      text: menuConfig.title,
+      width: menuConfig.headerWidth
+    },
+    mainArea: {
+      type: 'display',
+      render: () => {
+        if (menuConfig.desc) {
+          console.log(chalk.gray(`
+  ${menuConfig.desc}
+`));
+        }
+        console.log(chalk.gray(`  Current mode: ${chalk.white(modeLabel)}
+`));
+      }
+    },
+    footer: {
+      menu: {
+        options: buildMenuOptions(menuConfig),
+        allowLetterKeys: true,
+        allowNumberKeys: true,
+        preserveOnSelect: true
+      },
+      hints: generateMenuHints({
+        hasMultipleOptions: true,
+        allowNumberKeys: true,
+        allowLetterKeys: true
+      })
+    }
   });
 
   const action = result.value;
@@ -266,13 +289,7 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
 
   if (selected?.id === 'view') {
     if (data) {
-      displayWorkflow(data);
-      // Show back option in footer
-      await menu.radio({
-        options: [`b. ${i18n.t('common.back')}`],
-        allowLetterKeys: true,
-        preserveOnSelect: true
-      });
+      await viewWorkflow(data);
       await showWorkflowMenu(showMainMenu);
     } else {
       showError('No workflow.json found.');
