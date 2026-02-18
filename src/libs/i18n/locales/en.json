@@ -57,7 +57,8 @@
       "backDesc": "Return to workflow menu",
       "success": "Switched to {{mode}} mode",
       "alreadyIn": "Already in {{mode}} mode",
-      "stepsInfo": "{{steps}} steps, {{tools}}"
+      "stepsInfo": "{{steps}} steps, {{tools}}",
+      "confirmDeleteCustom": "Delete custom workflow configuration?"
     },
     "import": {
       "title": "Import Custom Workflow",
@@ -110,7 +111,8 @@
       "footerTitle": "Confirm Changes",
       "changesDetected": "Changes detected: {{count}} steps selected (was {{original}})",
       "noChanges": "No changes made",
-      "confirmSave": "Save changes?"
+      "confirmSave": "Save changes?",
+      "noStepsSelected": "No steps selected. Changes not saved."
     },
     "view": {
       "edit": "Edit workflow"
