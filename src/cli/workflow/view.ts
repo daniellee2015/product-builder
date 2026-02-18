@@ -99,15 +99,16 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
           const paddedPhaseLabel = phaseLabelWithColon.padEnd(stepPrefixWidth);
 
           // Add phase as list item with aligned format
+          // Add extra space at the beginning to align with summary and menu text
           listItems.push({
-            text: chalk.cyan.bold(`${paddedPhaseLabel}${phase.name}`) + modeLabel,
+            text: ` ${chalk.cyan.bold(`${paddedPhaseLabel}${phase.name}`)}${modeLabel}`,
             indent: 1
           });
 
           // Add phase description with same padding to align with phase name
           const descriptionPadding = ' '.repeat(stepPrefixWidth);
           listItems.push({
-            text: chalk.gray(`${descriptionPadding}${phase.description}`),
+            text: ` ${chalk.gray(`${descriptionPadding}${phase.description}`)}`,
             indent: 1
           });
 
@@ -133,9 +134,11 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
             // Pad step ID to ensure consistent spacing (max 7 chars for IDs like P2-11a)
             const paddedId = step.id.padEnd(7);
 
+            // Add extra space at the beginning to align with summary and menu text
             const stepText = active
-              ? `  ${paddedId}  ${step.name}${noteText}`
-              : chalk.gray(`  ${paddedId}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`);
+              ? ` ${`  ${paddedId}  ${step.name}${noteText}`}`
+              : ` ${chalk.gray(`  ${paddedId}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`)}`;
+
 
             listItems.push({
               text: stepText,
