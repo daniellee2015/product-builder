@@ -2614,8 +2614,43 @@
           ],
           "condition": "after_p1_01_and_p1_02",
           "min_mode": "lite",
+          "enabled_in_modes": ["lite"],
           "required_tools": [
             "git"
+          ]
+        },
+        {
+          "id": "P1-L1",
+          "name": "Parse MDX to Unified (Lite)",
+          "description": "Direct transformation from requirements.mdx to unified.json, bypassing OpenSpec conversion",
+          "input": [
+            "exports/jobs/{job_id}/source/requirements.mdx",
+            "exports/jobs/{job_id}/metadata.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/parsed/unified.json"
+          ],
+          "min_mode": "lite",
+          "enabled_in_modes": ["lite"],
+          "required_tools": [
+            "basic_parser"
+          ]
+        },
+        {
+          "id": "P1-L2",
+          "name": "Analyze Capabilities (Lite)",
+          "description": "Simplified capability analysis for Lite mode",
+          "input": [
+            "exports/jobs/{job_id}/parsed/unified.json",
+            "exports/jobs/{job_id}/analysis/capability-tree.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+          ],
+          "min_mode": "lite",
+          "enabled_in_modes": ["lite"],
+          "required_tools": [
+            "basic_parser"
           ]
         },
         {
@@ -2633,8 +2668,26 @@
             "exports/jobs/{job_id}/specs/progress.json"
           ],
           "min_mode": "lite",
+          "enabled_in_modes": ["lite"],
           "required_tools": [
             "ccb"
+          ]
+        },
+        {
+          "id": "P1-L3",
+          "name": "Generate Planning Docs (Lite)",
+          "description": "Generate simplified planning documents for Lite mode",
+          "input": [
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/docs/TODO.md"
+          ],
+          "min_mode": "lite",
+          "enabled_in_modes": ["lite"],
+          "required_tools": [
+            "basic_parser"
           ]
         },
         {
