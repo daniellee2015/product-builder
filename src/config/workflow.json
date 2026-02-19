@@ -1246,8 +1246,8 @@
         },
         {
           "id": "P3-21",
-          "name": "Auto Fix",
-          "description": "Automatically fix issues found in review (max 3 attempts). Add comment to GitHub Issue tracking the fix attempt. If exhausted, return to Phase 2.",
+          "name": "Fix Issues",
+          "description": "Fix issues found in final review (max 3 attempts). Add comment to GitHub Issue tracking the fix attempt. If exhausted, return to Phase 2.",
           "input": [
             "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
             "workspace.all_changes",
