@@ -10,7 +10,7 @@
     "lite": {
       "label": "Lite",
       "description": "Single CLI, minimal workflow, direct MDX to development without OpenSpec conversion",
-      "steps": 11,
+      "steps": 15,
       "review_gates": 0,
       "features": {
         "openspec_enabled": false,
@@ -31,9 +31,13 @@
         "P0-08",
         "P0-11",
         "P1-03",
+        "P1-L1",
+        "P1-L2",
+        "P1-L3",
         "P1-10",
         "P1-14",
         "P2-13",
+        "P2-18",
         "P3-22",
         "P3-23",
         "P4-22"
@@ -2049,12 +2053,14 @@
     {
       "from": "P0-02",
       "to": "P0-03",
-      "condition": "input_mode == 'ui_form'"
+      "condition": "input_mode == 'ui_form'",
+      "enabled_in_modes": ["standard", "full"]
     },
     {
       "from": "P0-02",
       "to": "P0-04",
-      "condition": "input_mode == 'mdx'"
+      "condition": "input_mode == 'mdx'",
+      "enabled_in_modes": ["standard", "full"]
     },
     {
       "from": "P0-03",
@@ -2084,7 +2090,13 @@
     },
     {
       "from": "P1-03",
-      "to": "P1-04"
+      "to": "P1-04",
+      "enabled_in_modes": ["standard", "full"]
+    },
+    {
+      "from": "P1-03",
+      "to": "P1-L1",
+      "enabled_in_modes": ["lite"]
     },
     {
       "from": "P1-04",
@@ -2113,7 +2125,13 @@
     },
     {
       "from": "P1-10",
-      "to": "P1-11"
+      "to": "P1-11",
+      "enabled_in_modes": ["standard", "full"]
+    },
+    {
+      "from": "P1-10",
+      "to": "P1-14",
+      "enabled_in_modes": ["lite"]
     },
     {
       "from": "P1-11",
@@ -2198,7 +2216,14 @@
     {
       "from": "P3-23",
       "to": "P3-24",
-      "condition": "human_approved == true"
+      "condition": "human_approved == true",
+      "enabled_in_modes": ["standard", "full"]
+    },
+    {
+      "from": "P3-23",
+      "to": "P4-22",
+      "condition": "human_approved == true",
+      "enabled_in_modes": ["lite"]
     },
     {
       "from": "P3-23",
@@ -2211,7 +2236,13 @@
     },
     {
       "from": "P4-22",
-      "to": "P4-23"
+      "to": "P4-23",
+      "enabled_in_modes": ["standard", "full"]
+    },
+    {
+      "from": "P4-22",
+      "to": "END",
+      "enabled_in_modes": ["lite"]
     },
     {
       "from": "P4-23",
