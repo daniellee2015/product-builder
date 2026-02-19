@@ -84,66 +84,148 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
         // Display detailed phase and step information using list component
         const listItems: ListItem[] = [];
 
-        // Calculate consistent padding width for alignment
-        // Step format: "  P0-01  " (2 spaces + 7 chars padEnd + 2 spaces = 11 chars before step name)
-        const stepPrefixWidth = 11;
+        // Use label width to match summary table alignment
+        // Summary table uses ~14-16 chars for left column (e.g., "Active Steps:")
+        const labelWidth = 16;
 
         for (const phase of data.phases) {
           const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : ''
           const phaseNumber = phase.id.replace(/^phase-/, '');
           const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
 
-          // Pad phase label to align with step names
-          // "Phase 0:" should be padded to match step prefix width
+          // Pad phase label to fixed width
           const phaseLabelWithColon = `${phaseLabel}:`;
-          const paddedPhaseLabel = phaseLabelWithColon.padEnd(stepPrefixWidth);
+          const paddedPhaseLabel = phaseLabelWithColon.padEnd(labelWidth);
 
-          // Add phase as list item with aligned format
-          // Add extra space at the beginning to align with summary and menu text
+          // Add phase header with fixed width padding
           listItems.push({
             text: ` ${chalk.cyan.bold(`${paddedPhaseLabel}${phase.name}`)}${modeLabel}`,
             indent: 1
           });
 
-          // Add phase description with same padding to align with phase name
-          const descriptionPadding = ' '.repeat(stepPrefixWidth);
+          // Add phase description with same padding
+          const descriptionPadding = ' '.repeat(labelWidth);
           listItems.push({
             text: ` ${chalk.gray(`${descriptionPadding}${phase.description}`)}`,
             indent: 1
           });
 
-          // Add steps (more indent than phase)
-          for (const step of phase.steps) {
-            const active = isStepActive(step, data.mode, data);
+          // Add blank line after phase description
+          listItems.push({
+            text: '',
+            indent: 0
+          });
 
-            // Build step notes with different colors
-            const notes: string[] = [];
+          // Display groups with their steps
+          if (phase.groups && phase.groups.length > 0) {
+            for (const group of phase.groups) {
+              // Count active steps in this group
+              const groupSteps = phase.steps.filter(s => group.step_ids.includes(s.id));
+              const activeGroupSteps = groupSteps.filter(s => isStepActive(s, data.mode, data));
 
-            // Check if step requires human approval (use yellow for visibility)
-            if (step.requires_human_approval) {
-              notes.push(chalk.yellow('requires human approval'));
+              // Skip this group if no steps are active in current mode
+              if (activeGroupSteps.length === 0) {
+                continue;
+              }
+
+              // Get UI config for group label
+              const shortName = (group as any).ui?.short_name || group.id;
+              const groupLabel = ` [${shortName}]`; // Add 1 space before label
+              const paddedGroupLabel = groupLabel.padEnd(labelWidth);
+
+              // Add group header with label aligned to steps
+              listItems.push({
+                text: ` ${chalk.cyan(paddedGroupLabel)}${chalk.bold(group.name)}`,
+                indent: 1
+              });
+
+              // Add group description with same padding
+              const descriptionPadding = ' '.repeat(labelWidth);
+              listItems.push({
+                text: ` ${chalk.gray(`${descriptionPadding}${group.description}`)}`,
+                indent: 1
+              });
+
+              // Add steps in this group
+              for (const step of groupSteps) {
+                const active = isStepActive(step, data.mode, data);
+
+                // Skip inactive steps
+                if (!active) {
+                  continue;
+                }
+
+                // Build step notes with different colors
+                const notes: string[] = [];
+
+                // Check if step requires human approval (use yellow for visibility)
+                if (step.requires_human_approval) {
+                  notes.push(chalk.yellow('requires human approval'));
+                }
+
+                // Check if step has review_config (use gray)
+                if (step.review_config && step.review_config.models && step.review_config.models.length > 0) {
+                  notes.push(chalk.gray('multi-model review'));
+                }
+
+                const noteText = notes.length > 0 ? ` (${notes.join(', ')})` : '';
+
+                // Pad step ID to match label width for alignment (1 space before ID)
+                const stepLabel = ` ${step.id}`;
+                const paddedStepLabel = stepLabel.padEnd(labelWidth);
+
+                // Add step with aligned format
+                const stepText = ` ${paddedStepLabel}${step.name}${noteText}`;
+
+                listItems.push({
+                  text: stepText,
+                  indent: 1
+                });
+              }
+
+              // Add blank line after each group
+              listItems.push({
+                text: '',
+                indent: 0
+              });
             }
+          } else {
+            // Fallback: if no groups defined, show steps directly
+            for (const step of phase.steps) {
+              const active = isStepActive(step, data.mode, data);
 
-            // Check if step has review_config (use gray)
-            if (step.review_config && step.review_config.models && step.review_config.models.length > 0) {
-              notes.push(chalk.gray('multi-model review'));
+              // Skip inactive steps
+              if (!active) {
+                continue;
+              }
+
+              // Build step notes with different colors
+              const notes: string[] = [];
+
+              // Check if step requires human approval (use yellow for visibility)
+              if (step.requires_human_approval) {
+                notes.push(chalk.yellow('requires human approval'));
+              }
+
+              // Check if step has review_config (use gray)
+              if (step.review_config && step.review_config.models && step.review_config.models.length > 0) {
+                notes.push(chalk.gray('multi-model review'));
+              }
+
+              const noteText = notes.length > 0 ? ` (${notes.join(', ')})` : '';
+
+              // Pad step ID to match label width for alignment (1 space before ID)
+              const stepLabel = ` ${step.id}`;
+              const paddedStepLabel = stepLabel.padEnd(labelWidth);
+
+              // Add step with aligned format
+              const stepText = ` ${paddedStepLabel}${step.name}${noteText}`;
+
+              listItems.push({
+                text: stepText,
+                indent: 1
+              });
             }
-
-            const noteText = notes.length > 0 ? ` (${notes.join(', ')})` : '';
-
-            // Pad step ID to ensure consistent spacing (max 7 chars for IDs like P2-11a)
-            const paddedId = step.id.padEnd(7);
-
-            // Add extra space at the beginning to align with summary and menu text
-            const stepText = active
-              ? ` ${`  ${paddedId}  ${step.name}${noteText}`}`
-              : ` ${chalk.gray(`  ${paddedId}  ${step.name} (${i18n.t('workflow.display.skipped', { mode: data.mode })})`)}`;
-
-
-            listItems.push({
-              text: stepText,
-              indent: 1
-            });
           }
 
           // Add blank line after each phase
