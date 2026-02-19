@@ -129,7 +129,7 @@
       "pipeline": [
         "research",
         "ideate",
-        "planning_standard",
+        "planning",
         "execution_standard",
         "optimize",
         "review",
@@ -2152,7 +2152,13 @@
     },
     {
       "from": "P2-11a",
-      "to": "P2-12"
+      "to": "P2-12",
+      "enabled_in_modes": ["full"]
+    },
+    {
+      "from": "P2-11a",
+      "to": "P2-13",
+      "enabled_in_modes": ["lite", "standard"]
     },
     {
       "from": "P2-18",
@@ -2171,7 +2177,8 @@
     {
       "from": "P2-12",
       "to": "P3-19",
-      "condition": "all_tasks_done"
+      "condition": "all_tasks_done",
+      "enabled_in_modes": ["full"]
     },
     {
       "from": "P3-19",

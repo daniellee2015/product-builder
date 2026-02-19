@@ -97,7 +97,7 @@ function resolveWorkflowV2(
 
   // 3. 验证 transitions
   const transitions = workflowDef.transitions || [];
-  validateTransitions(transitions, phases);
+  validateTransitions(transitions, phases, mode);
 
   // 4. 构建 step 索引
   const stepIndex = buildStepIndex(phases);
@@ -134,10 +134,17 @@ function buildStepIndex(phases: any[]): Map<string, any> {
  * 验证 transitions 的有效性
  * 只验证当前 mode 中存在的 steps 的 transitions
  */
-function validateTransitions(transitions: any[], phases: any[]): void {
+function validateTransitions(transitions: any[], phases: any[], mode: string): void {
   const stepIndex = buildStepIndex(phases);
 
   transitions.forEach((transition, index) => {
+    // 检查 transition 是否在当前 mode 中启用
+    if (transition.enabled_in_modes && Array.isArray(transition.enabled_in_modes)) {
+      if (!transition.enabled_in_modes.includes(mode)) {
+        return;  // Skip this transition - not enabled in current mode
+      }
+    }
+
     // 只验证当前 mode 中存在的 transitions
     // 如果 from step 不在当前 mode 中，跳过这个 transition
     if (!stepIndex.has(transition.from)) {
