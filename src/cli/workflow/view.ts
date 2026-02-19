@@ -139,12 +139,14 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
                 indent: 1
               });
 
-              // Add group description with same padding
-              const descriptionPadding = ' '.repeat(labelWidth);
-              listItems.push({
-                text: ` ${chalk.gray(`${descriptionPadding}${group.description}`)}`,
-                indent: 1
-              });
+              // Add group description with same padding (only if description exists)
+              if (group.description) {
+                const descriptionPadding = ' '.repeat(labelWidth);
+                listItems.push({
+                  text: ` ${chalk.gray(`${descriptionPadding}${group.description}`)}`,
+                  indent: 1
+                });
+              }
 
               // Add steps in this group
               for (const step of groupSteps) {
