@@ -100,7 +100,7 @@
       "pipeline": [
         "research",
         "ideate",
-        "planning",
+        "planning_standard",
         "execution_standard",
         "optimize",
         "review",
@@ -3605,6 +3605,113 @@
           ],
           "output": [
             "git.merge.result"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ]
+        }
+      ]
+    },
+    "planning_standard": {
+      "id": "planning_standard",
+      "name": "Planning",
+      "description": "Simplified planning with human-readable specs (no JSON for automation)",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "ccb"
+      },
+      "groups": [],
+      "steps": [
+        {
+          "id": "P1-10",
+          "name": "Generate Development Specs",
+          "description": "Generate detailed implementation specs under specs/.",
+          "input": [
+            "exports/jobs/{job_id}/parsed/unified.json",
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/specs/*.mdx"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ]
+        },
+        {
+          "id": "P1-11",
+          "name": "Review Development Specs",
+          "description": "Run multi-model quality gate and auto-repair for generated specs.",
+          "input": [
+            "exports/jobs/{job_id}/specs/*.mdx"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/reviews/specs-review.json",
+            "exports/jobs/{job_id}/specs/*.mdx"
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true
+            }
+          },
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb",
+            "cca"
+          ]
+        },
+        {
+          "id": "P1-12",
+          "name": "Generate Global Roadmap View",
+          "description": "Build cross-capability planning graph and milestones.",
+          "input": [
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json",
+            "exports/jobs/{job_id}/specs/*.mdx"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/roadmap.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ]
+        },
+        {
+          "id": "P1-13",
+          "name": "Generate Planning Docs",
+          "description": "Render planning documents from roadmap JSON to MDX.",
+          "input": [
+            "exports/jobs/{job_id}/analysis/roadmap.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/docs/roadmap.mdx"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ]
+        },
+        {
+          "id": "P1-14",
+          "name": "Commit Planning Changes",
+          "description": "Commit planning artifacts to job branch.",
+          "input": [
+            "exports/jobs/{job_id}/**",
+            "git.branch.name"
+          ],
+          "output": [
+            "git.commit.planning"
           ],
           "min_mode": "lite",
           "required_tools": [
