@@ -2709,8 +2709,8 @@
       "name": "Execution",
       "description": "Task execution with automated testing",
       "execution": {
-        "mode": "loop",
-        "orchestrator": "cca"
+        "mode": "sequential",
+        "orchestrator": "user"
       },
       "groups": [],
       "steps": [
