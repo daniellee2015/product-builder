@@ -9,10 +9,22 @@
   "available_modes": {
     "lite": {
       "label": "Lite",
-      "required_tools": [],
       "description": "Single CLI, minimal workflow, direct MDX to development without OpenSpec conversion",
       "steps": 11,
       "review_gates": 0,
+      "features": {
+        "openspec_enabled": false,
+        "multi_model_review": false,
+        "auto_loop": false,
+        "directory_scaffolding": "minimal"
+      },
+      "orchestrator": "user",
+      "execution_mode": "manual",
+      "loop_policy": "disabled",
+      "step_trigger_policy": "manual_each_step",
+      "required_tools": [],
+      "tool_profile": "lite",
+      "scaffold_profile": "minimal",
       "enabled_steps": [
         "P0-01",
         "P0-02",
@@ -38,13 +50,26 @@
     },
     "standard": {
       "label": "Standard",
+      "description": "Multi-model review with ccb/cca, manual execution, no automatic loop",
+      "steps": 48,
+      "review_gates": 3,
+      "features": {
+        "openspec_enabled": true,
+        "multi_model_review": true,
+        "auto_loop": false,
+        "directory_scaffolding": "full"
+      },
+      "orchestrator": "user",
+      "execution_mode": "manual",
+      "loop_policy": "disabled",
+      "step_trigger_policy": "manual_each_step",
+      "requires_user_iteration": true,
       "required_tools": [
         "ccb",
         "cca"
       ],
-      "description": "Multi-model review with ccb/cca, manual execution, no automatic loop",
-      "steps": 48,
-      "review_gates": 3,
+      "tool_profile": "standard",
+      "scaffold_profile": "full",
       "enabled_steps": [
         "P0-01",
         "P0-02",
@@ -120,15 +145,28 @@
     },
     "full": {
       "label": "Full",
+      "description": "Complete workflow with automatic loop (Phase 2 uses ralph), multi-model review, and all automation. Openclaw is experimental top-level monitoring.",
+      "steps": 54,
+      "review_gates": 3,
+      "features": {
+        "openspec_enabled": true,
+        "multi_model_review": true,
+        "auto_loop": true,
+        "directory_scaffolding": "full"
+      },
+      "orchestrator": "ralph",
+      "execution_mode": "auto",
+      "loop_policy": "auto",
+      "step_trigger_policy": "automatic",
+      "requires_user_iteration": false,
       "required_tools": [
         "ccb",
         "cca",
         "ralph",
         "openclaw"
       ],
-      "description": "Complete workflow with automatic loop (Phase 2 uses ralph), multi-model review, and all automation. Openclaw is experimental top-level monitoring.",
-      "steps": 54,
-      "review_gates": 3,
+      "tool_profile": "full",
+      "scaffold_profile": "full",
       "enabled_steps": [
         "P0-01",
         "P0-02",
