@@ -49,7 +49,8 @@
         "P2-11a",
         "P2-12",
         "P2-13",
-        "P2-14",
+        "P2-14a",
+        "P2-14b",
         "P2-15",
         "P2-16",
         "P2-17",
@@ -110,7 +111,8 @@
         "P1-15",
         "P2-11a",
         "P2-13",
-        "P2-14",
+        "P2-14a",
+        "P2-14b",
         "P2-15",
         "P2-16",
         "P2-17",
@@ -1010,15 +1012,31 @@
           ]
         },
         {
-          "id": "P2-14",
-          "name": "Auto Test",
-          "description": "Run automated tests from verification.json.",
+          "id": "P2-14a",
+          "name": "Run Automated Tests",
+          "description": "Run automated tests using testing frameworks (Jest, Vitest, Playwright, etc.) from verification.json.",
           "input": [
             "workspace.code_changes",
             "exports/jobs/{job_id}/specs/verification.json"
           ],
           "output": [
             "test.results"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ]
+        },
+        {
+          "id": "P2-14b",
+          "name": "Multi-Model Code Review",
+          "description": "Review code logic and quality using multiple AI models (gemini, claude, codex).",
+          "input": [
+            "workspace.code_changes",
+            "test.results"
+          ],
+          "output": [
+            "review.results"
           ],
           "min_mode": "standard",
           "required_tools": [
@@ -1140,7 +1158,8 @@
           "step_ids": [
             "P2-12",
             "P2-13",
-            "P2-14",
+            "P2-14a",
+            "P2-14b",
             "P2-15",
             "P2-16",
             "P2-17",
