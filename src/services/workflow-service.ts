@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { WorkflowData, WorkflowStep, WorkflowMode, CustomWorkflowConfig } from '../types/workflow';
 import { getConfigDir } from '../cli/checkers';
+import { resolveWorkflow } from '../config/workflow-resolver';
 
 const MODE_ORDER: WorkflowMode[] = ['lite', 'standard', 'full'];
 
@@ -30,7 +31,8 @@ export function loadWorkflow(): WorkflowData | null {
         steps: currentCustom.enabled_steps.length,
         review_gates: 0,
         is_custom: true,
-        base_mode: currentCustom.base_mode
+        base_mode: currentCustom.base_mode,
+        pipeline: data.available_modes[currentCustom.base_mode]?.pipeline || []
       };
 
       // Always use custom mode if current.json exists
@@ -40,6 +42,12 @@ export function loadWorkflow(): WorkflowData | null {
       if (data.mode === 'custom') {
         data.mode = 'full';
       }
+    }
+
+    // If v2 format (has phase_registry), resolve phases for current mode
+    if (data.schema_version === '2.0' && data.phase_registry) {
+      const resolved = resolveWorkflow(data, data.mode);
+      data.phases = resolved.phases;
     }
 
     return data;
