@@ -1023,7 +1023,22 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true
+            }
+          }
         },
         {
           "id": "P2-15",
