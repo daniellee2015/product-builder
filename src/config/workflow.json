@@ -325,6 +325,153 @@
       "excluded_tools": []
     }
   },
+  "core_artifacts": {
+    "description": "Core artifacts shared across all modes for upgrade/downgrade compatibility",
+    "all_modes": [
+      "specs/tasks.json",
+      "specs/verification.json",
+      "specs/progress.json",
+      "docs/TODO.md",
+      "runtime/job_state.json"
+    ],
+    "upgrade_path": {
+      "lite_to_standard": {
+        "inherited": [
+          "specs/tasks.json",
+          "specs/progress.json",
+          "docs/TODO.md"
+        ],
+        "generated": [
+          "openspec/proposal.md",
+          "openspec/tasks.md",
+          "openspec/design.md",
+          "reviews/",
+          "analysis/roadmap.json"
+        ]
+      },
+      "standard_to_full": {
+        "inherited": [
+          "specs/tasks.json",
+          "specs/progress.json",
+          "openspec/*.md",
+          "reviews/"
+        ],
+        "generated": [
+          "runtime/orchestrator/ralph-events.ndjson",
+          "runtime/loop_state.json"
+        ]
+      }
+    },
+    "downgrade_path": {
+      "full_to_standard": {
+        "preserved": [
+          "specs/tasks.json",
+          "specs/progress.json",
+          "openspec/*.md"
+        ],
+        "ignored": [
+          "runtime/orchestrator/",
+          "runtime/loop_state.json"
+        ]
+      },
+      "standard_to_lite": {
+        "preserved": [
+          "specs/tasks.json",
+          "specs/progress.json",
+          "docs/TODO.md"
+        ],
+        "ignored": [
+          "openspec/",
+          "reviews/",
+          "analysis/roadmap.json"
+        ]
+      }
+    }
+  },
+  "mode_invariants": {
+    "description": "Enforceable mode-level constraints with unified field structure",
+    "lite": {
+      "auto_loop": false,
+      "openspec_required": false,
+      "multi_model_review": false,
+      "orchestrator": "user",
+      "execution_mode": "manual",
+      "decision_source": "conversation",
+      "user_confirmation_required": false,
+      "human_iteration_required": true
+    },
+    "standard": {
+      "auto_loop": false,
+      "openspec_required": true,
+      "multi_model_review": true,
+      "orchestrator": "user",
+      "execution_mode": "manual",
+      "decision_source": "workflow",
+      "user_confirmation_required": true,
+      "human_iteration_required": true
+    },
+    "full": {
+      "auto_loop": true,
+      "openspec_required": true,
+      "multi_model_review": true,
+      "orchestrator": "ralph",
+      "execution_mode": "auto",
+      "decision_source": "orchestrator",
+      "user_confirmation_required": true,
+      "human_iteration_required": false
+    }
+  },
+  "degradation_policy": {
+    "description": "Fallback behavior when tools are unavailable",
+    "full_degradation": {
+      "if_ralph_unavailable": {
+        "fallback_to": "standard",
+        "behavior": "switch to manual execution, preserve all artifacts"
+      },
+      "if_ccb_cca_unavailable": {
+        "fallback_to": "lite",
+        "behavior": "skip multi-model review, use single LLM"
+      }
+    },
+    "standard_degradation": {
+      "if_ccb_cca_unavailable": {
+        "fallback_to": "lite",
+        "behavior": "skip multi-model review, skip OpenSpec generation"
+      }
+    },
+    "lite_degradation": {
+      "if_basic_tools_unavailable": {
+        "fallback_to": null,
+        "behavior": "cannot operate, require manual intervention"
+      }
+    }
+  },
+  "observability_profile": {
+    "description": "Logging and metrics depth by mode",
+    "lite": {
+      "log_level": "info",
+      "metrics_enabled": false,
+      "trace_enabled": false,
+      "event_tracking": "minimal"
+    },
+    "standard": {
+      "log_level": "debug",
+      "metrics_enabled": true,
+      "trace_enabled": false,
+      "event_tracking": "standard",
+      "review_audit_trail": true
+    },
+    "full": {
+      "log_level": "trace",
+      "metrics_enabled": true,
+      "trace_enabled": true,
+      "event_tracking": "comprehensive",
+      "review_audit_trail": true,
+      "orchestrator_events": true,
+      "concurrency_tracking": true,
+      "performance_profiling": true
+    }
+  },
   "metadata": {
     "owner": "product-builder-cli",
     "created_at": "2026-02-17",
