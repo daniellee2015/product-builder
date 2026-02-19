@@ -1969,8 +1969,7 @@
       "name": "Intake",
       "description": "Quick requirement collection and documentation",
       "execution": {
-        "mode": "sequential",
-        "orchestrator": "ccb"
+        "mode": "sequential"
       },
       "groups": [],
       "steps": [
@@ -2029,47 +2028,9 @@
       "name": "Research",
       "description": "Comprehensive requirement research and analysis",
       "execution": {
-        "mode": "sequential",
-        "orchestrator": "ccb"
+        "mode": "sequential"
       },
-      "groups": [
-        {
-          "id": "0.1",
-          "name": "Requirement Intake & Clarification",
-          "step_ids": [
-            "P0-01",
-            "P0-02",
-            "P0-03",
-            "P0-04"
-          ]
-        },
-        {
-          "id": "0.2",
-          "name": "Market & Competitive Analysis",
-          "step_ids": [
-            "P0-05",
-            "P0-06",
-            "P0-07"
-          ]
-        },
-        {
-          "id": "0.3",
-          "name": "Feature & Feasibility Analysis",
-          "step_ids": [
-            "P0-08",
-            "P0-09",
-            "P0-10"
-          ]
-        },
-        {
-          "id": "0.4",
-          "name": "Requirement Document Generation",
-          "step_ids": [
-            "P0-11",
-            "P0-12"
-          ]
-        }
-      ],
+      "groups": [],
       "steps": [
         {
           "id": "P0-01",
@@ -2285,29 +2246,9 @@
       "name": "Ideate",
       "description": "OpenSpec generation and review",
       "execution": {
-        "mode": "sequential",
-        "orchestrator": "ccb"
+        "mode": "sequential"
       },
-      "groups": [
-        {
-          "id": "1.1",
-          "name": "Project Context Discovery",
-          "step_ids": [
-            "P1-01",
-            "P1-02",
-            "P1-03"
-          ]
-        },
-        {
-          "id": "1.2",
-          "name": "OpenSpec Generation & Review",
-          "step_ids": [
-            "P1-04",
-            "P1-05",
-            "P1-06"
-          ]
-        }
-      ],
+      "groups": [],
       "steps": [
         {
           "id": "P1-01",
@@ -2432,8 +2373,7 @@
       "name": "Planning",
       "description": "Simplified planning for quick development",
       "execution": {
-        "mode": "sequential",
-        "orchestrator": "ccb"
+        "mode": "sequential"
       },
       "groups": [],
       "steps": [
@@ -2495,13 +2435,65 @@
       "name": "Planning",
       "description": "Development specification generation and review",
       "execution": {
-        "mode": "sequential_with_parallel_group",
-        "orchestrator": "ccb"
+        "mode": "sequential_with_parallel_group"
       },
       "groups": [
         {
+          "id": "1.1",
+          "name": "Project Context Discovery",
+          "description": "Discover existing work and analyze system capabilities",
+          "step_ids": [
+            "P1-01",
+            "P1-02",
+            "P1-03"
+          ],
+          "order": 1,
+          "depends_on_groups": [],
+          "ui": {
+            "short_name": "Discovery",
+            "default_collapsed": true,
+            "breadcrumb_label": "Context Discovery"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
+        },
+        {
+          "id": "1.2",
+          "name": "OpenSpec Generation & Review",
+          "description": "Generate and validate OpenSpec with multi-model review",
+          "step_ids": [
+            "P1-04",
+            "P1-05",
+            "P1-06"
+          ],
+          "order": 2,
+          "depends_on_groups": [
+            "1.1"
+          ],
+          "ui": {
+            "short_name": "OpenSpec",
+            "default_collapsed": true,
+            "breadcrumb_label": "OpenSpec"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
+        },
+        {
           "id": "1.3",
           "name": "Implementation Planning",
+          "description": "Generate development specs, roadmap, and planning documents",
           "step_ids": [
             "P1-07",
             "P1-08",
@@ -2511,7 +2503,24 @@
             "P1-12",
             "P1-13",
             "P1-14"
-          ]
+          ],
+          "order": 3,
+          "depends_on_groups": [
+            "1.2"
+          ],
+          "ui": {
+            "short_name": "Planning",
+            "default_collapsed": true,
+            "breadcrumb_label": "Implementation Planning"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
         }
       ],
       "steps": [
@@ -2680,8 +2689,7 @@
       "name": "Execution",
       "description": "Simple task execution",
       "execution": {
-        "mode": "sequential",
-        "orchestrator": "user"
+        "mode": "sequential"
       },
       "groups": [],
       "steps": [
@@ -2709,10 +2717,65 @@
       "name": "Execution",
       "description": "Task execution with automated testing",
       "execution": {
-        "mode": "loop",
-        "orchestrator": "cca"
+        "mode": "loop"
       },
-      "groups": [],
+      "groups": [
+        {
+          "id": "2.1",
+          "name": "Execution Initialization",
+          "description": "User decision and GitHub issue creation",
+          "step_ids": [
+            "P2-11"
+          ],
+          "order": 1,
+          "depends_on_groups": [],
+          "ui": {
+            "short_name": "Init",
+            "default_collapsed": false,
+            "breadcrumb_label": "Initialization"
+          },
+          "selection": {
+            "batch_selectable": false,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
+        },
+        {
+          "id": "2.2",
+          "name": "Task Execution Loop",
+          "description": "Iterative task execution with automated testing and repair",
+          "step_ids": [
+            "P2-12",
+            "P2-13",
+            "P2-14a",
+            "P2-14b",
+            "P2-15",
+            "P2-16",
+            "P2-17",
+            "P2-18"
+          ],
+          "order": 2,
+          "depends_on_groups": [
+            "2.1"
+          ],
+          "ui": {
+            "short_name": "Loop",
+            "default_collapsed": false,
+            "breadcrumb_label": "Task Loop"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
+        }
+      ],
       "steps": [
         {
           "id": "P2-11a",
@@ -2871,16 +2934,63 @@
       "name": "Execution",
       "description": "Full task execution loop",
       "execution": {
-        "mode": "loop",
-        "orchestrator": "ralph"
+        "mode": "loop"
       },
       "groups": [
         {
           "id": "2.1",
           "name": "Execution Initialization",
+          "description": "User decision and GitHub issue creation",
           "step_ids": [
             "P2-11"
-          ]
+          ],
+          "order": 1,
+          "depends_on_groups": [],
+          "ui": {
+            "short_name": "Init",
+            "default_collapsed": false,
+            "breadcrumb_label": "Initialization"
+          },
+          "selection": {
+            "batch_selectable": false,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
+        },
+        {
+          "id": "2.2",
+          "name": "Task Execution Loop",
+          "description": "Iterative task execution with automated testing and repair",
+          "step_ids": [
+            "P2-12",
+            "P2-13",
+            "P2-14a",
+            "P2-14b",
+            "P2-15",
+            "P2-16",
+            "P2-17",
+            "P2-18"
+          ],
+          "order": 2,
+          "depends_on_groups": [
+            "2.1"
+          ],
+          "ui": {
+            "short_name": "Loop",
+            "default_collapsed": false,
+            "breadcrumb_label": "Task Loop"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
         }
       ],
       "steps": [
@@ -2956,8 +3066,7 @@
       "name": "Testing",
       "description": "Automated testing, LLM review, and repair",
       "execution": {
-        "mode": "sequential",
-        "orchestrator": "ccb"
+        "mode": "sequential"
       },
       "groups": [],
       "steps": [
@@ -3083,8 +3192,7 @@
       "name": "Testing",
       "description": "Basic automated testing",
       "execution": {
-        "mode": "sequential",
-        "orchestrator": "ccb"
+        "mode": "sequential"
       },
       "groups": [],
       "steps": [
@@ -3142,10 +3250,86 @@
       "name": "Optimize",
       "description": "Final review and auto-repair",
       "execution": {
-        "mode": "loop",
-        "orchestrator": "ccb"
+        "mode": "loop"
       },
-      "groups": [],
+      "groups": [
+        {
+          "id": "3.1",
+          "name": "Automated Quality Gate",
+          "description": "Multi-model review with automated repair attempts",
+          "step_ids": [
+            "P3-19",
+            "P3-20",
+            "P3-21",
+            "P3-22"
+          ],
+          "order": 1,
+          "depends_on_groups": [],
+          "ui": {
+            "short_name": "Review",
+            "default_collapsed": false,
+            "breadcrumb_label": "Quality Gate"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
+        },
+        {
+          "id": "3.2",
+          "name": "Human Approval Gate",
+          "description": "Final human confirmation before deployment",
+          "step_ids": [
+            "P3-23"
+          ],
+          "order": 2,
+          "depends_on_groups": [
+            "3.1"
+          ],
+          "ui": {
+            "short_name": "Approval",
+            "default_collapsed": false,
+            "breadcrumb_label": "Human Approval"
+          },
+          "selection": {
+            "batch_selectable": false,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
+        },
+        {
+          "id": "3.3",
+          "name": "Pull Request Creation",
+          "description": "Create GitHub Pull Request for code review",
+          "step_ids": [
+            "P3-24"
+          ],
+          "order": 3,
+          "depends_on_groups": [
+            "3.2"
+          ],
+          "ui": {
+            "short_name": "PR",
+            "default_collapsed": true,
+            "breadcrumb_label": "Pull Request"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
+        }
+      ],
       "steps": [
         {
           "id": "P3-19",
@@ -3223,25 +3407,9 @@
       "name": "Review",
       "description": "Human confirmation and PR creation",
       "execution": {
-        "mode": "loop",
-        "orchestrator": "user"
+        "mode": "loop"
       },
-      "groups": [
-        {
-          "id": "3.2",
-          "name": "Human Approval Gate",
-          "step_ids": [
-            "P3-23"
-          ]
-        },
-        {
-          "id": "3.3",
-          "name": "Pull Request Creation",
-          "step_ids": [
-            "P3-24"
-          ]
-        }
-      ],
+      "groups": [],
       "steps": [
         {
           "id": "P3-22",
@@ -3301,8 +3469,7 @@
       "name": "Review",
       "description": "Basic human confirmation",
       "execution": {
-        "mode": "sequential",
-        "orchestrator": "user"
+        "mode": "sequential"
       },
       "groups": [],
       "steps": [
@@ -3345,22 +3512,38 @@
       "name": "Archiving",
       "description": "Archive, update documentation, and release",
       "execution": {
-        "mode": "sequential",
-        "orchestrator": "ccb"
+        "mode": "sequential"
       },
       "groups": [
         {
           "id": "4.1",
           "name": "Code Integration & Archival",
+          "description": "Finalize code changes and secure project history",
           "step_ids": [
             "P4-22",
             "P4-23",
             "P4-24"
-          ]
+          ],
+          "order": 1,
+          "depends_on_groups": [],
+          "ui": {
+            "short_name": "Integration",
+            "default_collapsed": true,
+            "breadcrumb_label": "Code Integration"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
         },
         {
           "id": "4.2",
           "name": "Knowledge Base Synchronization",
+          "description": "Update all project documentation and external references",
           "step_ids": [
             "P4-25",
             "P4-26",
@@ -3368,22 +3551,75 @@
             "P4-28",
             "P4-29",
             "P4-30"
-          ]
+          ],
+          "order": 2,
+          "depends_on_groups": [
+            "4.1"
+          ],
+          "ui": {
+            "short_name": "Docs",
+            "default_collapsed": true,
+            "breadcrumb_label": "Knowledge Base"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
         },
         {
           "id": "4.3",
           "name": "System Capabilities Update",
+          "description": "Refresh the system's understanding of available features",
           "step_ids": [
             "P4-31",
             "P4-32"
-          ]
+          ],
+          "order": 3,
+          "depends_on_groups": [
+            "4.2"
+          ],
+          "ui": {
+            "short_name": "Capabilities",
+            "default_collapsed": true,
+            "breadcrumb_label": "System Capabilities"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
         },
         {
           "id": "4.4",
           "name": "Release Publication",
+          "description": "Package and publish the final release artifacts",
           "step_ids": [
             "P4-33"
-          ]
+          ],
+          "order": 4,
+          "depends_on_groups": [
+            "4.3"
+          ],
+          "ui": {
+            "short_name": "Release",
+            "default_collapsed": true,
+            "breadcrumb_label": "Release Publication"
+          },
+          "selection": {
+            "batch_selectable": true,
+            "default_select_behavior": "all_steps"
+          },
+          "policy": {
+            "allow_skip": false,
+            "milestone": true
+          }
         }
       ],
       "steps": [
@@ -3580,8 +3816,7 @@
       "name": "Archiving",
       "description": "Basic archiving",
       "execution": {
-        "mode": "sequential",
-        "orchestrator": "ccb"
+        "mode": "sequential"
       },
       "groups": [],
       "steps": [
