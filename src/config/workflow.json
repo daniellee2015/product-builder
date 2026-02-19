@@ -1312,7 +1312,13 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "requires_human_approval": true,
+          "approval": {
+            "when": "before_execute",
+            "reason": "commit_boundary",
+            "modes": ["lite", "standard"]
+          }
         }
       ],
       "groups": [
@@ -1986,7 +1992,16 @@
     {
       "from": "P2-18",
       "to": "P2-12",
-      "condition": "has_more_tasks"
+      "type": "loop_internal",
+      "condition": "has_more_tasks",
+      "enabled_in_modes": ["full"]
+    },
+    {
+      "from": "P2-18",
+      "to": "P3-19",
+      "type": "forward",
+      "condition": "!has_more_tasks",
+      "enabled_in_modes": ["lite", "standard", "full"]
     },
     {
       "from": "P2-12",
@@ -2015,7 +2030,9 @@
     {
       "from": "P3-21",
       "to": "P3-19",
-      "condition": "retry_review && auto_repair_attempts < 3"
+      "type": "loop_internal",
+      "condition": "retry_review && auto_repair_attempts < 3",
+      "enabled_in_modes": ["full"]
     },
     {
       "from": "P3-21",
@@ -3096,7 +3113,13 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "requires_human_approval": true,
+          "approval": {
+            "when": "before_execute",
+            "reason": "commit_boundary",
+            "modes": ["lite", "standard"]
+          }
         }
       ]
     },
@@ -3308,7 +3331,13 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "requires_human_approval": true,
+          "approval": {
+            "when": "before_execute",
+            "reason": "commit_boundary",
+            "modes": ["lite", "standard"]
+          }
         }
       ]
     },
