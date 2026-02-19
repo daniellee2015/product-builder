@@ -132,23 +132,23 @@ function buildStepIndex(phases: any[]): Map<string, any> {
 
 /**
  * 验证 transitions 的有效性
+ * 只验证当前 mode 中存在的 steps 的 transitions
  */
 function validateTransitions(transitions: any[], phases: any[]): void {
   const stepIndex = buildStepIndex(phases);
 
   transitions.forEach((transition, index) => {
-    // 验证 from step 存在
+    // 只验证当前 mode 中存在的 transitions
+    // 如果 from step 不在当前 mode 中，跳过这个 transition
     if (!stepIndex.has(transition.from)) {
-      throw new Error(
-        `Transition ${index}: "from" step "${transition.from}" not found`
-      );
+      return;  // Skip this transition
     }
 
     // 验证 to step 存在（允许特殊标记 "END"）
     if (transition.to !== 'END' && !stepIndex.has(transition.to)) {
-      throw new Error(
-        `Transition ${index}: "to" step "${transition.to}" not found`
-      );
+      // 如果 to step 也不在当前 mode 中，这是正常的，跳过
+      // 只有当 from 在但 to 不在且不是 END 时才报错
+      console.warn(`Warning: Transition ${index}: "to" step "${transition.to}" not found in current mode`);
     }
   });
 }

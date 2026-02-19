@@ -18,61 +18,11 @@
       "steps": 54,
       "review_gates": 3,
       "enabled_steps": [
-        "P0-01",
-        "P0-02",
-        "P0-03",
-        "P0-04",
-        "P0-05",
-        "P0-06",
-        "P0-07",
-        "P0-08",
-        "P0-09",
-        "P0-10",
-        "P0-11",
-        "P0-12",
-        "P1-01",
-        "P1-02",
-        "P1-03",
-        "P1-04",
-        "P1-05",
-        "P1-06",
-        "P1-07",
-        "P1-08",
-        "P1-09",
-        "P1-10",
-        "P1-11",
-        "P1-12",
-        "P1-13",
-        "P1-14",
-        "P1-15",
-        "P2-11",
-        "P2-11a",
-        "P2-12",
-        "P2-13",
-        "P2-14a",
-        "P2-14b",
-        "P2-15",
-        "P2-16",
-        "P2-17",
-        "P2-18",
-        "P3-19",
-        "P3-20",
-        "P3-21",
-        "P3-22",
-        "P3-23",
-        "P3-24",
-        "P4-22",
-        "P4-23",
-        "P4-24",
-        "P4-25",
-        "P4-26",
-        "P4-27",
-        "P4-28",
-        "P4-29",
-        "P4-30",
-        "P4-31",
-        "P4-32",
-        "P4-33"
+        "P0-01", "P0-02", "P0-03", "P0-04", "P0-05", "P0-06", "P0-07", "P0-08", "P0-09", "P0-10", "P0-11", "P0-12",
+        "P1-01", "P1-02", "P1-03", "P1-04", "P1-05", "P1-06", "P1-07", "P1-08", "P1-09", "P1-10", "P1-11", "P1-12", "P1-13", "P1-14", "P1-15",
+        "P2-11", "P2-11a", "P2-12", "P2-13", "P2-14", "P2-15", "P2-16", "P2-17", "P2-18",
+        "P3-19", "P3-20", "P3-21", "P3-22", "P3-23", "P3-24",
+        "P4-22", "P4-23", "P4-24", "P4-25", "P4-26", "P4-27", "P4-28", "P4-29", "P4-30", "P4-31", "P4-32", "P4-33"
       ]
     },
     "standard": {
@@ -85,75 +35,24 @@
       "steps": 48,
       "review_gates": 3,
       "enabled_steps": [
-        "P0-01",
-        "P0-02",
-        "P0-03",
-        "P0-04",
-        "P0-08",
-        "P0-09",
-        "P0-10",
-        "P0-11",
-        "P0-12",
-        "P1-01",
-        "P1-02",
-        "P1-03",
-        "P1-04",
-        "P1-05",
-        "P1-06",
-        "P1-07",
-        "P1-08",
-        "P1-09",
-        "P1-10",
-        "P1-11",
-        "P1-12",
-        "P1-13",
-        "P1-14",
-        "P1-15",
-        "P2-11a",
-        "P2-13",
-        "P2-14a",
-        "P2-14b",
-        "P2-15",
-        "P2-16",
-        "P2-17",
-        "P2-18",
-        "P3-19",
-        "P3-20",
-        "P3-21",
-        "P3-22",
-        "P3-23",
-        "P3-24",
-        "P4-22",
-        "P4-23",
-        "P4-24",
-        "P4-25",
-        "P4-26",
-        "P4-27",
-        "P4-28",
-        "P4-29",
-        "P4-30",
-        "P4-31",
-        "P4-32",
-        "P4-33"
+        "P0-01", "P0-02", "P0-03", "P0-04", "P0-08", "P0-09", "P0-10", "P0-11", "P0-12",
+        "P1-01", "P1-02", "P1-03", "P1-04", "P1-05", "P1-06", "P1-07", "P1-08", "P1-09", "P1-10", "P1-11", "P1-12", "P1-13", "P1-14", "P1-15",
+        "P2-11a", "P2-13", "P2-14", "P2-15", "P2-16", "P2-17", "P2-18",
+        "P3-19", "P3-20", "P3-21", "P3-22", "P3-23", "P3-24",
+        "P4-22", "P4-23", "P4-24", "P4-25", "P4-26", "P4-27", "P4-28", "P4-29", "P4-30", "P4-31", "P4-32", "P4-33"
       ]
     },
     "lite": {
       "label": "Lite",
       "required_tools": [],
-      "description": "Single CLI, minimal workflow, direct MDX to development without OpenSpec conversion",
-      "steps": 11,
+      "description": "Single CLI, minimal workflow, manual execution required",
+      "steps": 12,
       "review_gates": 0,
       "enabled_steps": [
-        "P0-01",
-        "P0-02",
-        "P0-08",
-        "P0-11",
-        "P1-03",
-        "P1-10",
-        "P1-14",
+        "P0-01", "P0-02", "P0-08", "P0-11",
+        "P1-03", "P1-04", "P1-10", "P1-14",
         "P2-13",
-        "P3-22",
-        "P3-23",
+        "P3-22", "P3-23",
         "P4-22"
       ]
     }
@@ -170,23 +69,15 @@
     "tools": {
       "ccb": {
         "description": "Primary LLM CLI for task execution",
-        "required_for": [
-          "standard",
-          "full"
-        ]
+        "required_for": ["standard", "full"]
       },
       "cca": {
         "description": "Secondary LLM CLI for multi-model review",
-        "required_for": [
-          "standard",
-          "full"
-        ]
+        "required_for": ["standard", "full"]
       },
       "ralph": {
         "description": "Phase 2 execution loop controller",
-        "required_for": [
-          "full"
-        ],
+        "required_for": ["full"],
         "usage": "Manages automatic task loop in Phase 2"
       },
       "openclaw": {
@@ -259,10 +150,7 @@
           "output": [
             "exports/jobs/{job_id}/source/raw-requirement.txt"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P0-02",
@@ -274,10 +162,7 @@
           "output": [
             "exports/jobs/{job_id}/parsed/requirement-type.json"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P0-03",
@@ -494,9 +379,7 @@
             "P0-07"
           ],
           "order": 2,
-          "depends_on_groups": [
-            "0.1"
-          ],
+          "depends_on_groups": ["0.1"],
           "ui": {
             "short_name": "Market",
             "default_collapsed": true,
@@ -521,9 +404,7 @@
             "P0-10"
           ],
           "order": 3,
-          "depends_on_groups": [
-            "0.1"
-          ],
+          "depends_on_groups": ["0.1"],
           "ui": {
             "short_name": "Analysis",
             "default_collapsed": true,
@@ -547,9 +428,7 @@
             "P0-12"
           ],
           "order": 4,
-          "depends_on_groups": [
-            "0.3"
-          ],
+          "depends_on_groups": ["0.3"],
           "ui": {
             "short_name": "MDX",
             "default_collapsed": true,
@@ -586,10 +465,7 @@
           "output": [
             "exports/jobs/{job_id}/analysis/existing-work.json"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P1-02",
@@ -602,10 +478,7 @@
           "output": [
             "exports/jobs/{job_id}/analysis/capability-tree.json"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P1-03",
@@ -621,10 +494,7 @@
             "git.branch.name"
           ],
           "condition": "after_p1_01_and_p1_02",
-          "min_mode": "lite",
-          "required_tools": [
-            "git"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P1-04",
@@ -637,15 +507,12 @@
           "output": [
             "exports/jobs/{job_id}/source/openspec.mdx"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "openspec"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P1-05",
-          "name": "Review Specification Document",
-          "description": "Run multi-model review gate and auto-repair before passing",
+          "name": "Review OpenSpec",
+          "description": "Run multi-model review gate and auto-repair before passing.",
           "input": [
             "exports/jobs/{job_id}/source/openspec.mdx"
           ],
@@ -671,24 +538,20 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb",
-            "cca",
-            "openspec"
+            "cca"
           ]
         },
         {
           "id": "P1-06",
-          "name": "Parse Specification to Structured Data",
-          "description": "Extract structured requirement docs from reviewed specification",
+          "name": "Parse OpenSpec to docs.json",
+          "description": "Extract structured requirement docs from reviewed OpenSpec.",
           "input": [
             "exports/jobs/{job_id}/source/openspec.mdx"
           ],
           "output": [
             "exports/jobs/{job_id}/parsed/docs.json"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "openspec"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P1-07",
@@ -701,10 +564,7 @@
           "output": [
             "exports/jobs/{job_id}/parsed/form.json"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P1-08",
@@ -717,10 +577,7 @@
           "output": [
             "exports/jobs/{job_id}/parsed/unified.json"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P1-09",
@@ -733,10 +590,7 @@
           "output": [
             "exports/jobs/{job_id}/analysis/capability-dependencies.json"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P1-10",
@@ -749,10 +603,7 @@
           "output": [
             "exports/jobs/{job_id}/specs/*.mdx"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P1-11",
@@ -797,10 +648,7 @@
           "output": [
             "exports/jobs/{job_id}/analysis/roadmap.json"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P1-13",
@@ -812,10 +660,7 @@
           "output": [
             "exports/jobs/{job_id}/docs/roadmap.mdx"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P1-14",
@@ -828,10 +673,7 @@
           "output": [
             "git.commit.planning"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "git"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P1-15",
@@ -885,9 +727,7 @@
             "P1-06"
           ],
           "order": 2,
-          "depends_on_groups": [
-            "1.1"
-          ],
+          "depends_on_groups": ["1.1"],
           "ui": {
             "short_name": "OpenSpec",
             "default_collapsed": true,
@@ -917,9 +757,7 @@
             "P1-14"
           ],
           "order": 3,
-          "depends_on_groups": [
-            "1.2"
-          ],
+          "depends_on_groups": ["1.2"],
           "ui": {
             "short_name": "Planning",
             "default_collapsed": true,
@@ -989,10 +827,7 @@
           "output": [
             "tasks.current"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P2-13",
@@ -1006,15 +841,12 @@
             "workspace.code_changes"
           ],
           "condition": "has_executable_task",
-          "min_mode": "lite",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "lite"
         },
         {
-          "id": "P2-14a",
-          "name": "Run Automated Tests",
-          "description": "Run automated tests using testing frameworks (Jest, Vitest, Playwright, etc.) from verification.json.",
+          "id": "P2-14",
+          "name": "Auto Test",
+          "description": "Run automated tests from verification.json.",
           "input": [
             "workspace.code_changes",
             "exports/jobs/{job_id}/specs/verification.json"
@@ -1022,41 +854,7 @@
           "output": [
             "test.results"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
-        },
-        {
-          "id": "P2-14b",
-          "name": "Multi-Model Code Review",
-          "description": "Review code logic and quality using multiple AI models (gemini, claude, codex).",
-          "input": [
-            "workspace.code_changes",
-            "test.results"
-          ],
-          "output": [
-            "review.results"
-          ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ],
-          "review_config": {
-            "models": [
-              "gemini",
-              "claude",
-              "codex"
-            ],
-            "pass_threshold": 0.75,
-            "max_critical": 0,
-            "max_medium": 2,
-            "auto_repair": {
-              "enabled": true,
-              "max_attempts": 3,
-              "ask_user_on_exhausted": true
-            }
-          }
+          "min_mode": "standard"
         },
         {
           "id": "P2-15",
@@ -1078,8 +876,8 @@
         },
         {
           "id": "P2-16",
-          "name": "Update Specification Document",
-          "description": "Mark task as completed in specification",
+          "name": "Update OpenSpec",
+          "description": "Mark task as completed in tasks.md.",
           "input": [
             "tasks.current",
             "exports/jobs/{job_id}/source/openspec.mdx"
@@ -1088,10 +886,7 @@
             "exports/jobs/{job_id}/source/openspec.mdx"
           ],
           "condition": "test_passed",
-          "min_mode": "standard",
-          "required_tools": [
-            "openspec"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P2-17",
@@ -1104,10 +899,7 @@
           "output": [
             "exports/jobs/{job_id}/analysis/progress.json"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P2-18",
@@ -1121,10 +913,7 @@
           "output": [
             "git.commit.task"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "git"
-          ]
+          "min_mode": "lite"
         }
       ],
       "groups": [
@@ -1158,17 +947,14 @@
           "step_ids": [
             "P2-12",
             "P2-13",
-            "P2-14a",
-            "P2-14b",
+            "P2-14",
             "P2-15",
             "P2-16",
             "P2-17",
             "P2-18"
           ],
           "order": 2,
-          "depends_on_groups": [
-            "2.1"
-          ],
+          "depends_on_groups": ["2.1"],
           "ui": {
             "short_name": "Loop",
             "default_collapsed": false,
@@ -1190,9 +976,7 @@
       "name": "Acceptance",
       "description": "Final acceptance with multi-model review and human confirmation before archiving.",
       "execution": {
-        "mode": "loop",
-        "entry_step": "P3-19",
-        "exit_condition": "review_passed_or_exhausted"
+        "mode": "sequential"
       },
       "steps": [
         {
@@ -1241,15 +1025,12 @@
           "output": [
             "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P3-21",
-          "name": "Fix Issues",
-          "description": "Fix issues found in final review (max 3 attempts). Add comment to GitHub Issue tracking the fix attempt. If exhausted, return to Phase 2.",
+          "name": "Auto Fix",
+          "description": "Automatically fix issues found in review (max 3 attempts). Add comment to GitHub Issue tracking the fix attempt. If exhausted, return to Phase 2.",
           "input": [
             "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
             "workspace.all_changes",
@@ -1275,10 +1056,7 @@
             "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
           ],
           "condition": "review_passed_with_issues",
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P3-23",
@@ -1351,9 +1129,7 @@
             "P3-23"
           ],
           "order": 2,
-          "depends_on_groups": [
-            "3.1"
-          ],
+          "depends_on_groups": ["3.1"],
           "ui": {
             "short_name": "Approval",
             "default_collapsed": false,
@@ -1376,9 +1152,7 @@
             "P3-24"
           ],
           "order": 3,
-          "depends_on_groups": [
-            "3.2"
-          ],
+          "depends_on_groups": ["3.2"],
           "ui": {
             "short_name": "PR",
             "default_collapsed": true,
@@ -1414,25 +1188,19 @@
           "output": [
             "git.merge.result"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "git"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P4-23",
-          "name": "Archive Specification Document",
-          "description": "Archive specification document to repository",
+          "name": "Archive OpenSpec",
+          "description": "Archive OpenSpec to openspec repository.",
           "input": [
             "exports/jobs/{job_id}/source/openspec.mdx"
           ],
           "output": [
             "openspec.archived_path"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "openspec"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P4-24",
@@ -1444,10 +1212,7 @@
           "output": [
             "git.commit.archive"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "git"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P4-25",
@@ -1460,10 +1225,7 @@
           "output": [
             "repo/specs/**"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P4-26",
@@ -1475,10 +1237,7 @@
           "output": [
             "git.commit.specs"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "git"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P4-27",
@@ -1490,10 +1249,7 @@
           "output": [
             "repo/docs/**"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P4-28",
@@ -1505,10 +1261,7 @@
           "output": [
             "git.commit.docs"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "git"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P4-29",
@@ -1520,10 +1273,7 @@
           "output": [
             "repo/docs/roadmap/**"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P4-30",
@@ -1535,10 +1285,7 @@
           "output": [
             "git.commit.roadmap"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "git"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P4-31",
@@ -1551,10 +1298,7 @@
           "output": [
             "repo/capability-tree.json"
           ],
-          "min_mode": "standard",
-          "required_tools": [
-            "ccb"
-          ]
+          "min_mode": "standard"
         },
         {
           "id": "P4-32",
@@ -1566,10 +1310,7 @@
           "output": [
             "git.commit.capability_tree"
           ],
-          "min_mode": "lite",
-          "required_tools": [
-            "git"
-          ]
+          "min_mode": "lite"
         },
         {
           "id": "P4-33",
@@ -1629,9 +1370,7 @@
             "P4-30"
           ],
           "order": 2,
-          "depends_on_groups": [
-            "4.1"
-          ],
+          "depends_on_groups": ["4.1"],
           "ui": {
             "short_name": "Docs",
             "default_collapsed": true,
@@ -1655,9 +1394,7 @@
             "P4-32"
           ],
           "order": 3,
-          "depends_on_groups": [
-            "4.2"
-          ],
+          "depends_on_groups": ["4.2"],
           "ui": {
             "short_name": "Capabilities",
             "default_collapsed": true,
@@ -1680,9 +1417,7 @@
             "P4-33"
           ],
           "order": 4,
-          "depends_on_groups": [
-            "4.3"
-          ],
+          "depends_on_groups": ["4.3"],
           "ui": {
             "short_name": "Release",
             "default_collapsed": true,
