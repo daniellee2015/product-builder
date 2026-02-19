@@ -88,9 +88,9 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
         // Summary table uses ~14-16 chars for left column (e.g., "Active Steps:")
         const labelWidth = 16;
 
-        for (const phase of data.phases) {
+        for (const [index, phase] of data.phases.entries()) {
           const modeLabel = phase.execution.mode === 'loop' ? chalk.yellow(' [loop]') : ''
-          const phaseNumber = phase.id.replace(/^phase-/, '');
+          const phaseNumber = String(index).padStart(2, '0');
           const phaseLabel = i18n.t('workflow.display.phaseNumber', { number: phaseNumber });
 
           // Pad phase label to fixed width
