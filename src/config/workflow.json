@@ -106,7 +106,17 @@
         "review",
         "archiving"
       ],
-      "overrides": {}
+      "overrides": {
+        "execution_standard": {
+          "mode": "sequential"
+        },
+        "optimize": {
+          "mode": "sequential"
+        },
+        "review": {
+          "mode": "sequential"
+        }
+      }
     },
     "full": {
       "label": "Full",

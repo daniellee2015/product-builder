@@ -32,7 +32,7 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
 
   // Build phase items
   const phaseItems = data.phases.map((p, i) => ({
-    key: `${i18n.t('workflow.display.phase')} ${i + 1}`,
+    key: `${i18n.t('workflow.display.phase')} ${String(i).padStart(2, '0')}`,
     value: `${p.name} ${chalk.gray('— ' + p.description)}`
   }));
 
