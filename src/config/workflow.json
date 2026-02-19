@@ -237,6 +237,94 @@
       "overrides": {}
     }
   },
+  "scaffold_profiles": {
+    "minimal": {
+      "description": "Minimal directory structure for Lite mode",
+      "directories": [
+        "source",
+        "parsed",
+        "specs",
+        "docs",
+        "runtime"
+      ],
+      "excluded": [
+        "source/openspec",
+        "reviews",
+        "analysis/capability-dependencies.json",
+        "analysis/roadmap.json",
+        "analysis/global-todo.json",
+        "analysis/dependency-graph.json"
+      ]
+    },
+    "full": {
+      "description": "Complete directory structure for Standard and Full modes",
+      "directories": [
+        "source",
+        "source/openspec",
+        "parsed",
+        "analysis",
+        "reviews",
+        "specs",
+        "docs",
+        "runtime"
+      ],
+      "subdirectories": {
+        "reviews": [
+          "requirements-review",
+          "openspec-review",
+          "specs-review",
+          "final-review"
+        ],
+        "runtime": [
+          "checkpoints",
+          "orchestrator"
+        ]
+      }
+    }
+  },
+  "tool_profiles": {
+    "lite": {
+      "description": "Basic tools for Lite mode",
+      "tools": [
+        "basic_parser",
+        "spec_builder",
+        "shell_runner"
+      ],
+      "excluded_tools": [
+        "ccb",
+        "cca",
+        "ralph",
+        "openspec"
+      ]
+    },
+    "standard": {
+      "description": "Standard tools with multi-model review",
+      "tools": [
+        "basic_parser",
+        "spec_builder",
+        "shell_runner",
+        "ccb",
+        "cca",
+        "openspec"
+      ],
+      "excluded_tools": [
+        "ralph"
+      ]
+    },
+    "full": {
+      "description": "All tools including ralph orchestrator",
+      "tools": [
+        "basic_parser",
+        "spec_builder",
+        "shell_runner",
+        "ccb",
+        "cca",
+        "openspec",
+        "ralph"
+      ],
+      "excluded_tools": []
+    }
+  },
   "metadata": {
     "owner": "product-builder-cli",
     "created_at": "2026-02-17",
