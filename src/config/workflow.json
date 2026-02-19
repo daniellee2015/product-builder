@@ -669,14 +669,16 @@
         },
         {
           "id": "P1-04",
-          "name": "Convert Requirements to Specification Format",
-          "description": "Transform requirement document into structured specification format",
+          "name": "Convert Requirements to OpenSpec Format",
+          "description": "Transform requirement document into OpenSpec format (proposal, tasks, design)",
           "input": [
             "exports/jobs/{job_id}/source/requirements.mdx",
             "exports/jobs/{job_id}/metadata.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
           ],
           "min_mode": "lite",
           "required_tools": [
@@ -685,14 +687,15 @@
         },
         {
           "id": "P1-05",
-          "name": "Review Specification Document",
-          "description": "Run multi-model review gate and auto-repair before passing",
+          "name": "Review OpenSpec Documents",
+          "description": "Run multi-model review gate and auto-repair for OpenSpec quality",
           "input": [
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
           ],
           "output": [
-            "exports/jobs/{job_id}/reviews/openspec-review.json",
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/reviews/openspec-review.json"
           ],
           "review_config": {
             "models": [
@@ -718,10 +721,12 @@
         },
         {
           "id": "P1-06",
-          "name": "Parse Specification to Structured Data",
-          "description": "Extract structured requirement docs from reviewed specification",
+          "name": "Parse OpenSpec to Structured Data",
+          "description": "Extract structured requirement docs from OpenSpec files",
           "input": [
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
           ],
           "output": [
             "exports/jobs/{job_id}/parsed/docs.json"
@@ -782,13 +787,16 @@
         {
           "id": "P1-10",
           "name": "Generate Development Specs",
-          "description": "Generate detailed implementation specs under specs/.",
+          "description": "Generate structured specs for development (README + JSON files for ralph automation)",
           "input": [
             "exports/jobs/{job_id}/parsed/unified.json",
             "exports/jobs/{job_id}/analysis/capability-dependencies.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "min_mode": "lite",
           "required_tools": [
@@ -798,13 +806,15 @@
         {
           "id": "P1-11",
           "name": "Review Development Specs",
-          "description": "Run multi-model quality gate and auto-repair for generated specs.",
+          "description": "Run multi-model quality gate and auto-repair for generated specs",
           "input": [
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/reviews/specs-review.json",
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/reviews/specs-review.json"
           ],
           "review_config": {
             "models": [
@@ -830,13 +840,17 @@
         {
           "id": "P1-12",
           "name": "Generate Global Roadmap View",
-          "description": "Build cross-capability planning graph and milestones.",
+          "description": "Build cross-capability planning graph, milestones, and global todo list",
           "input": [
             "exports/jobs/{job_id}/analysis/capability-dependencies.json",
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/analysis/roadmap.json"
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
           ],
           "min_mode": "standard",
           "required_tools": [
@@ -846,12 +860,16 @@
         {
           "id": "P1-13",
           "name": "Generate Planning Docs",
-          "description": "Render planning documents from roadmap JSON to MDX.",
+          "description": "Render planning documents from JSON to Markdown (ROADMAP, TODO, DEPENDENCIES)",
           "input": [
-            "exports/jobs/{job_id}/analysis/roadmap.json"
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/docs/roadmap.mdx"
+            "exports/jobs/{job_id}/docs/ROADMAP.md",
+            "exports/jobs/{job_id}/docs/TODO.md",
+            "exports/jobs/{job_id}/docs/DEPENDENCIES.md"
           ],
           "min_mode": "standard",
           "required_tools": [
@@ -879,8 +897,11 @@
           "name": "Review Planning Results",
           "description": "User reviews planning artifacts and decides whether to proceed with execution.",
           "input": [
-            "exports/jobs/{job_id}/docs/roadmap.mdx",
-            "exports/jobs/{job_id}/specs/*.mdx",
+            "exports/jobs/{job_id}/docs/ROADMAP.md",
+            "exports/jobs/{job_id}/docs/TODO.md",
+            "exports/jobs/{job_id}/docs/DEPENDENCIES.md",
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
             "exports/jobs/{job_id}/analysis/roadmap.json"
           ],
           "output": [
@@ -2373,14 +2394,16 @@
         },
         {
           "id": "P1-04",
-          "name": "Convert Requirements to Specification Format",
-          "description": "Transform requirement document into structured specification format",
+          "name": "Convert Requirements to OpenSpec Format",
+          "description": "Transform requirement document into OpenSpec format (proposal, tasks, design)",
           "input": [
             "exports/jobs/{job_id}/source/requirements.mdx",
             "exports/jobs/{job_id}/metadata.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
           ],
           "min_mode": "lite",
           "required_tools": [
@@ -2389,14 +2412,15 @@
         },
         {
           "id": "P1-05",
-          "name": "Review Specification Document",
-          "description": "Run multi-model review gate and auto-repair before passing",
+          "name": "Review OpenSpec Documents",
+          "description": "Run multi-model review gate and auto-repair for OpenSpec quality",
           "input": [
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
           ],
           "output": [
-            "exports/jobs/{job_id}/reviews/openspec-review.json",
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/reviews/openspec-review.json"
           ],
           "review_config": {
             "models": [
@@ -2422,10 +2446,12 @@
         },
         {
           "id": "P1-06",
-          "name": "Parse Specification to Structured Data",
-          "description": "Extract structured requirement docs from reviewed specification",
+          "name": "Parse OpenSpec to Structured Data",
+          "description": "Extract structured requirement docs from OpenSpec files",
           "input": [
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
           ],
           "output": [
             "exports/jobs/{job_id}/parsed/docs.json"
@@ -2469,13 +2495,16 @@
         {
           "id": "P1-10",
           "name": "Generate Development Specs",
-          "description": "Generate detailed implementation specs under specs/.",
+          "description": "Generate structured specs for development (README + JSON files for ralph automation)",
           "input": [
             "exports/jobs/{job_id}/parsed/unified.json",
             "exports/jobs/{job_id}/analysis/capability-dependencies.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "min_mode": "lite",
           "required_tools": [
@@ -2576,13 +2605,16 @@
         {
           "id": "P1-10",
           "name": "Generate Development Specs",
-          "description": "Generate detailed implementation specs under specs/.",
+          "description": "Generate structured specs for development (README + JSON files for ralph automation)",
           "input": [
             "exports/jobs/{job_id}/parsed/unified.json",
             "exports/jobs/{job_id}/analysis/capability-dependencies.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "min_mode": "lite",
           "required_tools": [
@@ -2592,13 +2624,15 @@
         {
           "id": "P1-11",
           "name": "Review Development Specs",
-          "description": "Run multi-model quality gate and auto-repair for generated specs.",
+          "description": "Run multi-model quality gate and auto-repair for generated specs",
           "input": [
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/reviews/specs-review.json",
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/reviews/specs-review.json"
           ],
           "review_config": {
             "models": [
@@ -2624,13 +2658,17 @@
         {
           "id": "P1-12",
           "name": "Generate Global Roadmap View",
-          "description": "Build cross-capability planning graph and milestones.",
+          "description": "Build cross-capability planning graph, milestones, and global todo list",
           "input": [
             "exports/jobs/{job_id}/analysis/capability-dependencies.json",
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/analysis/roadmap.json"
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
           ],
           "min_mode": "standard",
           "required_tools": [
@@ -2640,12 +2678,16 @@
         {
           "id": "P1-13",
           "name": "Generate Planning Docs",
-          "description": "Render planning documents from roadmap JSON to MDX.",
+          "description": "Render planning documents from JSON to Markdown (ROADMAP, TODO, DEPENDENCIES)",
           "input": [
-            "exports/jobs/{job_id}/analysis/roadmap.json"
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/docs/roadmap.mdx"
+            "exports/jobs/{job_id}/docs/ROADMAP.md",
+            "exports/jobs/{job_id}/docs/TODO.md",
+            "exports/jobs/{job_id}/docs/DEPENDENCIES.md"
           ],
           "min_mode": "standard",
           "required_tools": [
@@ -2673,8 +2715,11 @@
           "name": "Review Planning Results",
           "description": "User reviews planning artifacts and decides whether to proceed with execution.",
           "input": [
-            "exports/jobs/{job_id}/docs/roadmap.mdx",
-            "exports/jobs/{job_id}/specs/*.mdx",
+            "exports/jobs/{job_id}/docs/ROADMAP.md",
+            "exports/jobs/{job_id}/docs/TODO.md",
+            "exports/jobs/{job_id}/docs/DEPENDENCIES.md",
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
             "exports/jobs/{job_id}/analysis/roadmap.json"
           ],
           "output": [
@@ -3626,13 +3671,16 @@
         {
           "id": "P1-10",
           "name": "Generate Development Specs",
-          "description": "Generate detailed implementation specs under specs/.",
+          "description": "Generate structured specs for development (README + JSON files for ralph automation)",
           "input": [
             "exports/jobs/{job_id}/parsed/unified.json",
             "exports/jobs/{job_id}/analysis/capability-dependencies.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "min_mode": "lite",
           "required_tools": [
@@ -3642,13 +3690,15 @@
         {
           "id": "P1-11",
           "name": "Review Development Specs",
-          "description": "Run multi-model quality gate and auto-repair for generated specs.",
+          "description": "Run multi-model quality gate and auto-repair for generated specs",
           "input": [
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/reviews/specs-review.json",
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/reviews/specs-review.json"
           ],
           "review_config": {
             "models": [
@@ -3674,13 +3724,17 @@
         {
           "id": "P1-12",
           "name": "Generate Global Roadmap View",
-          "description": "Build cross-capability planning graph and milestones.",
+          "description": "Build cross-capability planning graph, milestones, and global todo list",
           "input": [
             "exports/jobs/{job_id}/analysis/capability-dependencies.json",
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/analysis/roadmap.json"
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
           ],
           "min_mode": "standard",
           "required_tools": [
@@ -3690,12 +3744,16 @@
         {
           "id": "P1-13",
           "name": "Generate Planning Docs",
-          "description": "Render planning documents from roadmap JSON to MDX.",
+          "description": "Render planning documents from JSON to Markdown (ROADMAP, TODO, DEPENDENCIES)",
           "input": [
-            "exports/jobs/{job_id}/analysis/roadmap.json"
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/docs/roadmap.mdx"
+            "exports/jobs/{job_id}/docs/ROADMAP.md",
+            "exports/jobs/{job_id}/docs/TODO.md",
+            "exports/jobs/{job_id}/docs/DEPENDENCIES.md"
           ],
           "min_mode": "standard",
           "required_tools": [
