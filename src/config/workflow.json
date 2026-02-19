@@ -1190,7 +1190,9 @@
       "name": "Acceptance",
       "description": "Final acceptance with multi-model review and human confirmation before archiving.",
       "execution": {
-        "mode": "sequential"
+        "mode": "loop",
+        "entry_step": "P3-19",
+        "exit_condition": "review_passed_or_exhausted"
       },
       "steps": [
         {
