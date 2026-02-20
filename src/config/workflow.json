@@ -737,7 +737,7 @@
           "display_id": "P0-10"
         },
         {
-          "id": "P0-GENERATE_REQUIREMENT_DOC",
+          "id": "P0-GENERATE_REQUIREMENT_DOCUMENT",
           "name": "Generate Requirement Document",
           "description": "Integrate all analysis results into structured requirement document",
           "input": [
@@ -756,7 +756,7 @@
           "display_id": "P0-11"
         },
         {
-          "id": "P0-REVIEW_REQUIREMENT_DOC",
+          "id": "P0-REVIEW_REQUIREMENT_DOCUMENT",
           "name": "Review Requirement Document",
           "description": "Multi-model review with auto-repair (up to 3 attempts)",
           "requires_human_approval": true,
@@ -943,7 +943,7 @@
           "display_id": "P1-14"
         },
         {
-          "id": "P1-CREATE_JOB_AND_BRANCH",
+          "id": "P1-CREATE_JOB_AND_GIT_BRANCH",
           "name": "Create Job and Git Branch",
           "description": "Create job directory and working branch.",
           "input": [
@@ -2530,8 +2530,8 @@
           "id": "0.4",
           "name": "Requirement Document Generation",
           "step_ids": [
-            "P0-GENERATE_REQUIREMENT_DOC",
-            "P0-REVIEW_REQUIREMENT_DOC"
+            "P0-GENERATE_REQUIREMENT_DOCUMENT",
+            "P0-REVIEW_REQUIREMENT_DOCUMENT"
           ]
         }
       ],
@@ -2772,7 +2772,7 @@
           "step_ids": [
             "P1-FIND_EXISTING_WORK",
             "P1-UPDATE_CAPABILITY_TREE",
-            "P1-CREATE_JOB_AND_BRANCH"
+            "P1-CREATE_JOB_AND_GIT_BRANCH"
           ]
         },
         {
