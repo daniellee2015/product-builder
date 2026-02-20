@@ -2779,7 +2779,6 @@
           "id": "1.2",
           "name": "OpenSpec Generation & Review",
           "step_ids": [
-            "P1-CONVERT_TO_OPENSPEC",
             "P1-REVIEW_OPENSPEC_DOCUMENTS",
             "P1-PARSE_OPENSPEC_TO_STRUCTURED"
           ]
@@ -3065,10 +3064,6 @@
           "step_ids": [
             "P1-CHECK_OR_INFER_FORMJSON",
             "P1-MERGE_TO_UNIFIEDJSON",
-            "P1-ANALYZE_CAPABILITIES",
-            "P1-GENERATE_DEV_SPECS",
-            "P1-REVIEW_DEV_SPECS",
-            "P1-GENERATE_ROADMAP",
             "P1-GENERATE_PLANNING_DOCS",
             "P1-COMMIT_PLANNING_CHANGES"
           ]
@@ -3857,16 +3852,12 @@
         {
           "id": "3.2",
           "name": "Human Approval Gate",
-          "step_ids": [
-            "P3-VALIDATE_DELIVERABLES"
-          ]
+          "step_ids": []
         },
         {
           "id": "3.3",
           "name": "Pull Request Creation",
-          "step_ids": [
-            "P3-HUMAN_CONFIRMATION"
-          ]
+          "step_ids": []
         }
       ],
       "steps": [
@@ -3984,38 +3975,22 @@
         {
           "id": "4.1",
           "name": "Code Integration & Archival",
-          "step_ids": [
-            "P4-ARCHIVE_JOB",
-            "P4-ANALYZE_PERFORMANCE",
-            "P4-OPTIMIZE_CODE"
-          ]
+          "step_ids": []
         },
         {
           "id": "4.2",
           "name": "Knowledge Base Synchronization",
-          "step_ids": [
-            "P4-REFACTOR",
-            "P4-APPLY_BEST_PRACTICES",
-            "P4-CLEANUP_RUNTIME",
-            "P4-ARCHIVE_LOGS",
-            "P4-GENERATE_PERF_REPORT",
-            "P4-UPDATE_DOCS"
-          ]
+          "step_ids": []
         },
         {
           "id": "4.3",
           "name": "System Capabilities Update",
-          "step_ids": [
-            "P4-CREATE_RELEASE_NOTES",
-            "P4-TAG_RELEASE"
-          ]
+          "step_ids": []
         },
         {
           "id": "4.4",
           "name": "Release Publication",
-          "step_ids": [
-            "P4-NOTIFY_COMPLETION"
-          ]
+          "step_ids": []
         }
       ],
       "steps": [
