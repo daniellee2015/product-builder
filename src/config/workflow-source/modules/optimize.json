@@ -1,0 +1,84 @@
+{
+  "id": "optimize",
+  "name": "Optimize",
+  "description": "Final review and auto-repair",
+  "execution": {
+    "mode": "loop",
+    "orchestrator": "ccb"
+  },
+  "groups": [],
+  "steps": [
+    {
+      "id": "P3-FINAL_REVIEW",
+      "name": "Final Review",
+      "description": "Multi-model review gate for final acceptance of all completed work.",
+      "input": [
+        "workspace.all_changes",
+        "exports/jobs/{job_id}/specs/*.mdx"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/reviews/final-review.json"
+      ],
+      "review_config": {
+        "models": [
+          "gemini",
+          "claude",
+          "codex"
+        ],
+        "pass_threshold": 0.75,
+        "max_critical": 0,
+        "max_medium": 2,
+        "auto_repair": {
+          "enabled": true,
+          "max_attempts": 3,
+          "ask_user_on_exhausted": true,
+          "user_options": [
+            "retry_phase2",
+            "continue"
+          ]
+        }
+      },
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb",
+        "cca"
+      ],
+      "display_id": "P3-41"
+    },
+    {
+      "id": "P3-AGGREGATE_REVIEW_RESULTS",
+      "name": "Aggregate Review Results",
+      "description": "Aggregate multi-model review results and calculate pass rate.",
+      "input": [
+        "exports/jobs/{job_id}/reviews/final-review.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P3-42"
+    },
+    {
+      "id": "P3-FIX_ISSUES",
+      "name": "Fix Issues",
+      "description": "Fix issues found in final review (max 3 attempts). Add comment to GitHub Issue tracking the fix attempt. If exhausted, return to Phase 2.",
+      "input": [
+        "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+        "workspace.all_changes",
+        "github.issue.number"
+      ],
+      "output": [
+        "workspace.all_changes"
+      ],
+      "condition": "review_needs_fix",
+      "min_mode": "standard",
+      "required_tools": [
+        "gh"
+      ],
+      "display_id": "P3-43"
+    }
+  ]
+}

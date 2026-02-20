@@ -1,0 +1,13 @@
+{
+  "_comment": "Workflow metadata - DO NOT edit phases array manually, it's auto-generated from phase_registry",
+  "schema_version": "2.0",
+  "$schema": "https://product-builder.dev/schemas/workflow.v2.json",
+  "version": "1.0.0",
+  "workflow_id": "product-builder-cli-standard",
+  "name": "Product Builder CLI End-to-End Workflow",
+  "description": "Five-phase workflow with conditional branching, parallel steps, task-loop execution, and multi-model review auto-repair.",
+  "mode": "full",
+  "_comment_structure": "This workflow uses a dual-structure design: (1) 'phases' array provides a unified Phase 0-4 view for UI/progress tracking across all modes, (2) 'phase_registry' object contains modular step groups that are composed via 'pipeline' fields to support three progressive modes (Lite ⊂ Standard ⊂ Full) and enable runtime mode switching/degradation.",
+  "_comment_modes": "Three progressive modes with increasing automation: Lite (16 steps, manual, no OpenSpec/review) ⊂ Standard (51 steps, manual, with OpenSpec/review) ⊂ Full (56 steps, auto-loop via ralph). Each mode uses different 'pipeline' compositions from 'phase_registry' modules. Supports runtime mode switching and automatic degradation when tools are unavailable.",
+  "_comment_phases_warning": "⚠️ WARNING: The 'phases' array is AUTO-GENERATED from 'phase_registry'. DO NOT EDIT MANUALLY! To modify workflow, edit 'phase_registry' modules and run: node generate-phases-from-registry.js"
+}

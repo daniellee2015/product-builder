@@ -1,0 +1,46 @@
+{
+  "id": "review_lite",
+  "name": "Review",
+  "description": "Basic human confirmation",
+  "execution": {
+    "mode": "sequential",
+    "orchestrator": "user"
+  },
+  "groups": [],
+  "steps": [
+    {
+      "id": "P3-RECORD_TECHNICAL_DEBT",
+      "name": "Record Technical Debt",
+      "description": "Record issues to TECHNICAL_DEBT.md if review passed with minor issues.",
+      "input": [
+        "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
+      ],
+      "condition": "review_passed_with_issues",
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P3-44"
+    },
+    {
+      "id": "P3-HUMAN_FINAL_CONFIRMATION",
+      "name": "Human Final Confirmation",
+      "description": "Final human approval to proceed with archiving and deployment. Only executed after machine review passes.",
+      "input": [
+        "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+        "exports/jobs/{job_id}/TECHNICAL_DEBT.md",
+        "workspace.all_changes"
+      ],
+      "output": [
+        "human_approval.final"
+      ],
+      "requires_human_approval": true,
+      "condition": "review_passed",
+      "min_mode": "lite",
+      "display_id": "P3-45"
+    }
+  ]
+}

@@ -114,6 +114,10 @@ export interface WorkflowData {
     show_step_fields: string[];
     show_transitions: boolean;
   };
+  phase_registry: Record<string, {
+    steps: WorkflowStep[];
+    groups?: any[];
+  }>;
   phases: WorkflowPhase[];
   transitions: WorkflowTransition[];
 }

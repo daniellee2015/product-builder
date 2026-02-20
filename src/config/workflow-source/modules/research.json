@@ -1,0 +1,268 @@
+{
+  "id": "research",
+  "name": "Research",
+  "description": "Comprehensive requirement research and analysis",
+  "execution": {
+    "mode": "sequential",
+    "orchestrator": "ccb"
+  },
+  "groups": [
+    {
+      "id": "0.1",
+      "name": "Requirement Intake & Clarification",
+      "step_ids": [
+        "P0-COLLECT_USER_REQUIREMENT",
+        "P0-DETECT_REQUIREMENT_TYPE",
+        "P0-REQUIREMENT_CLARIFICATION",
+        "P0-REQUIREMENT_EXPANSION"
+      ]
+    },
+    {
+      "id": "0.2",
+      "name": "Market & Competitive Analysis",
+      "step_ids": [
+        "P0-COMPETITOR_RESEARCH",
+        "P0-COMPETITOR_ANALYSIS",
+        "P0-MARKET_POSITIONING"
+      ]
+    },
+    {
+      "id": "0.3",
+      "name": "Feature & Feasibility Analysis",
+      "step_ids": [
+        "P0-FEATURE_BREAKDOWN",
+        "P0-USER_STORY_GENERATION",
+        "P0-TECHNICAL_FEASIBILITY_ANALYSIS"
+      ]
+    },
+    {
+      "id": "0.4",
+      "name": "Requirement Document Generation",
+      "step_ids": [
+        "P0-GENERATE_REQUIREMENT_DOCUMENT",
+        "P0-REVIEW_REQUIREMENT_DOCUMENT"
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "P0-COLLECT_USER_REQUIREMENT",
+      "name": "Collect User Requirement",
+      "description": "Extract scope, constraints, and acceptance hints from user input",
+      "input": [
+        "user_input.raw"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/source/raw-requirement.txt"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-01"
+    },
+    {
+      "id": "P0-DETECT_REQUIREMENT_TYPE",
+      "name": "Detect Requirement Type",
+      "description": "Determine whether requirement is brief (one sentence) or detailed (with planning)",
+      "input": [
+        "exports/jobs/{job_id}/source/raw-requirement.txt"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/parsed/requirement-type.json"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-02"
+    },
+    {
+      "id": "P0-REQUIREMENT_CLARIFICATION",
+      "name": "Requirement Clarification",
+      "description": "Ask about target users, core problems, key features, and constraints",
+      "input": [
+        "exports/jobs/{job_id}/source/raw-requirement.txt"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/parsed/clarified-requirement.md"
+      ],
+      "condition": "when_requirement_brief",
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-03"
+    },
+    {
+      "id": "P0-REQUIREMENT_EXPANSION",
+      "name": "Requirement Expansion",
+      "description": "Expand brief requirement into detailed description",
+      "input": [
+        "exports/jobs/{job_id}/parsed/clarified-requirement.md"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/parsed/expanded-requirement.md"
+      ],
+      "condition": "when_requirement_brief",
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-04"
+    },
+    {
+      "id": "P0-COMPETITOR_RESEARCH",
+      "name": "Competitor Research",
+      "description": "Use web_search and context7 to find competitors",
+      "input": [
+        "exports/jobs/{job_id}/parsed/expanded-requirement.md"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/competitor-list.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "optional_tools": [
+        "web_search",
+        "context7"
+      ],
+      "display_id": "P0-05"
+    },
+    {
+      "id": "P0-COMPETITOR_ANALYSIS",
+      "name": "Competitor Analysis",
+      "description": "Analyze feature comparison, pricing, user reviews, and market positioning",
+      "input": [
+        "exports/jobs/{job_id}/analysis/competitor-list.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/competitor-analysis.md"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-06"
+    },
+    {
+      "id": "P0-MARKET_POSITIONING",
+      "name": "Market Positioning",
+      "description": "Determine differentiation advantages and target market",
+      "input": [
+        "exports/jobs/{job_id}/analysis/competitor-analysis.md"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/market-positioning.md"
+      ],
+      "min_mode": "full",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-07"
+    },
+    {
+      "id": "P0-FEATURE_BREAKDOWN",
+      "name": "Feature Breakdown",
+      "description": "Break down core features and sub-features",
+      "input": [
+        "exports/jobs/{job_id}/parsed/expanded-requirement.md"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/feature-breakdown.json"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-08"
+    },
+    {
+      "id": "P0-USER_STORY_GENERATION",
+      "name": "User Story Generation",
+      "description": "Generate user stories and usage scenarios",
+      "input": [
+        "exports/jobs/{job_id}/analysis/feature-breakdown.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/user-stories.md"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-09"
+    },
+    {
+      "id": "P0-TECHNICAL_FEASIBILITY_ANALYSIS",
+      "name": "Technical Feasibility Analysis",
+      "description": "Evaluate tech stack, dependencies, and risks",
+      "input": [
+        "exports/jobs/{job_id}/analysis/feature-breakdown.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/feasibility-analysis.md"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-10"
+    },
+    {
+      "id": "P0-GENERATE_REQUIREMENT_DOCUMENT",
+      "name": "Generate Requirement Document",
+      "description": "Integrate all analysis results into structured requirement document",
+      "input": [
+        "exports/jobs/{job_id}/analysis/feature-breakdown.json",
+        "exports/jobs/{job_id}/analysis/user-stories.md",
+        "exports/jobs/{job_id}/analysis/feasibility-analysis.md"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/source/requirement.mdx"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "output_format": "mdx",
+      "display_id": "P0-11"
+    },
+    {
+      "id": "P0-REVIEW_REQUIREMENT_DOCUMENT",
+      "name": "Review Requirement Document",
+      "description": "Multi-model review with auto-repair (up to 3 attempts)",
+      "requires_human_approval": true,
+      "input": [
+        "exports/jobs/{job_id}/source/requirement.mdx"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/source/requirement.mdx",
+        "exports/jobs/{job_id}/reviews/requirement-review.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb",
+        "cca"
+      ],
+      "review_config": {
+        "models": [
+          "gemini",
+          "claude",
+          "codex"
+        ],
+        "pass_threshold": 0.75,
+        "max_critical": 0,
+        "max_medium": 2,
+        "auto_repair": {
+          "enabled": true,
+          "max_attempts": 3,
+          "ask_user_on_exhausted": true
+        }
+      },
+      "display_id": "P0-12"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "id": "testing_lite",
+  "name": "Testing",
+  "description": "Basic automated testing",
+  "execution": {
+    "mode": "sequential",
+    "orchestrator": "ccb"
+  },
+  "groups": [],
+  "steps": [
+    {
+      "id": "P2-RUN_AUTOMATED_TESTS",
+      "name": "Run Automated Tests",
+      "description": "Run automated tests using testing frameworks (Jest, Vitest, Playwright, etc.) from verification.json.",
+      "input": [
+        "workspace.code_changes",
+        "exports/jobs/{job_id}/specs/verification.json"
+      ],
+      "output": [
+        "test.results"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P2-35"
+    },
+    {
+      "id": "P2-MULTIMODEL_CODE_REVIEW",
+      "name": "Multi-Model Code Review",
+      "description": "Review code logic and quality using multiple AI models (gemini, claude, codex).",
+      "input": [
+        "workspace.code_changes",
+        "test.results"
+      ],
+      "output": [
+        "review.results"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "review_config": {
+        "models": [
+          "gemini",
+          "claude",
+          "codex"
+        ],
+        "pass_threshold": 0.75,
+        "max_critical": 0,
+        "max_medium": 2,
+        "auto_repair": {
+          "enabled": true,
+          "max_attempts": 3,
+          "ask_user_on_exhausted": true
+        }
+      },
+      "display_id": "P2-36"
+    },
+    {
+      "id": "P2-COMMIT_TASK",
+      "name": "Commit Task",
+      "description": "Commit task changes to job branch (frontend/backend/OpenSpec).",
+      "input": [
+        "workspace.code_changes",
+        "exports/jobs/{job_id}/source/openspec.mdx",
+        "exports/jobs/{job_id}/analysis/progress.json"
+      ],
+      "output": [
+        "git.commit.task"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "requires_human_approval": true,
+      "approval": {
+        "when": "before_execute",
+        "reason": "commit_boundary",
+        "modes": [
+          "lite",
+          "standard"
+        ]
+      },
+      "display_id": "P2-40",
+      "enabled_in_modes": [
+        "lite"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "execution_lite",
+  "name": "Execution",
+  "description": "Simple task execution",
+  "execution": {
+    "mode": "sequential",
+    "orchestrator": "user"
+  },
+  "groups": [],
+  "steps": [
+    {
+      "id": "P2-EXECUTE_TASK",
+      "name": "Execute Task",
+      "description": "AI Agent implements the current task.",
+      "input": [
+        "tasks.current",
+        "exports/jobs/{job_id}/specs/*.mdx"
+      ],
+      "output": [
+        "workspace.code_changes"
+      ],
+      "condition": "has_executable_task",
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P2-34"
+    }
+  ]
+}

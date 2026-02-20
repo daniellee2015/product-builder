@@ -1,0 +1,153 @@
+{
+  "id": "planning_lite",
+  "name": "Planning",
+  "description": "Simplified planning for quick development",
+  "execution": {
+    "mode": "sequential",
+    "orchestrator": "ccb"
+  },
+  "groups": [],
+  "steps": [
+    {
+      "id": "P1-CREATE_JOB",
+      "name": "Create Job",
+      "description": "Create job directory and metadata file.",
+      "input": [
+        "CCB_REQ_ID",
+        "exports/jobs/{job_id}/analysis/existing-work.json",
+        "exports/jobs/{job_id}/analysis/capability-tree.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/metadata.json"
+      ],
+      "condition": "after_p1_01_and_p1_02",
+      "min_mode": "lite",
+      "enabled_in_modes": [
+        "lite"
+      ],
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-15"
+    },
+    {
+      "id": "P1-CREATE_GIT_BRANCH",
+      "name": "Create Git Branch",
+      "description": "Create working branch for this job.",
+      "input": [
+        "exports/jobs/{job_id}/metadata.json"
+      ],
+      "output": [
+        "git.branch.name"
+      ],
+      "min_mode": "lite",
+      "enabled_in_modes": [
+        "lite"
+      ],
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P1-16"
+    },
+    {
+      "id": "P1-PARSE_MDX_TO_UNIFIED_LITE",
+      "name": "Parse MDX to Unified (Lite)",
+      "description": "Direct transformation from requirements.mdx to unified.json, bypassing OpenSpec conversion",
+      "input": [
+        "exports/jobs/{job_id}/source/requirements.mdx",
+        "exports/jobs/{job_id}/metadata.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/parsed/unified.json"
+      ],
+      "min_mode": "lite",
+      "enabled_in_modes": [
+        "lite"
+      ],
+      "required_tools": [
+        "basic_parser"
+      ],
+      "display_id": "P1-28"
+    },
+    {
+      "id": "P1-ANALYZE_CAPABILITIES_LITE",
+      "name": "Analyze Capabilities (Lite)",
+      "description": "Simplified capability analysis for Lite mode",
+      "input": [
+        "exports/jobs/{job_id}/parsed/unified.json",
+        "exports/jobs/{job_id}/analysis/capability-tree.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+      ],
+      "min_mode": "lite",
+      "enabled_in_modes": [
+        "lite"
+      ],
+      "required_tools": [
+        "basic_parser"
+      ],
+      "display_id": "P1-29"
+    },
+    {
+      "id": "P1-GENERATE_DEVELOPMENT_SPECS",
+      "name": "Generate Development Specs",
+      "description": "Generate structured specs for development (README + JSON files for ralph automation)",
+      "input": [
+        "exports/jobs/{job_id}/parsed/unified.json",
+        "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/specs/README.md",
+        "exports/jobs/{job_id}/specs/tasks.json",
+        "exports/jobs/{job_id}/specs/verification.json",
+        "exports/jobs/{job_id}/specs/progress.json"
+      ],
+      "min_mode": "lite",
+      "enabled_in_modes": [
+        "lite"
+      ],
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-22"
+    },
+    {
+      "id": "P1-GENERATE_PLANNING_DOCS_LITE",
+      "name": "Generate Planning Docs (Lite)",
+      "description": "Generate simplified planning documents for Lite mode",
+      "input": [
+        "exports/jobs/{job_id}/specs/tasks.json",
+        "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/docs/TODO.md"
+      ],
+      "min_mode": "lite",
+      "enabled_in_modes": [
+        "lite"
+      ],
+      "required_tools": [
+        "basic_parser"
+      ],
+      "display_id": "P1-30"
+    },
+    {
+      "id": "P1-COMMIT_PLANNING_CHANGES",
+      "name": "Commit Planning Changes",
+      "description": "Commit planning artifacts to job branch.",
+      "input": [
+        "exports/jobs/{job_id}/**",
+        "git.branch.name"
+      ],
+      "output": [
+        "git.commit.planning"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P1-26"
+    }
+  ]
+}

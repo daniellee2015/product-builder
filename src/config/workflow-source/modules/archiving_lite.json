@@ -1,0 +1,29 @@
+{
+  "id": "archiving_lite",
+  "name": "Archiving",
+  "description": "Basic archiving",
+  "execution": {
+    "mode": "sequential",
+    "orchestrator": "ccb"
+  },
+  "groups": [],
+  "steps": [
+    {
+      "id": "P4-MERGE_GIT_BRANCH",
+      "name": "Merge Git Branch",
+      "description": "Merge feature branch to main (frontend + backend).",
+      "input": [
+        "git.branch.name",
+        "human_approval.final"
+      ],
+      "output": [
+        "git.merge.result"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P4-47"
+    }
+  ]
+}

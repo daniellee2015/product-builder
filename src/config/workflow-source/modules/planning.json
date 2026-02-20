@@ -1,0 +1,211 @@
+{
+  "id": "planning",
+  "name": "Planning",
+  "description": "Development specification generation and review",
+  "execution": {
+    "mode": "sequential_with_parallel_group",
+    "orchestrator": "ccb"
+  },
+  "groups": [
+    {
+      "id": "1.3",
+      "name": "Implementation Planning",
+      "step_ids": [
+        "P1-CHECK_OR_INFER_FORMJSON",
+        "P1-MERGE_TO_UNIFIEDJSON",
+        "P1-ANALYZE_CAPABILITY_DEPENDENCIES",
+        "P1-GENERATE_DEVELOPMENT_SPECS",
+        "P1-REVIEW_DEVELOPMENT_SPECS",
+        "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
+        "P1-GENERATE_PLANNING_DOCS",
+        "P1-COMMIT_PLANNING_CHANGES",
+        "P1-REVIEW_PLANNING_RESULTS"
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "P1-CHECK_OR_INFER_FORMJSON",
+      "name": "Check or Infer form.json",
+      "description": "Use existing form.json when valid, otherwise infer it.",
+      "input": [
+        "exports/jobs/{job_id}/parsed/docs.json",
+        "source/form.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/parsed/form.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-19"
+    },
+    {
+      "id": "P1-MERGE_TO_UNIFIEDJSON",
+      "name": "Merge to unified.json",
+      "description": "Merge docs.json and form.json into one execution model.",
+      "input": [
+        "exports/jobs/{job_id}/parsed/docs.json",
+        "exports/jobs/{job_id}/parsed/form.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/parsed/unified.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-20"
+    },
+    {
+      "id": "P1-ANALYZE_CAPABILITY_DEPENDENCIES",
+      "name": "Analyze Capability Dependencies",
+      "description": "Map feature requirements to capabilities and dependency graph.",
+      "input": [
+        "exports/jobs/{job_id}/parsed/unified.json",
+        "exports/jobs/{job_id}/analysis/capability-tree.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-21"
+    },
+    {
+      "id": "P1-GENERATE_DEVELOPMENT_SPECS",
+      "name": "Generate Development Specs",
+      "description": "Generate structured specs for development (README + JSON files for ralph automation)",
+      "input": [
+        "exports/jobs/{job_id}/parsed/unified.json",
+        "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/specs/README.md",
+        "exports/jobs/{job_id}/specs/tasks.json",
+        "exports/jobs/{job_id}/specs/verification.json",
+        "exports/jobs/{job_id}/specs/progress.json"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-22"
+    },
+    {
+      "id": "P1-REVIEW_DEVELOPMENT_SPECS",
+      "name": "Review Development Specs",
+      "description": "Run multi-model quality gate and auto-repair for generated specs",
+      "input": [
+        "exports/jobs/{job_id}/specs/README.md",
+        "exports/jobs/{job_id}/specs/tasks.json",
+        "exports/jobs/{job_id}/specs/verification.json",
+        "exports/jobs/{job_id}/specs/progress.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/reviews/specs-review.json"
+      ],
+      "review_config": {
+        "models": [
+          "gemini",
+          "claude",
+          "codex"
+        ],
+        "pass_threshold": 0.75,
+        "max_critical": 0,
+        "max_medium": 2,
+        "auto_repair": {
+          "enabled": true,
+          "max_attempts": 3,
+          "ask_user_on_exhausted": true
+        }
+      },
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb",
+        "cca"
+      ],
+      "display_id": "P1-23"
+    },
+    {
+      "id": "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
+      "name": "Generate Global Roadmap View",
+      "description": "Build cross-capability planning graph, milestones, and global todo list",
+      "input": [
+        "exports/jobs/{job_id}/analysis/capability-dependencies.json",
+        "exports/jobs/{job_id}/specs/tasks.json",
+        "exports/jobs/{job_id}/specs/verification.json",
+        "exports/jobs/{job_id}/specs/progress.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/roadmap.json",
+        "exports/jobs/{job_id}/analysis/global-todo.json",
+        "exports/jobs/{job_id}/analysis/dependency-graph.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-24"
+    },
+    {
+      "id": "P1-GENERATE_PLANNING_DOCS",
+      "name": "Generate Planning Docs",
+      "description": "Render planning documents from JSON to Markdown (ROADMAP, TODO, DEPENDENCIES)",
+      "input": [
+        "exports/jobs/{job_id}/analysis/roadmap.json",
+        "exports/jobs/{job_id}/analysis/global-todo.json",
+        "exports/jobs/{job_id}/analysis/dependency-graph.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/docs/ROADMAP.md",
+        "exports/jobs/{job_id}/docs/TODO.md",
+        "exports/jobs/{job_id}/docs/DEPENDENCIES.md"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-25"
+    },
+    {
+      "id": "P1-COMMIT_PLANNING_CHANGES",
+      "name": "Commit Planning Changes",
+      "description": "Commit planning artifacts to job branch.",
+      "input": [
+        "exports/jobs/{job_id}/**",
+        "git.branch.name"
+      ],
+      "output": [
+        "git.commit.planning"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P1-26"
+    },
+    {
+      "id": "P1-REVIEW_PLANNING_RESULTS",
+      "name": "Review Planning Results",
+      "description": "User reviews planning artifacts and decides whether to proceed with execution.",
+      "input": [
+        "exports/jobs/{job_id}/docs/ROADMAP.md",
+        "exports/jobs/{job_id}/docs/TODO.md",
+        "exports/jobs/{job_id}/docs/DEPENDENCIES.md",
+        "exports/jobs/{job_id}/specs/README.md",
+        "exports/jobs/{job_id}/specs/tasks.json",
+        "exports/jobs/{job_id}/analysis/roadmap.json"
+      ],
+      "output": [
+        "user_decision.proceed"
+      ],
+      "requires_human_approval": true,
+      "min_mode": "lite",
+      "display_id": "P1-27"
+    }
+  ]
+}

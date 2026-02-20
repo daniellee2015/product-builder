@@ -1,0 +1,261 @@
+{
+  "id": "archiving",
+  "name": "Archiving",
+  "description": "Archive, update documentation, and release",
+  "execution": {
+    "mode": "sequential",
+    "orchestrator": "ccb"
+  },
+  "groups": [
+    {
+      "id": "4.1",
+      "name": "Code Integration & Archival",
+      "step_ids": []
+    },
+    {
+      "id": "4.2",
+      "name": "Knowledge Base Synchronization",
+      "step_ids": []
+    },
+    {
+      "id": "4.3",
+      "name": "System Capabilities Update",
+      "step_ids": []
+    },
+    {
+      "id": "4.4",
+      "name": "Release Publication",
+      "step_ids": []
+    },
+    {
+      "id": "4.1",
+      "name": "Code Integration",
+      "step_ids": [
+        "P4-MERGE_GIT_BRANCH"
+      ]
+    },
+    {
+      "id": "4.2",
+      "name": "Documentation Updates",
+      "step_ids": [
+        "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
+        "P4-COMMIT_ARCHIVE",
+        "P4-UPDATE_SPECS",
+        "P4-COMMIT_SPECS",
+        "P4-UPDATE_DEVELOPMENT_DOCS",
+        "P4-COMMIT_DOCS",
+        "P4-UPDATE_ROADMAP_DOCS",
+        "P4-COMMIT_ROADMAP"
+      ]
+    },
+    {
+      "id": "4.3",
+      "name": "System Updates & Release",
+      "step_ids": [
+        "P4-REBUILD_CAPABILITY_TREE",
+        "P4-COMMIT_CAPABILITY_TREE",
+        "P4-CREATE_RELEASE"
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "P4-MERGE_GIT_BRANCH",
+      "name": "Merge Git Branch",
+      "description": "Merge feature branch to main (frontend + backend).",
+      "input": [
+        "git.branch.name",
+        "human_approval.final"
+      ],
+      "output": [
+        "git.merge.result"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P4-47"
+    },
+    {
+      "id": "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
+      "name": "Archive Specification Document",
+      "description": "Archive specification document to repository",
+      "input": [
+        "exports/jobs/{job_id}/source/openspec.mdx"
+      ],
+      "output": [
+        "openspec.archived_path"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "openspec"
+      ],
+      "display_id": "P4-48"
+    },
+    {
+      "id": "P4-COMMIT_ARCHIVE",
+      "name": "Commit Archive",
+      "description": "Commit archived OpenSpec to openspec repository.",
+      "input": [
+        "openspec.archived_path"
+      ],
+      "output": [
+        "git.commit.archive"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P4-49"
+    },
+    {
+      "id": "P4-UPDATE_SPECS",
+      "name": "Update Specs",
+      "description": "Apply changes to capability specifications in specs/.",
+      "input": [
+        "exports/jobs/{job_id}/specs/*.mdx",
+        "repo/specs/**"
+      ],
+      "output": [
+        "repo/specs/**"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P4-50"
+    },
+    {
+      "id": "P4-COMMIT_SPECS",
+      "name": "Commit Specs",
+      "description": "Commit updated specs to waoooo-docs repository.",
+      "input": [
+        "repo/specs/**"
+      ],
+      "output": [
+        "git.commit.specs"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P4-51"
+    },
+    {
+      "id": "P4-UPDATE_DEVELOPMENT_DOCS",
+      "name": "Update Development Docs",
+      "description": "Generate and update capability documentation.",
+      "input": [
+        "repo/specs/**"
+      ],
+      "output": [
+        "repo/docs/**"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P4-52"
+    },
+    {
+      "id": "P4-COMMIT_DOCS",
+      "name": "Commit Docs",
+      "description": "Commit updated documentation to waoooo-docs repository.",
+      "input": [
+        "repo/docs/**"
+      ],
+      "output": [
+        "git.commit.docs"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P4-53"
+    },
+    {
+      "id": "P4-UPDATE_ROADMAP_DOCS",
+      "name": "Update Roadmap Docs",
+      "description": "Update planning documents (JSON → MDX final state).",
+      "input": [
+        "exports/jobs/{job_id}/analysis/roadmap.json"
+      ],
+      "output": [
+        "repo/docs/roadmap/**"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P4-54"
+    },
+    {
+      "id": "P4-COMMIT_ROADMAP",
+      "name": "Commit Roadmap",
+      "description": "Commit updated roadmap documents to waoooo-docs repository.",
+      "input": [
+        "repo/docs/roadmap/**"
+      ],
+      "output": [
+        "git.commit.roadmap"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P4-55"
+    },
+    {
+      "id": "P4-REBUILD_CAPABILITY_TREE",
+      "name": "Rebuild Capability Tree",
+      "description": "Rebuild capability tree using build-capability-tree.ts.",
+      "input": [
+        "repo/specs/**",
+        "repo/src/**"
+      ],
+      "output": [
+        "repo/capability-tree.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P4-56"
+    },
+    {
+      "id": "P4-COMMIT_CAPABILITY_TREE",
+      "name": "Commit Capability Tree",
+      "description": "Commit updated capability tree to waoooo-web repository.",
+      "input": [
+        "repo/capability-tree.json"
+      ],
+      "output": [
+        "git.commit.capability_tree"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P4-57"
+    },
+    {
+      "id": "P4-CREATE_RELEASE",
+      "name": "Create Release",
+      "description": "Create GitHub Release with changelog and version tag.",
+      "input": [
+        "github.pr.number",
+        "git.merge.result",
+        "exports/jobs/{job_id}/metadata.json"
+      ],
+      "output": [
+        "github.release.tag",
+        "github.release.url"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "gh"
+      ],
+      "display_id": "P4-58"
+    }
+  ]
+}

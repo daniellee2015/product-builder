@@ -1,0 +1,82 @@
+{
+  "id": "intake",
+  "name": "Intake",
+  "description": "Quick requirement collection and documentation",
+  "execution": {
+    "mode": "sequential",
+    "orchestrator": "ccb"
+  },
+  "groups": [],
+  "steps": [
+    {
+      "id": "P0-COLLECT_USER_REQUIREMENT",
+      "name": "Collect User Requirement",
+      "description": "Extract scope, constraints, and acceptance hints from user input",
+      "input": [
+        "user_input.raw"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/source/raw-requirement.txt"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-01"
+    },
+    {
+      "id": "P0-DETECT_REQUIREMENT_TYPE",
+      "name": "Detect Requirement Type",
+      "description": "Determine whether requirement is brief (one sentence) or detailed (with planning)",
+      "input": [
+        "exports/jobs/{job_id}/source/raw-requirement.txt"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/parsed/requirement-type.json"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-02"
+    },
+    {
+      "id": "P0-GENERATE_REQUIREMENT_DOCUMENT",
+      "name": "Generate Requirement Document",
+      "description": "Integrate all analysis results into structured requirement document",
+      "input": [
+        "exports/jobs/{job_id}/analysis/feature-breakdown.json",
+        "exports/jobs/{job_id}/analysis/user-stories.md",
+        "exports/jobs/{job_id}/analysis/feasibility-analysis.md"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/source/requirement.mdx"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "output_format": "mdx",
+      "display_id": "P0-11"
+    },
+    {
+      "id": "P0-FEATURE_BREAKDOWN",
+      "name": "Feature Breakdown",
+      "description": "Break down core features and sub-features",
+      "input": [
+        "exports/jobs/{job_id}/parsed/expanded-requirement.md"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/feature-breakdown.json"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P0-08",
+      "enabled_in_modes": [
+        "lite"
+      ]
+    }
+  ]
+}

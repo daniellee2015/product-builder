@@ -29,23 +29,46 @@ export async function editWorkflow(data: WorkflowData): Promise<string> {
   renderSimpleHeader(i18n.t('workflow.edit.title'));
   console.log(chalk.gray(`  ${i18n.t('workflow.edit.description')}\n`));
 
-  // Prepare table data
+  // Build complete step list from phase_registry (not just current mode's phases)
+  // This allows users to select any step, not just those in current mode
   const tableData: Array<Record<string, any> & { _phaseId: string; _isPhaseHeader?: boolean }> = [];
   const separators: Array<{ beforeIndex: number; label: string; description?: string }> = [];
 
-  for (const phase of data.phases) {
-    const pNum = phase.id.replace(/^phase-/, '');
-    const pLabel = i18n.t('workflow.display.phaseNumber', { number: pNum });
+  // Group steps by their P prefix (P0, P1, P2, etc.) and deduplicate
+  const stepsByPhase: Record<string, Map<string, any>> = {};
+  const seenStepIds = new Set<string>();
 
+  for (const [moduleName, module] of Object.entries(data.phase_registry)) {
+    for (const step of (module as any).steps) {
+      // Skip duplicate step IDs
+      if (seenStepIds.has(step.id)) {
+        continue;
+      }
+      seenStepIds.add(step.id);
+
+      // Extract phase prefix from step ID (e.g., P0, P1, P2)
+      const phasePrefix = step.id.match(/^P(\d+)-/)?.[1] || '0';
+      if (!stepsByPhase[phasePrefix]) {
+        stepsByPhase[phasePrefix] = new Map();
+      }
+      stepsByPhase[phasePrefix].set(step.id, step);
+    }
+  }
+
+  // Sort and display steps by phase
+  const sortedPhases = Object.keys(stepsByPhase).sort((a, b) => parseInt(a) - parseInt(b));
+
+  let globalIndex = 1; // Global step counter for display
+  for (const phasePrefix of sortedPhases) {
     // Add separator for phase
     separators.push({
       beforeIndex: tableData.length,
-      label: `${pLabel}: ${phase.name}`,
-      description: phase.description
+      label: `Phase ${phasePrefix}`
     });
 
-    // Add steps
-    for (const step of phase.steps) {
+    // Add steps (sorted by step ID)
+    const stepsInPhase = Array.from(stepsByPhase[phasePrefix].values()).sort((a, b) => a.id.localeCompare(b.id));
+    for (const step of stepsInPhase) {
       const cond = step.condition
         ? i18n.t(`workflow.conditions.${step.condition}`) : '-';
       const mode = step.min_mode !== 'lite' ? `${step.min_mode}+` : '-';
@@ -54,12 +77,12 @@ export async function editWorkflow(data: WorkflowData): Promise<string> {
 
       tableData.push({
         id: step.id,
-        display_id: step.display_id || step.id,
+        display_id: String(globalIndex++), // Use sequential number
         name: step.name,
         condition: cond,
         mode,
         tools,
-        _phaseId: phase.id
+        _phaseId: `phase-${phasePrefix}`
       });
     }
   }
@@ -76,7 +99,7 @@ export async function editWorkflow(data: WorkflowData): Promise<string> {
 
   const result = await menu.checkboxTable({
     columns: [
-      { header: i18n.t('workflow.edit.colId'), key: 'display_id', width: 10 },
+      { header: i18n.t('workflow.edit.colId'), key: 'display_id', width: 5 },
       { header: i18n.t('workflow.edit.colName'), key: 'name', width: 35 },
       { header: i18n.t('workflow.edit.colCondition'), key: 'condition', width: 22 },
       { header: i18n.t('workflow.edit.colMode'), key: 'mode', width: 12 },

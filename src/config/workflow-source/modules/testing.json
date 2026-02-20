@@ -1,0 +1,142 @@
+{
+  "id": "testing",
+  "name": "Testing",
+  "description": "Automated testing, LLM review, and repair",
+  "execution": {
+    "mode": "sequential",
+    "orchestrator": "ccb"
+  },
+  "groups": [],
+  "steps": [
+    {
+      "id": "P2-RUN_AUTOMATED_TESTS",
+      "name": "Run Automated Tests",
+      "description": "Run automated tests using testing frameworks (Jest, Vitest, Playwright, etc.) from verification.json.",
+      "input": [
+        "workspace.code_changes",
+        "exports/jobs/{job_id}/specs/verification.json"
+      ],
+      "output": [
+        "test.results"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P2-35"
+    },
+    {
+      "id": "P2-MULTIMODEL_CODE_REVIEW",
+      "name": "Multi-Model Code Review",
+      "description": "Review code logic and quality using multiple AI models (gemini, claude, codex).",
+      "input": [
+        "workspace.code_changes",
+        "test.results"
+      ],
+      "output": [
+        "review.results"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "review_config": {
+        "models": [
+          "gemini",
+          "claude",
+          "codex"
+        ],
+        "pass_threshold": 0.75,
+        "max_critical": 0,
+        "max_medium": 2,
+        "auto_repair": {
+          "enabled": true,
+          "max_attempts": 3,
+          "ask_user_on_exhausted": true
+        }
+      },
+      "display_id": "P2-36"
+    },
+    {
+      "id": "P2-FIX_ISSUE",
+      "name": "Fix Issue",
+      "description": "Fix issues found during testing. Add comment to GitHub Issue tracking the fix attempt.",
+      "input": [
+        "test.results",
+        "workspace.code_changes",
+        "github.issue.number"
+      ],
+      "output": [
+        "workspace.code_changes"
+      ],
+      "condition": "test_failed",
+      "min_mode": "lite",
+      "required_tools": [
+        "gh"
+      ],
+      "display_id": "P2-37"
+    },
+    {
+      "id": "P2-UPDATE_SPECIFICATION_DOCUMENT",
+      "name": "Update Specification Document",
+      "description": "Mark task as completed in specification",
+      "input": [
+        "tasks.current",
+        "exports/jobs/{job_id}/source/openspec.mdx"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/source/openspec.mdx"
+      ],
+      "condition": "test_passed",
+      "min_mode": "standard",
+      "required_tools": [
+        "openspec"
+      ],
+      "display_id": "P2-38"
+    },
+    {
+      "id": "P2-UPDATE_PROGRESS",
+      "name": "Update Progress",
+      "description": "Update progress.json with task completion status.",
+      "input": [
+        "tasks.current",
+        "exports/jobs/{job_id}/analysis/progress.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/progress.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P2-39"
+    },
+    {
+      "id": "P2-COMMIT_TASK",
+      "name": "Commit Task",
+      "description": "Commit task changes to job branch (frontend/backend/OpenSpec).",
+      "input": [
+        "workspace.code_changes",
+        "exports/jobs/{job_id}/source/openspec.mdx",
+        "exports/jobs/{job_id}/analysis/progress.json"
+      ],
+      "output": [
+        "git.commit.task"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "requires_human_approval": true,
+      "approval": {
+        "when": "before_execute",
+        "reason": "commit_boundary",
+        "modes": [
+          "lite",
+          "standard"
+        ]
+      },
+      "display_id": "P2-40"
+    }
+  ]
+}

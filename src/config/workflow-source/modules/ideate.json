@@ -1,0 +1,174 @@
+{
+  "id": "ideate",
+  "name": "Ideate",
+  "description": "OpenSpec generation and review",
+  "execution": {
+    "mode": "sequential",
+    "orchestrator": "ccb"
+  },
+  "groups": [
+    {
+      "id": "1.1",
+      "name": "Project Context Discovery",
+      "step_ids": [
+        "P1-FIND_EXISTING_WORK",
+        "P1-UPDATE_CAPABILITY_TREE",
+        "P1-CREATE_JOB",
+        "P1-CREATE_GIT_BRANCH"
+      ]
+    },
+    {
+      "id": "1.2",
+      "name": "OpenSpec Generation & Review",
+      "step_ids": [
+        "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",
+        "P1-REVIEW_OPENSPEC_DOCUMENTS",
+        "P1-PARSE_OPENSPEC_TO_STRUCTURED"
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "P1-FIND_EXISTING_WORK",
+      "name": "Find Existing Work",
+      "description": "Discover related jobs, branches, specs, and reusable outputs.",
+      "input": [
+        "exports/jobs/index.json",
+        "repo/specs/**",
+        "repo/docs/**"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/existing-work.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-13"
+    },
+    {
+      "id": "P1-UPDATE_CAPABILITY_TREE",
+      "name": "Update Capability Tree",
+      "description": "Rebuild capability map using build-capability-tree.ts.",
+      "input": [
+        "repo/specs/**",
+        "repo/src/**"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/analysis/capability-tree.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-14"
+    },
+    {
+      "id": "P1-CREATE_JOB",
+      "name": "Create Job",
+      "description": "Create job directory and metadata file.",
+      "input": [
+        "CCB_REQ_ID",
+        "exports/jobs/{job_id}/analysis/existing-work.json",
+        "exports/jobs/{job_id}/analysis/capability-tree.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/metadata.json"
+      ],
+      "condition": "after_p1_01_and_p1_02",
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P1-15"
+    },
+    {
+      "id": "P1-CREATE_GIT_BRANCH",
+      "name": "Create Git Branch",
+      "description": "Create working branch for this job.",
+      "input": [
+        "exports/jobs/{job_id}/metadata.json"
+      ],
+      "output": [
+        "git.branch.name"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "git"
+      ],
+      "display_id": "P1-16"
+    },
+    {
+      "id": "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",
+      "name": "Convert Requirements to OpenSpec Format",
+      "description": "Transform requirement document into OpenSpec format (proposal, tasks, design)",
+      "input": [
+        "exports/jobs/{job_id}/source/requirements.mdx",
+        "exports/jobs/{job_id}/metadata.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/source/openspec/proposal.md",
+        "exports/jobs/{job_id}/source/openspec/tasks.md",
+        "exports/jobs/{job_id}/source/openspec/design.md"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "openspec"
+      ],
+      "display_id": "P1-17"
+    },
+    {
+      "id": "P1-REVIEW_OPENSPEC_DOCUMENTS",
+      "name": "Review OpenSpec Documents",
+      "description": "Run multi-model review gate and auto-repair for OpenSpec quality",
+      "input": [
+        "exports/jobs/{job_id}/source/openspec/proposal.md",
+        "exports/jobs/{job_id}/source/openspec/tasks.md",
+        "exports/jobs/{job_id}/source/openspec/design.md"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/reviews/openspec-review.json"
+      ],
+      "review_config": {
+        "models": [
+          "gemini",
+          "claude",
+          "codex"
+        ],
+        "pass_threshold": 0.75,
+        "max_critical": 0,
+        "max_medium": 2,
+        "auto_repair": {
+          "enabled": true,
+          "max_attempts": 3,
+          "ask_user_on_exhausted": true
+        }
+      },
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb",
+        "cca",
+        "openspec"
+      ],
+      "display_id": "P1-18"
+    },
+    {
+      "id": "P1-PARSE_OPENSPEC_TO_STRUCTURED",
+      "name": "Parse OpenSpec to Structured Data",
+      "description": "Extract structured requirement docs from OpenSpec files",
+      "input": [
+        "exports/jobs/{job_id}/source/openspec/proposal.md",
+        "exports/jobs/{job_id}/source/openspec/tasks.md",
+        "exports/jobs/{job_id}/source/openspec/design.md"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/parsed/docs.json"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "openspec"
+      ],
+      "display_id": "P1-19"
+    }
+  ]
+}

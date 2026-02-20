@@ -1,0 +1,92 @@
+{
+  "id": "execution",
+  "name": "Execution",
+  "description": "Full task execution loop",
+  "execution": {
+    "mode": "loop",
+    "orchestrator": "ralph"
+  },
+  "groups": [
+    {
+      "id": "2.1",
+      "name": "Execution Initialization",
+      "step_ids": [
+        "P2-START_EXECUTION_DECISION",
+        "P2-CREATE_GITHUB_ISSUE",
+        "P2-GET_NEXT_TASK",
+        "P2-EXECUTE_TASK"
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "P2-START_EXECUTION_DECISION",
+      "name": "Start Execution Decision",
+      "description": "User decides whether to start execution or wait.",
+      "input": [
+        "exports/jobs/{job_id}/docs/roadmap.mdx",
+        "user_decision.proceed"
+      ],
+      "output": [
+        "execution.started"
+      ],
+      "requires_human_approval": true,
+      "min_mode": "lite",
+      "display_id": "P2-31"
+    },
+    {
+      "id": "P2-CREATE_GITHUB_ISSUE",
+      "name": "Create GitHub Issue",
+      "description": "Create GitHub issue to track this job. Link issue to branch and record issue number.",
+      "input": [
+        "exports/jobs/{job_id}/metadata.json",
+        "git.branch.name",
+        "exports/jobs/{job_id}/docs/roadmap.mdx"
+      ],
+      "output": [
+        "github.issue.number",
+        "github.issue.url"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "gh"
+      ],
+      "display_id": "P2-32"
+    },
+    {
+      "id": "P2-GET_NEXT_TASK",
+      "name": "Get Next Task",
+      "description": "Retrieve next executable task from queue, checking blockedBy dependencies.",
+      "input": [
+        "exports/jobs/{job_id}/parsed/unified.json",
+        "exports/jobs/{job_id}/analysis/progress.json"
+      ],
+      "output": [
+        "tasks.current"
+      ],
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P2-33"
+    },
+    {
+      "id": "P2-EXECUTE_TASK",
+      "name": "Execute Task",
+      "description": "AI Agent implements the current task.",
+      "input": [
+        "tasks.current",
+        "exports/jobs/{job_id}/specs/*.mdx"
+      ],
+      "output": [
+        "workspace.code_changes"
+      ],
+      "condition": "has_executable_task",
+      "min_mode": "lite",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P2-34"
+    }
+  ]
+}

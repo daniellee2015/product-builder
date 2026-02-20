@@ -1,0 +1,86 @@
+{
+  "id": "review",
+  "name": "Review",
+  "description": "Human confirmation and PR creation",
+  "execution": {
+    "mode": "loop",
+    "orchestrator": "user"
+  },
+  "groups": [
+    {
+      "id": "3.2",
+      "name": "Human Approval Gate",
+      "step_ids": []
+    },
+    {
+      "id": "3.3",
+      "name": "Pull Request Creation",
+      "step_ids": []
+    },
+    {
+      "id": "3.1",
+      "name": "Final Review & PR Creation",
+      "step_ids": [
+        "P3-RECORD_TECHNICAL_DEBT",
+        "P3-HUMAN_FINAL_CONFIRMATION",
+        "P3-CREATE_PULL_REQUEST"
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "P3-RECORD_TECHNICAL_DEBT",
+      "name": "Record Technical Debt",
+      "description": "Record issues to TECHNICAL_DEBT.md if review passed with minor issues.",
+      "input": [
+        "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
+      ],
+      "output": [
+        "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
+      ],
+      "condition": "review_passed_with_issues",
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ],
+      "display_id": "P3-44"
+    },
+    {
+      "id": "P3-HUMAN_FINAL_CONFIRMATION",
+      "name": "Human Final Confirmation",
+      "description": "Final human approval to proceed with archiving and deployment. Only executed after machine review passes.",
+      "input": [
+        "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+        "exports/jobs/{job_id}/TECHNICAL_DEBT.md",
+        "workspace.all_changes"
+      ],
+      "output": [
+        "human_approval.final"
+      ],
+      "requires_human_approval": true,
+      "condition": "review_passed",
+      "min_mode": "lite",
+      "display_id": "P3-45"
+    },
+    {
+      "id": "P3-CREATE_PULL_REQUEST",
+      "name": "Create Pull Request",
+      "description": "Create GitHub Pull Request for code review. Link to issue and include review results.",
+      "input": [
+        "git.branch.name",
+        "github.issue.number",
+        "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+        "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
+      ],
+      "output": [
+        "github.pr.number",
+        "github.pr.url"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "gh"
+      ],
+      "display_id": "P3-46"
+    }
+  ]
+}

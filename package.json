@@ -7,7 +7,9 @@
     "pb": "./bin/pb.js"
   },
   "scripts": {
-    "build": "tsc && cp src/config/workflow.json dist/config/ && cp -r src/libs/i18n/locales dist/libs/i18n/",
+    "build:workflow": "ts-node src/config/build-workflow.ts",
+    "validate:workflow": "ts-node src/config/validate-workflow.ts",
+    "build": "npm run build:workflow && npm run validate:workflow && tsc && cp src/config/workflow.json dist/config/ && cp -r src/libs/i18n/locales dist/libs/i18n/",
     "dev": "tsc --watch",
     "test": "jest",
     "lint": "eslint src/**/*.ts"
@@ -37,6 +39,7 @@
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
     "jest": "^29.0.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.0.0"
   },
   "engines": {
