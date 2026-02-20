@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "$schema": "https://product-builder.dev/schemas/workflow.v1.json",
+  "$schema": "https://product-builder.dev/schemas/workflow.v2.json",
   "version": "1.0.0",
   "workflow_id": "product-builder-cli-standard",
   "name": "Product Builder CLI End-to-End Workflow",
@@ -166,8 +166,7 @@
       "required_tools": [
         "ccb",
         "cca",
-        "ralph",
-        "openclaw"
+        "ralph"
       ],
       "tool_profile": "full",
       "scaffold_profile": "full",
@@ -401,7 +400,7 @@
       "orchestrator": "user",
       "execution_mode": "manual",
       "decision_source": "conversation",
-      "user_confirmation_required": false,
+      "user_confirmation_required": true,
       "human_iteration_required": true
     },
     "standard": {
@@ -568,7 +567,7 @@
       },
       "steps": [
         {
-          "id": "P0-01",
+          "id": "P0-COLLECT_USER_REQUIREMENT",
           "name": "Collect User Requirement",
           "description": "Extract scope, constraints, and acceptance hints from user input",
           "input": [
@@ -580,10 +579,11 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-01"
         },
         {
-          "id": "P0-02",
+          "id": "P0-DETECT_REQUIREMENT_TYPE",
           "name": "Detect Requirement Type",
           "description": "Determine whether requirement is brief (one sentence) or detailed (with planning)",
           "input": [
@@ -595,10 +595,11 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-02"
         },
         {
-          "id": "P0-03",
+          "id": "P0-REQUIREMENT_CLARIFICATION",
           "name": "Requirement Clarification",
           "description": "Ask about target users, core problems, key features, and constraints",
           "input": [
@@ -611,10 +612,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-03"
         },
         {
-          "id": "P0-04",
+          "id": "P0-REQUIREMENT_EXPANSION",
           "name": "Requirement Expansion",
           "description": "Expand brief requirement into detailed description",
           "input": [
@@ -627,10 +629,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-04"
         },
         {
-          "id": "P0-05",
+          "id": "P0-COMPETITOR_RESEARCH",
           "name": "Competitor Research",
           "description": "Use web_search and context7 to find competitors",
           "input": [
@@ -646,10 +649,11 @@
           "optional_tools": [
             "web_search",
             "context7"
-          ]
+          ],
+          "display_id": "P0-05"
         },
         {
-          "id": "P0-06",
+          "id": "P0-COMPETITOR_ANALYSIS",
           "name": "Competitor Analysis",
           "description": "Analyze feature comparison, pricing, user reviews, and market positioning",
           "input": [
@@ -661,10 +665,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-06"
         },
         {
-          "id": "P0-07",
+          "id": "P0-MARKET_POSITIONING",
           "name": "Market Positioning",
           "description": "Determine differentiation advantages and target market",
           "input": [
@@ -676,10 +681,11 @@
           "min_mode": "full",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-07"
         },
         {
-          "id": "P0-08",
+          "id": "P0-FEATURE_BREAKDOWN",
           "name": "Feature Breakdown",
           "description": "Break down core features and sub-features",
           "input": [
@@ -691,10 +697,11 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-08"
         },
         {
-          "id": "P0-09",
+          "id": "P0-USER_STORY_GENERATION",
           "name": "User Story Generation",
           "description": "Generate user stories and usage scenarios",
           "input": [
@@ -706,10 +713,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-09"
         },
         {
-          "id": "P0-10",
+          "id": "P0-TECHNICAL_FEASIBILITY_ANALYSIS",
           "name": "Technical Feasibility Analysis",
           "description": "Evaluate tech stack, dependencies, and risks",
           "input": [
@@ -721,10 +729,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-10"
         },
         {
-          "id": "P0-11",
+          "id": "P0-GENERATE_REQUIREMENT_DOC",
           "name": "Generate Requirement Document",
           "description": "Integrate all analysis results into structured requirement document",
           "input": [
@@ -739,10 +748,11 @@
           "required_tools": [
             "ccb"
           ],
-          "output_format": "mdx"
+          "output_format": "mdx",
+          "display_id": "P0-11"
         },
         {
-          "id": "P0-12",
+          "id": "P0-REVIEW_REQUIREMENT_DOC",
           "name": "Review Requirement Document",
           "description": "Multi-model review with auto-repair (up to 3 attempts)",
           "requires_human_approval": true,
@@ -772,7 +782,8 @@
               "max_attempts": 3,
               "ask_user_on_exhausted": true
             }
-          }
+          },
+          "display_id": "P0-12"
         }
       ],
       "groups": [
@@ -893,7 +904,7 @@
       },
       "steps": [
         {
-          "id": "P1-01",
+          "id": "P1-FIND_EXISTING_WORK",
           "name": "Find Existing Work",
           "description": "Discover related jobs, branches, specs, and reusable outputs.",
           "input": [
@@ -907,10 +918,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-13"
         },
         {
-          "id": "P1-02",
+          "id": "P1-UPDATE_CAPABILITY_TREE",
           "name": "Update Capability Tree",
           "description": "Rebuild capability map using build-capability-tree.ts.",
           "input": [
@@ -923,10 +935,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-14"
         },
         {
-          "id": "P1-03",
+          "id": "P1-CREATE_JOB_AND_BRANCH",
           "name": "Create Job and Git Branch",
           "description": "Create job directory and working branch.",
           "input": [
@@ -942,10 +955,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P1-15"
         },
         {
-          "id": "P1-04",
+          "id": "P1-CONVERT_TO_OPENSPEC",
           "name": "Convert Requirements to OpenSpec Format",
           "description": "Transform requirement document into OpenSpec format (proposal, tasks, design)",
           "input": [
@@ -960,10 +974,11 @@
           "min_mode": "lite",
           "required_tools": [
             "openspec"
-          ]
+          ],
+          "display_id": "P1-16"
         },
         {
-          "id": "P1-05",
+          "id": "P1-REVIEW_OPENSPEC",
           "name": "Review OpenSpec Documents",
           "description": "Run multi-model review gate and auto-repair for OpenSpec quality",
           "input": [
@@ -994,10 +1009,11 @@
             "ccb",
             "cca",
             "openspec"
-          ]
+          ],
+          "display_id": "P1-17"
         },
         {
-          "id": "P1-06",
+          "id": "P1-PARSE_OPENSPEC",
           "name": "Parse OpenSpec to Structured Data",
           "description": "Extract structured requirement docs from OpenSpec files",
           "input": [
@@ -1011,10 +1027,11 @@
           "min_mode": "standard",
           "required_tools": [
             "openspec"
-          ]
+          ],
+          "display_id": "P1-18"
         },
         {
-          "id": "P1-07",
+          "id": "P1-CHECK_OR_INFER_FORM",
           "name": "Check or Infer form.json",
           "description": "Use existing form.json when valid, otherwise infer it.",
           "input": [
@@ -1027,10 +1044,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-19"
         },
         {
-          "id": "P1-08",
+          "id": "P1-MERGE_TO_UNIFIED",
           "name": "Merge to unified.json",
           "description": "Merge docs.json and form.json into one execution model.",
           "input": [
@@ -1043,10 +1061,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-20"
         },
         {
-          "id": "P1-09",
+          "id": "P1-ANALYZE_CAPABILITIES",
           "name": "Analyze Capability Dependencies",
           "description": "Map feature requirements to capabilities and dependency graph.",
           "input": [
@@ -1059,10 +1078,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-21"
         },
         {
-          "id": "P1-10",
+          "id": "P1-GENERATE_DEV_SPECS",
           "name": "Generate Development Specs",
           "description": "Generate structured specs for development (README + JSON files for ralph automation)",
           "input": [
@@ -1078,10 +1098,11 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-22"
         },
         {
-          "id": "P1-11",
+          "id": "P1-REVIEW_DEV_SPECS",
           "name": "Review Development Specs",
           "description": "Run multi-model quality gate and auto-repair for generated specs",
           "input": [
@@ -1112,10 +1133,11 @@
           "required_tools": [
             "ccb",
             "cca"
-          ]
+          ],
+          "display_id": "P1-23"
         },
         {
-          "id": "P1-12",
+          "id": "P1-GENERATE_ROADMAP",
           "name": "Generate Global Roadmap View",
           "description": "Build cross-capability planning graph, milestones, and global todo list",
           "input": [
@@ -1132,10 +1154,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-24"
         },
         {
-          "id": "P1-13",
+          "id": "P1-GENERATE_PLANNING_DOCS",
           "name": "Generate Planning Docs",
           "description": "Render planning documents from JSON to Markdown (ROADMAP, TODO, DEPENDENCIES)",
           "input": [
@@ -1151,10 +1174,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-25"
         },
         {
-          "id": "P1-14",
+          "id": "P1-COMMIT_PLANNING_CHANGES",
           "name": "Commit Planning Changes",
           "description": "Commit planning artifacts to job branch.",
           "input": [
@@ -1167,10 +1191,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P1-26"
         },
         {
-          "id": "P1-15",
+          "id": "P1-REVIEW_PLANNING_RESULTS",
           "name": "Review Planning Results",
           "description": "User reviews planning artifacts and decides whether to proceed with execution.",
           "input": [
@@ -1185,7 +1210,8 @@
             "user_decision.proceed"
           ],
           "requires_human_approval": true,
-          "min_mode": "lite"
+          "min_mode": "lite",
+          "display_id": "P1-27"
         }
       ],
       "groups": [
@@ -1286,7 +1312,7 @@
       },
       "steps": [
         {
-          "id": "P2-11",
+          "id": "P2-START_EXECUTION_DECISION",
           "name": "Start Execution Decision",
           "description": "User decides whether to start execution or wait.",
           "input": [
@@ -1297,10 +1323,11 @@
             "execution.started"
           ],
           "requires_human_approval": true,
-          "min_mode": "lite"
+          "min_mode": "lite",
+          "display_id": "P2-28"
         },
         {
-          "id": "P2-11a",
+          "id": "P2-CREATE_GITHUB_ISSUE",
           "name": "Create GitHub Issue",
           "description": "Create GitHub issue to track this job. Link issue to branch and record issue number.",
           "input": [
@@ -1315,10 +1342,11 @@
           "min_mode": "standard",
           "required_tools": [
             "gh"
-          ]
+          ],
+          "display_id": "P2-29"
         },
         {
-          "id": "P2-12",
+          "id": "P2-GET_NEXT_TASK",
           "name": "Get Next Task",
           "description": "Retrieve next executable task from queue, checking blockedBy dependencies.",
           "input": [
@@ -1331,10 +1359,11 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P2-30"
         },
         {
-          "id": "P2-13",
+          "id": "P2-EXECUTE_TASK",
           "name": "Execute Task",
           "description": "AI Agent implements the current task.",
           "input": [
@@ -1348,10 +1377,11 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P2-31"
         },
         {
-          "id": "P2-14a",
+          "id": "P2-VERIFY_TASK",
           "name": "Run Automated Tests",
           "description": "Run automated tests using testing frameworks (Jest, Vitest, Playwright, etc.) from verification.json.",
           "input": [
@@ -1364,10 +1394,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P2-32"
         },
         {
-          "id": "P2-14b",
+          "id": "P2-UPDATE_PROGRESS",
           "name": "Multi-Model Code Review",
           "description": "Review code logic and quality using multiple AI models (gemini, claude, codex).",
           "input": [
@@ -1395,10 +1426,11 @@
               "max_attempts": 3,
               "ask_user_on_exhausted": true
             }
-          }
+          },
+          "display_id": "P2-33"
         },
         {
-          "id": "P2-15",
+          "id": "P2-CHECK_LOOP_CONDITION",
           "name": "Fix Issue",
           "description": "Fix issues found during testing. Add comment to GitHub Issue tracking the fix attempt.",
           "input": [
@@ -1413,10 +1445,11 @@
           "min_mode": "lite",
           "required_tools": [
             "gh"
-          ]
+          ],
+          "display_id": "P2-34"
         },
         {
-          "id": "P2-16",
+          "id": "P2-HANDLE_LOOP_EXIT",
           "name": "Update Specification Document",
           "description": "Mark task as completed in specification",
           "input": [
@@ -1430,10 +1463,11 @@
           "min_mode": "standard",
           "required_tools": [
             "openspec"
-          ]
+          ],
+          "display_id": "P2-35"
         },
         {
-          "id": "P2-17",
+          "id": "P2-CLEANUP_TASK",
           "name": "Update Progress",
           "description": "Update progress.json with task completion status.",
           "input": [
@@ -1446,10 +1480,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P2-36"
         },
         {
-          "id": "P2-18",
+          "id": "P2-COMMIT_CHANGES",
           "name": "Commit Task",
           "description": "Commit task changes to job branch (frontend/backend/OpenSpec).",
           "input": [
@@ -1472,7 +1507,8 @@
               "lite",
               "standard"
             ]
-          }
+          },
+          "display_id": "P2-37"
         }
       ],
       "groups": [
@@ -1544,7 +1580,7 @@
       },
       "steps": [
         {
-          "id": "P3-19",
+          "id": "P3-AGGREGATE_RESULTS",
           "name": "Final Review",
           "description": "Multi-model review gate for final acceptance of all completed work.",
           "input": [
@@ -1577,10 +1613,11 @@
           "required_tools": [
             "ccb",
             "cca"
-          ]
+          ],
+          "display_id": "P3-38"
         },
         {
-          "id": "P3-20",
+          "id": "P3-FINAL_REVIEW",
           "name": "Aggregate Review Results",
           "description": "Aggregate multi-model review results and calculate pass rate.",
           "input": [
@@ -1592,10 +1629,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P3-39"
         },
         {
-          "id": "P3-21",
+          "id": "P3-AUTO_REPAIR",
           "name": "Fix Issues",
           "description": "Fix issues found in final review (max 3 attempts). Add comment to GitHub Issue tracking the fix attempt. If exhausted, return to Phase 2.",
           "input": [
@@ -1610,10 +1648,11 @@
           "min_mode": "standard",
           "required_tools": [
             "gh"
-          ]
+          ],
+          "display_id": "P3-40"
         },
         {
-          "id": "P3-22",
+          "id": "P3-GENERATE_SUMMARY",
           "name": "Record Technical Debt",
           "description": "Record issues to TECHNICAL_DEBT.md if review passed with minor issues.",
           "input": [
@@ -1626,10 +1665,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P3-41"
         },
         {
-          "id": "P3-23",
+          "id": "P3-VALIDATE_DELIVERABLES",
           "name": "Human Final Confirmation",
           "description": "Final human approval to proceed with archiving and deployment. Only executed after machine review passes.",
           "input": [
@@ -1642,10 +1682,11 @@
           ],
           "requires_human_approval": true,
           "condition": "review_passed",
-          "min_mode": "lite"
+          "min_mode": "lite",
+          "display_id": "P3-42"
         },
         {
-          "id": "P3-24",
+          "id": "P3-HUMAN_CONFIRMATION",
           "name": "Create Pull Request",
           "description": "Create GitHub Pull Request for code review. Link to issue and include review results.",
           "input": [
@@ -1661,7 +1702,8 @@
           "min_mode": "standard",
           "required_tools": [
             "gh"
-          ]
+          ],
+          "display_id": "P3-43"
         }
       ],
       "groups": [
@@ -1752,7 +1794,7 @@
       },
       "steps": [
         {
-          "id": "P4-22",
+          "id": "P4-ARCHIVE_JOB",
           "name": "Merge Git Branch",
           "description": "Merge feature branch to main (frontend + backend).",
           "input": [
@@ -1765,10 +1807,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-44"
         },
         {
-          "id": "P4-23",
+          "id": "P4-ANALYZE_PERFORMANCE",
           "name": "Archive Specification Document",
           "description": "Archive specification document to repository",
           "input": [
@@ -1780,10 +1823,11 @@
           "min_mode": "standard",
           "required_tools": [
             "openspec"
-          ]
+          ],
+          "display_id": "P4-45"
         },
         {
-          "id": "P4-24",
+          "id": "P4-OPTIMIZE_CODE",
           "name": "Commit Archive",
           "description": "Commit archived OpenSpec to openspec repository.",
           "input": [
@@ -1795,10 +1839,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-46"
         },
         {
-          "id": "P4-25",
+          "id": "P4-REFACTOR",
           "name": "Update Specs",
           "description": "Apply changes to capability specifications in specs/.",
           "input": [
@@ -1811,10 +1856,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P4-47"
         },
         {
-          "id": "P4-26",
+          "id": "P4-APPLY_BEST_PRACTICES",
           "name": "Commit Specs",
           "description": "Commit updated specs to waoooo-docs repository.",
           "input": [
@@ -1826,10 +1872,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-48"
         },
         {
-          "id": "P4-27",
+          "id": "P4-CLEANUP_RUNTIME",
           "name": "Update Development Docs",
           "description": "Generate and update capability documentation.",
           "input": [
@@ -1841,10 +1888,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P4-49"
         },
         {
-          "id": "P4-28",
+          "id": "P4-ARCHIVE_LOGS",
           "name": "Commit Docs",
           "description": "Commit updated documentation to waoooo-docs repository.",
           "input": [
@@ -1856,10 +1904,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-50"
         },
         {
-          "id": "P4-29",
+          "id": "P4-GENERATE_PERF_REPORT",
           "name": "Update Roadmap Docs",
           "description": "Update planning documents (JSON → MDX final state).",
           "input": [
@@ -1871,10 +1920,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P4-51"
         },
         {
-          "id": "P4-30",
+          "id": "P4-UPDATE_DOCS",
           "name": "Commit Roadmap",
           "description": "Commit updated roadmap documents to waoooo-docs repository.",
           "input": [
@@ -1886,10 +1936,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-52"
         },
         {
-          "id": "P4-31",
+          "id": "P4-CREATE_RELEASE_NOTES",
           "name": "Rebuild Capability Tree",
           "description": "Rebuild capability tree using build-capability-tree.ts.",
           "input": [
@@ -1902,10 +1953,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P4-53"
         },
         {
-          "id": "P4-32",
+          "id": "P4-TAG_RELEASE",
           "name": "Commit Capability Tree",
           "description": "Commit updated capability tree to waoooo-web repository.",
           "input": [
@@ -1917,10 +1969,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-54"
         },
         {
-          "id": "P4-33",
+          "id": "P4-NOTIFY_COMPLETION",
           "name": "Create Release",
           "description": "Create GitHub Release with changelog and version tag.",
           "input": [
@@ -1935,7 +1988,8 @@
           "min_mode": "standard",
           "required_tools": [
             "gh"
-          ]
+          ],
+          "display_id": "P4-55"
         }
       ],
       "groups": [
@@ -2443,36 +2497,36 @@
           "id": "0.1",
           "name": "Requirement Intake & Clarification",
           "step_ids": [
-            "P0-01",
-            "P0-02",
-            "P0-03",
-            "P0-04"
+            "P0-COLLECT_USER_REQUIREMENT",
+            "P0-DETECT_REQUIREMENT_TYPE",
+            "P0-REQUIREMENT_CLARIFICATION",
+            "P0-REQUIREMENT_EXPANSION"
           ]
         },
         {
           "id": "0.2",
           "name": "Market & Competitive Analysis",
           "step_ids": [
-            "P0-05",
-            "P0-06",
-            "P0-07"
+            "P0-COMPETITOR_RESEARCH",
+            "P0-COMPETITOR_ANALYSIS",
+            "P0-MARKET_POSITIONING"
           ]
         },
         {
           "id": "0.3",
           "name": "Feature & Feasibility Analysis",
           "step_ids": [
-            "P0-08",
-            "P0-09",
-            "P0-10"
+            "P0-FEATURE_BREAKDOWN",
+            "P0-USER_STORY_GENERATION",
+            "P0-TECHNICAL_FEASIBILITY_ANALYSIS"
           ]
         },
         {
           "id": "0.4",
           "name": "Requirement Document Generation",
           "step_ids": [
-            "P0-11",
-            "P0-12"
+            "P0-GENERATE_REQUIREMENT_DOC",
+            "P0-REVIEW_REQUIREMENT_DOC"
           ]
         }
       ],
@@ -2711,18 +2765,18 @@
           "id": "1.1",
           "name": "Project Context Discovery",
           "step_ids": [
-            "P1-01",
-            "P1-02",
-            "P1-03"
+            "P1-FIND_EXISTING_WORK",
+            "P1-UPDATE_CAPABILITY_TREE",
+            "P1-CREATE_JOB_AND_BRANCH"
           ]
         },
         {
           "id": "1.2",
           "name": "OpenSpec Generation & Review",
           "step_ids": [
-            "P1-04",
-            "P1-05",
-            "P1-06"
+            "P1-CONVERT_TO_OPENSPEC",
+            "P1-REVIEW_OPENSPEC",
+            "P1-PARSE_OPENSPEC"
           ]
         }
       ],
@@ -3004,14 +3058,14 @@
           "id": "1.3",
           "name": "Implementation Planning",
           "step_ids": [
-            "P1-07",
-            "P1-08",
-            "P1-09",
-            "P1-10",
-            "P1-11",
-            "P1-12",
-            "P1-13",
-            "P1-14"
+            "P1-CHECK_OR_INFER_FORM",
+            "P1-MERGE_TO_UNIFIED",
+            "P1-ANALYZE_CAPABILITIES",
+            "P1-GENERATE_DEV_SPECS",
+            "P1-REVIEW_DEV_SPECS",
+            "P1-GENERATE_ROADMAP",
+            "P1-GENERATE_PLANNING_DOCS",
+            "P1-COMMIT_PLANNING_CHANGES"
           ]
         }
       ],
@@ -3423,7 +3477,7 @@
           "id": "2.1",
           "name": "Execution Initialization",
           "step_ids": [
-            "P2-11"
+            "P2-START_EXECUTION_DECISION"
           ]
         }
       ],
@@ -3799,14 +3853,14 @@
           "id": "3.2",
           "name": "Human Approval Gate",
           "step_ids": [
-            "P3-23"
+            "P3-VALIDATE_DELIVERABLES"
           ]
         },
         {
           "id": "3.3",
           "name": "Pull Request Creation",
           "step_ids": [
-            "P3-24"
+            "P3-HUMAN_CONFIRMATION"
           ]
         }
       ],
@@ -3926,36 +3980,36 @@
           "id": "4.1",
           "name": "Code Integration & Archival",
           "step_ids": [
-            "P4-22",
-            "P4-23",
-            "P4-24"
+            "P4-ARCHIVE_JOB",
+            "P4-ANALYZE_PERFORMANCE",
+            "P4-OPTIMIZE_CODE"
           ]
         },
         {
           "id": "4.2",
           "name": "Knowledge Base Synchronization",
           "step_ids": [
-            "P4-25",
-            "P4-26",
-            "P4-27",
-            "P4-28",
-            "P4-29",
-            "P4-30"
+            "P4-REFACTOR",
+            "P4-APPLY_BEST_PRACTICES",
+            "P4-CLEANUP_RUNTIME",
+            "P4-ARCHIVE_LOGS",
+            "P4-GENERATE_PERF_REPORT",
+            "P4-UPDATE_DOCS"
           ]
         },
         {
           "id": "4.3",
           "name": "System Capabilities Update",
           "step_ids": [
-            "P4-31",
-            "P4-32"
+            "P4-CREATE_RELEASE_NOTES",
+            "P4-TAG_RELEASE"
           ]
         },
         {
           "id": "4.4",
           "name": "Release Publication",
           "step_ids": [
-            "P4-33"
+            "P4-NOTIFY_COMPLETION"
           ]
         }
       ],
