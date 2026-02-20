@@ -6,6 +6,7 @@ export type WorkflowMode = 'lite' | 'standard' | 'full' | 'custom';
 
 export interface WorkflowStep {
   id: string;
+  display_id?: string;
   name: string;
   description: string;
   min_mode: WorkflowMode;

@@ -173,7 +173,7 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
                 const noteText = notes.length > 0 ? ` (${notes.join(', ')})` : '';
 
                 // Pad step ID to match label width for alignment (1 space before ID)
-                const stepLabel = ` ${step.id}`;
+                const stepLabel = ` ${step.display_id || step.id}`;
                 const paddedStepLabel = stepLabel.padEnd(labelWidth);
 
                 // Add step with aligned format
@@ -217,7 +217,7 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
               const noteText = notes.length > 0 ? ` (${notes.join(', ')})` : '';
 
               // Pad step ID to match label width for alignment (1 space before ID)
-              const stepLabel = ` ${step.id}`;
+              const stepLabel = ` ${step.display_id || step.id}`;
               const paddedStepLabel = stepLabel.padEnd(labelWidth);
 
               // Add step with aligned format

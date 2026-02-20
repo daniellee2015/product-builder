@@ -54,6 +54,7 @@ export async function editWorkflow(data: WorkflowData): Promise<string> {
 
       tableData.push({
         id: step.id,
+        display_id: step.display_id || step.id,
         name: step.name,
         condition: cond,
         mode,
@@ -75,7 +76,7 @@ export async function editWorkflow(data: WorkflowData): Promise<string> {
 
   const result = await menu.checkboxTable({
     columns: [
-      { header: i18n.t('workflow.edit.colId'), key: 'id', width: 10 },
+      { header: i18n.t('workflow.edit.colId'), key: 'display_id', width: 10 },
       { header: i18n.t('workflow.edit.colName'), key: 'name', width: 35 },
       { header: i18n.t('workflow.edit.colCondition'), key: 'condition', width: 22 },
       { header: i18n.t('workflow.edit.colMode'), key: 'mode', width: 12 },
