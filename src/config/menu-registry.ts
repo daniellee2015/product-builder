@@ -60,6 +60,7 @@ export const MENUS: Record<string, MenuConfig> = {
       {
         label: 'System',
         items: [
+          { key: 'S', id: 'settings', label: 'Settings', desc: 'User preferences' },
           { key: 'V', id: 'view-config', label: 'View configuration', desc: 'Show current settings' },
           { key: 'D', id: 'deps', label: 'Dependencies', desc: 'Install requirements' },
           { key: 'H', id: 'help', label: 'Help', desc: 'Show documentation' },

@@ -135,7 +135,6 @@
       "from": "P2-CREATE_GITHUB_ISSUE",
       "to": "P2-EXECUTE_TASK",
       "enabled_in_modes": [
-        "lite",
         "standard"
       ]
     },
@@ -154,7 +153,6 @@
       "type": "forward",
       "condition": "!has_more_tasks",
       "enabled_in_modes": [
-        "lite",
         "standard",
         "full"
       ]

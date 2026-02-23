@@ -1,163 +1,487 @@
 {
-  "$schema": "https://product-builder.dev/schemas/workflow.v1.json",
+  "_comment_structure": "This workflow uses a dual-structure design: (1) 'phases' array provides a unified Phase 0-4 view for UI/progress tracking across all modes, (2) 'phase_registry' object contains modular step groups that are composed via 'pipeline' fields to support three progressive modes (Lite ⊂ Standard ⊂ Full) and enable runtime mode switching/degradation.",
+  "schema_version": "2.0",
+  "$schema": "https://product-builder.dev/schemas/workflow.v2.json",
   "version": "1.0.0",
   "workflow_id": "product-builder-cli-standard",
   "name": "Product Builder CLI End-to-End Workflow",
   "description": "Five-phase workflow with conditional branching, parallel steps, task-loop execution, and multi-model review auto-repair.",
   "mode": "full",
+  "_comment_modes": "Three progressive modes with increasing automation: Lite (16 steps, manual, no OpenSpec/review) ⊂ Standard (51 steps, manual, with OpenSpec/review) ⊂ Full (56 steps, auto-loop via ralph). Each mode uses different 'pipeline' compositions from 'phase_registry' modules. Supports runtime mode switching and automatic degradation when tools are unavailable.",
   "available_modes": {
-    "full": {
-      "label": "Full",
-      "required_tools": [
-        "ccb",
-        "cca",
-        "ralph",
-        "openclaw"
-      ],
-      "description": "Complete workflow with automatic loop (Phase 2 uses ralph), multi-model review, and all automation. Openclaw is experimental top-level monitoring.",
-      "steps": 54,
-      "review_gates": 3,
+    "lite": {
+      "label": "Lite",
+      "description": "Single CLI, minimal workflow, direct MDX to development without OpenSpec conversion",
+      "steps": 16,
+      "review_gates": 0,
+      "features": {
+        "openspec_enabled": false,
+        "multi_model_review": false,
+        "auto_loop": false,
+        "directory_scaffolding": "minimal"
+      },
+      "orchestrator": "user",
+      "execution_mode": "manual",
+      "loop_policy": "disabled",
+      "step_trigger_policy": "manual_each_step",
+      "required_tools": [],
+      "tool_profile": "lite",
+      "scaffold_profile": "minimal",
       "enabled_steps": [
-        "P0-01",
-        "P0-02",
-        "P0-03",
-        "P0-04",
-        "P0-05",
-        "P0-06",
-        "P0-07",
-        "P0-08",
-        "P0-09",
-        "P0-10",
-        "P0-11",
-        "P0-12",
-        "P1-01",
-        "P1-02",
-        "P1-03",
-        "P1-04",
-        "P1-05",
-        "P1-06",
-        "P1-07",
-        "P1-08",
-        "P1-09",
-        "P1-10",
-        "P1-11",
-        "P1-12",
-        "P1-13",
-        "P1-14",
-        "P1-15",
-        "P2-11",
-        "P2-11a",
-        "P2-12",
-        "P2-13",
-        "P2-14a",
-        "P2-14b",
-        "P2-15",
-        "P2-16",
-        "P2-17",
-        "P2-18",
-        "P3-19",
-        "P3-20",
-        "P3-21",
-        "P3-22",
-        "P3-23",
-        "P3-24",
-        "P4-22",
-        "P4-23",
-        "P4-24",
-        "P4-25",
-        "P4-26",
-        "P4-27",
-        "P4-28",
-        "P4-29",
-        "P4-30",
-        "P4-31",
-        "P4-32",
-        "P4-33"
-      ]
+        "P0-COLLECT_USER_REQUIREMENT",
+        "P0-DETECT_REQUIREMENT_TYPE",
+        "P0-FEATURE_BREAKDOWN",
+        "P0-GENERATE_REQUIREMENT_DOCUMENT",
+        "P1-CREATE_JOB",
+        "P1-CREATE_GIT_BRANCH",
+        "P1-PARSE_MDX_TO_UNIFIED_LITE",
+        "P1-ANALYZE_CAPABILITIES_LITE",
+        "P1-GENERATE_PLANNING_DOCS_LITE",
+        "P1-GENERATE_DEVELOPMENT_SPECS",
+        "P1-COMMIT_PLANNING_CHANGES",
+        "P2-EXECUTE_TASK",
+        "P2-COMMIT_TASK",
+        "P3-RECORD_TECHNICAL_DEBT",
+        "P3-HUMAN_FINAL_CONFIRMATION",
+        "P4-MERGE_GIT_BRANCH"
+      ],
+      "pipeline": [
+        "intake",
+        "planning_lite",
+        "execution_lite",
+        "testing_lite",
+        "review_lite",
+        "archiving_lite"
+      ],
+      "overrides": {}
     },
     "standard": {
       "label": "Standard",
+      "description": "Multi-model review with ccb/cca, manual execution, no automatic loop",
+      "steps": 51,
+      "review_gates": 3,
+      "features": {
+        "openspec_enabled": true,
+        "multi_model_review": true,
+        "auto_loop": false,
+        "directory_scaffolding": "full"
+      },
+      "orchestrator": "user",
+      "execution_mode": "manual",
+      "loop_policy": "disabled",
+      "step_trigger_policy": "manual_each_step",
+      "requires_user_iteration": true,
       "required_tools": [
         "ccb",
         "cca"
       ],
-      "description": "Multi-model review with ccb/cca, manual execution, no automatic loop",
-      "steps": 48,
-      "review_gates": 3,
+      "tool_profile": "standard",
+      "scaffold_profile": "full",
       "enabled_steps": [
-        "P0-01",
-        "P0-02",
-        "P0-03",
-        "P0-04",
-        "P0-08",
-        "P0-09",
-        "P0-10",
-        "P0-11",
-        "P0-12",
-        "P1-01",
-        "P1-02",
-        "P1-03",
-        "P1-04",
-        "P1-05",
-        "P1-06",
-        "P1-07",
-        "P1-08",
-        "P1-09",
-        "P1-10",
-        "P1-11",
-        "P1-12",
-        "P1-13",
-        "P1-14",
-        "P1-15",
-        "P2-11a",
-        "P2-13",
-        "P2-14a",
-        "P2-14b",
-        "P2-15",
-        "P2-16",
-        "P2-17",
-        "P2-18",
-        "P3-19",
-        "P3-20",
-        "P3-21",
-        "P3-22",
-        "P3-23",
-        "P3-24",
-        "P4-22",
-        "P4-23",
-        "P4-24",
-        "P4-25",
-        "P4-26",
-        "P4-27",
-        "P4-28",
-        "P4-29",
-        "P4-30",
-        "P4-31",
-        "P4-32",
-        "P4-33"
-      ]
+        "P0-COLLECT_USER_REQUIREMENT",
+        "P0-DETECT_REQUIREMENT_TYPE",
+        "P0-REQUIREMENT_CLARIFICATION",
+        "P0-REQUIREMENT_EXPANSION",
+        "P0-FEATURE_BREAKDOWN",
+        "P0-USER_STORY_GENERATION",
+        "P0-TECHNICAL_FEASIBILITY_ANALYSIS",
+        "P0-GENERATE_REQUIREMENT_DOCUMENT",
+        "P0-REVIEW_REQUIREMENT_DOCUMENT",
+        "P1-FIND_EXISTING_WORK",
+        "P1-UPDATE_CAPABILITY_TREE",
+        "P1-CREATE_JOB",
+        "P1-CREATE_GIT_BRANCH",
+        "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",
+        "P1-REVIEW_OPENSPEC_DOCUMENTS",
+        "P1-PARSE_OPENSPEC_TO_STRUCTURED",
+        "P1-CHECK_OR_INFER_FORMJSON",
+        "P1-MERGE_TO_UNIFIEDJSON",
+        "P1-ANALYZE_CAPABILITY_DEPENDENCIES",
+        "P1-GENERATE_DEVELOPMENT_SPECS",
+        "P1-REVIEW_DEVELOPMENT_SPECS",
+        "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
+        "P1-GENERATE_PLANNING_DOCS",
+        "P1-COMMIT_PLANNING_CHANGES",
+        "P1-REVIEW_PLANNING_RESULTS",
+        "P2-CREATE_GITHUB_ISSUE",
+        "P2-EXECUTE_TASK",
+        "P2-RUN_AUTOMATED_TESTS",
+        "P2-MULTIMODEL_CODE_REVIEW",
+        "P2-FIX_ISSUE",
+        "P2-UPDATE_SPECIFICATION_DOCUMENT",
+        "P2-UPDATE_PROGRESS",
+        "P2-COMMIT_TASK",
+        "P3-FINAL_REVIEW",
+        "P3-AGGREGATE_REVIEW_RESULTS",
+        "P3-FIX_ISSUES",
+        "P3-RECORD_TECHNICAL_DEBT",
+        "P3-HUMAN_FINAL_CONFIRMATION",
+        "P3-CREATE_PULL_REQUEST",
+        "P4-MERGE_GIT_BRANCH",
+        "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
+        "P4-COMMIT_ARCHIVE",
+        "P4-UPDATE_SPECS",
+        "P4-COMMIT_SPECS",
+        "P4-UPDATE_DEVELOPMENT_DOCS",
+        "P4-COMMIT_DOCS",
+        "P4-UPDATE_ROADMAP_DOCS",
+        "P4-COMMIT_ROADMAP",
+        "P4-REBUILD_CAPABILITY_TREE",
+        "P4-COMMIT_CAPABILITY_TREE",
+        "P4-CREATE_RELEASE"
+      ],
+      "pipeline": [
+        "research",
+        "ideate",
+        "planning",
+        "execution_standard",
+        "optimize",
+        "review",
+        "archiving"
+      ],
+      "overrides": {
+        "execution_standard": {
+          "mode": "sequential"
+        },
+        "optimize": {
+          "mode": "sequential"
+        },
+        "review": {
+          "mode": "sequential"
+        }
+      }
     },
-    "lite": {
-      "label": "Lite",
-      "required_tools": [],
-      "description": "Single CLI, minimal workflow, direct MDX to development without OpenSpec conversion",
-      "steps": 11,
-      "review_gates": 0,
+    "full": {
+      "label": "Full",
+      "description": "Complete workflow with automatic loop (Phase 2 uses ralph), multi-model review, and all automation. Openclaw is experimental top-level monitoring.",
+      "steps": 56,
+      "review_gates": 3,
+      "features": {
+        "openspec_enabled": true,
+        "multi_model_review": true,
+        "auto_loop": true,
+        "directory_scaffolding": "full"
+      },
+      "orchestrator": "ralph",
+      "execution_mode": "auto",
+      "loop_policy": "auto",
+      "step_trigger_policy": "automatic",
+      "requires_user_iteration": false,
+      "required_tools": [
+        "ccb",
+        "cca",
+        "ralph"
+      ],
+      "tool_profile": "full",
+      "scaffold_profile": "full",
       "enabled_steps": [
-        "P0-01",
-        "P0-02",
-        "P0-08",
-        "P0-11",
-        "P1-03",
-        "P1-10",
-        "P1-14",
-        "P2-13",
-        "P3-22",
-        "P3-23",
-        "P4-22"
-      ]
+        "P0-COLLECT_USER_REQUIREMENT",
+        "P0-DETECT_REQUIREMENT_TYPE",
+        "P0-REQUIREMENT_CLARIFICATION",
+        "P0-REQUIREMENT_EXPANSION",
+        "P0-COMPETITOR_RESEARCH",
+        "P0-COMPETITOR_ANALYSIS",
+        "P0-MARKET_POSITIONING",
+        "P0-FEATURE_BREAKDOWN",
+        "P0-USER_STORY_GENERATION",
+        "P0-TECHNICAL_FEASIBILITY_ANALYSIS",
+        "P0-GENERATE_REQUIREMENT_DOCUMENT",
+        "P0-REVIEW_REQUIREMENT_DOCUMENT",
+        "P1-FIND_EXISTING_WORK",
+        "P1-UPDATE_CAPABILITY_TREE",
+        "P1-CREATE_JOB",
+        "P1-CREATE_GIT_BRANCH",
+        "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",
+        "P1-REVIEW_OPENSPEC_DOCUMENTS",
+        "P1-PARSE_OPENSPEC_TO_STRUCTURED",
+        "P1-CHECK_OR_INFER_FORMJSON",
+        "P1-MERGE_TO_UNIFIEDJSON",
+        "P1-ANALYZE_CAPABILITY_DEPENDENCIES",
+        "P1-GENERATE_DEVELOPMENT_SPECS",
+        "P1-REVIEW_DEVELOPMENT_SPECS",
+        "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
+        "P1-GENERATE_PLANNING_DOCS",
+        "P1-COMMIT_PLANNING_CHANGES",
+        "P1-REVIEW_PLANNING_RESULTS",
+        "P2-START_EXECUTION_DECISION",
+        "P2-CREATE_GITHUB_ISSUE",
+        "P2-GET_NEXT_TASK",
+        "P2-EXECUTE_TASK",
+        "P2-RUN_AUTOMATED_TESTS",
+        "P2-MULTIMODEL_CODE_REVIEW",
+        "P2-FIX_ISSUE",
+        "P2-UPDATE_SPECIFICATION_DOCUMENT",
+        "P2-UPDATE_PROGRESS",
+        "P2-COMMIT_TASK",
+        "P3-FINAL_REVIEW",
+        "P3-AGGREGATE_REVIEW_RESULTS",
+        "P3-FIX_ISSUES",
+        "P3-RECORD_TECHNICAL_DEBT",
+        "P3-HUMAN_FINAL_CONFIRMATION",
+        "P3-CREATE_PULL_REQUEST",
+        "P4-MERGE_GIT_BRANCH",
+        "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
+        "P4-COMMIT_ARCHIVE",
+        "P4-UPDATE_SPECS",
+        "P4-COMMIT_SPECS",
+        "P4-UPDATE_DEVELOPMENT_DOCS",
+        "P4-COMMIT_DOCS",
+        "P4-UPDATE_ROADMAP_DOCS",
+        "P4-COMMIT_ROADMAP",
+        "P4-REBUILD_CAPABILITY_TREE",
+        "P4-COMMIT_CAPABILITY_TREE",
+        "P4-CREATE_RELEASE"
+      ],
+      "pipeline": [
+        "research",
+        "ideate",
+        "planning",
+        "execution",
+        "testing",
+        "optimize",
+        "review",
+        "archiving"
+      ],
+      "overrides": {}
     }
   },
+  "scaffold_profiles": {
+    "minimal": {
+      "description": "Minimal directory structure for Lite mode",
+      "directories": [
+        "source",
+        "parsed",
+        "specs",
+        "docs",
+        "runtime"
+      ],
+      "excluded": [
+        "source/openspec",
+        "reviews",
+        "analysis/capability-dependencies.json",
+        "analysis/roadmap.json",
+        "analysis/global-todo.json",
+        "analysis/dependency-graph.json"
+      ]
+    },
+    "full": {
+      "description": "Complete directory structure for Standard and Full modes",
+      "directories": [
+        "source",
+        "source/openspec",
+        "parsed",
+        "analysis",
+        "reviews",
+        "specs",
+        "docs",
+        "runtime"
+      ],
+      "subdirectories": {
+        "reviews": [
+          "requirements-review",
+          "openspec-review",
+          "specs-review",
+          "final-review"
+        ],
+        "runtime": [
+          "checkpoints",
+          "orchestrator"
+        ]
+      }
+    }
+  },
+  "tool_profiles": {
+    "lite": {
+      "description": "Basic tools for Lite mode",
+      "tools": [
+        "basic_parser",
+        "spec_builder",
+        "shell_runner"
+      ],
+      "excluded_tools": [
+        "ccb",
+        "cca",
+        "ralph",
+        "openspec"
+      ]
+    },
+    "standard": {
+      "description": "Standard tools with multi-model review",
+      "tools": [
+        "basic_parser",
+        "spec_builder",
+        "shell_runner",
+        "ccb",
+        "cca",
+        "openspec"
+      ],
+      "excluded_tools": [
+        "ralph"
+      ]
+    },
+    "full": {
+      "description": "All tools including ralph orchestrator",
+      "tools": [
+        "basic_parser",
+        "spec_builder",
+        "shell_runner",
+        "ccb",
+        "cca",
+        "openspec",
+        "ralph"
+      ],
+      "excluded_tools": []
+    }
+  },
+  "core_artifacts": {
+    "description": "Core artifacts shared across all modes for upgrade/downgrade compatibility",
+    "all_modes": [
+      "specs/tasks.json",
+      "specs/verification.json",
+      "specs/progress.json",
+      "docs/TODO.md",
+      "runtime/job_state.json"
+    ],
+    "upgrade_path": {
+      "lite_to_standard": {
+        "inherited": [
+          "specs/tasks.json",
+          "specs/progress.json",
+          "docs/TODO.md"
+        ],
+        "generated": [
+          "openspec/proposal.md",
+          "openspec/tasks.md",
+          "openspec/design.md",
+          "reviews/",
+          "analysis/roadmap.json"
+        ]
+      },
+      "standard_to_full": {
+        "inherited": [
+          "specs/tasks.json",
+          "specs/progress.json",
+          "openspec/*.md",
+          "reviews/"
+        ],
+        "generated": [
+          "runtime/orchestrator/ralph-events.ndjson",
+          "runtime/loop_state.json"
+        ]
+      }
+    },
+    "downgrade_path": {
+      "full_to_standard": {
+        "preserved": [
+          "specs/tasks.json",
+          "specs/progress.json",
+          "openspec/*.md"
+        ],
+        "ignored": [
+          "runtime/orchestrator/",
+          "runtime/loop_state.json"
+        ]
+      },
+      "standard_to_lite": {
+        "preserved": [
+          "specs/tasks.json",
+          "specs/progress.json",
+          "docs/TODO.md"
+        ],
+        "ignored": [
+          "openspec/",
+          "reviews/",
+          "analysis/roadmap.json"
+        ]
+      }
+    }
+  },
+  "mode_invariants": {
+    "description": "Enforceable mode-level constraints with unified field structure",
+    "lite": {
+      "auto_loop": false,
+      "openspec_required": false,
+      "multi_model_review": false,
+      "orchestrator": "user",
+      "execution_mode": "manual",
+      "decision_source": "conversation",
+      "user_confirmation_required": true,
+      "human_iteration_required": true
+    },
+    "standard": {
+      "auto_loop": false,
+      "openspec_required": true,
+      "multi_model_review": true,
+      "orchestrator": "user",
+      "execution_mode": "manual",
+      "decision_source": "workflow",
+      "user_confirmation_required": true,
+      "human_iteration_required": true
+    },
+    "full": {
+      "auto_loop": true,
+      "openspec_required": true,
+      "multi_model_review": true,
+      "orchestrator": "ralph",
+      "execution_mode": "auto",
+      "decision_source": "orchestrator",
+      "user_confirmation_required": true,
+      "human_iteration_required": false
+    }
+  },
+  "_comment_degradation": "Automatic mode downgrade strategy ensures system robustness: Full→Standard (ralph unavailable), Full/Standard→Lite (ccb/cca unavailable). Preserves all artifacts during degradation. Complements the progressive mode design (Lite ⊂ Standard ⊂ Full).",
+  "degradation_policy": {
+    "description": "Fallback behavior when tools are unavailable",
+    "full_degradation": {
+      "if_ralph_unavailable": {
+        "fallback_to": "standard",
+        "behavior": "switch to manual execution, preserve all artifacts"
+      },
+      "if_ccb_cca_unavailable": {
+        "fallback_to": "lite",
+        "behavior": "skip multi-model review, use single LLM"
+      }
+    },
+    "standard_degradation": {
+      "if_ccb_cca_unavailable": {
+        "fallback_to": "lite",
+        "behavior": "skip multi-model review, skip OpenSpec generation"
+      }
+    },
+    "lite_degradation": {
+      "if_basic_tools_unavailable": {
+        "fallback_to": null,
+        "behavior": "cannot operate, require manual intervention"
+      }
+    }
+  },
+  "observability_profile": {
+    "description": "Logging and metrics depth by mode",
+    "lite": {
+      "log_level": "info",
+      "metrics_enabled": false,
+      "trace_enabled": false,
+      "event_tracking": "minimal"
+    },
+    "standard": {
+      "log_level": "debug",
+      "metrics_enabled": true,
+      "trace_enabled": false,
+      "event_tracking": "standard",
+      "review_audit_trail": true
+    },
+    "full": {
+      "log_level": "trace",
+      "metrics_enabled": true,
+      "trace_enabled": true,
+      "event_tracking": "comprehensive",
+      "review_audit_trail": true,
+      "orchestrator_events": true,
+      "concurrency_tracking": true,
+      "performance_profiling": true
+    }
+  },
+  "_comment_naming": "Step ID naming convention: P{phase}-{ACTION}_{OBJECT} format (e.g., P0-COLLECT_USER_REQUIREMENT, P1-GENERATE_PLANNING_DOCS). Use semantic IDs for execution, display_id for UI. Standardize on full words (DOCUMENT not DOC, GIT_BRANCH not BRANCH) for consistency. Migration in progress to unify legacy numeric IDs (P0-01) to semantic IDs.",
   "metadata": {
     "owner": "product-builder-cli",
     "created_at": "2026-02-17",
@@ -240,17 +564,18 @@
     ],
     "show_transitions": true
   },
+  "_comment_phases_warning": "⚠️ WARNING: The 'phases' array is AUTO-GENERATED from 'phase_registry'. DO NOT EDIT MANUALLY! To modify workflow, edit 'phase_registry' modules and run: node generate-phases-from-registry.js",
   "phases": [
     {
       "id": "phase-0",
       "name": "Requirement Research & Analysis",
-      "description": "From user requirements to standardized MDX requirement documents",
+      "description": "Comprehensive requirement research and analysis",
       "execution": {
         "mode": "sequential"
       },
       "steps": [
         {
-          "id": "P0-01",
+          "id": "P0-COLLECT_USER_REQUIREMENT",
           "name": "Collect User Requirement",
           "description": "Extract scope, constraints, and acceptance hints from user input",
           "input": [
@@ -262,10 +587,11 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-01"
         },
         {
-          "id": "P0-02",
+          "id": "P0-DETECT_REQUIREMENT_TYPE",
           "name": "Detect Requirement Type",
           "description": "Determine whether requirement is brief (one sentence) or detailed (with planning)",
           "input": [
@@ -277,10 +603,11 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-02"
         },
         {
-          "id": "P0-03",
+          "id": "P0-REQUIREMENT_CLARIFICATION",
           "name": "Requirement Clarification",
           "description": "Ask about target users, core problems, key features, and constraints",
           "input": [
@@ -293,10 +620,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-03"
         },
         {
-          "id": "P0-04",
+          "id": "P0-REQUIREMENT_EXPANSION",
           "name": "Requirement Expansion",
           "description": "Expand brief requirement into detailed description",
           "input": [
@@ -309,10 +637,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-04"
         },
         {
-          "id": "P0-05",
+          "id": "P0-COMPETITOR_RESEARCH",
           "name": "Competitor Research",
           "description": "Use web_search and context7 to find competitors",
           "input": [
@@ -328,10 +657,11 @@
           "optional_tools": [
             "web_search",
             "context7"
-          ]
+          ],
+          "display_id": "P0-05"
         },
         {
-          "id": "P0-06",
+          "id": "P0-COMPETITOR_ANALYSIS",
           "name": "Competitor Analysis",
           "description": "Analyze feature comparison, pricing, user reviews, and market positioning",
           "input": [
@@ -343,10 +673,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-06"
         },
         {
-          "id": "P0-07",
+          "id": "P0-MARKET_POSITIONING",
           "name": "Market Positioning",
           "description": "Determine differentiation advantages and target market",
           "input": [
@@ -358,10 +689,11 @@
           "min_mode": "full",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-07"
         },
         {
-          "id": "P0-08",
+          "id": "P0-FEATURE_BREAKDOWN",
           "name": "Feature Breakdown",
           "description": "Break down core features and sub-features",
           "input": [
@@ -373,10 +705,11 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-08"
         },
         {
-          "id": "P0-09",
+          "id": "P0-USER_STORY_GENERATION",
           "name": "User Story Generation",
           "description": "Generate user stories and usage scenarios",
           "input": [
@@ -388,10 +721,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-09"
         },
         {
-          "id": "P0-10",
+          "id": "P0-TECHNICAL_FEASIBILITY_ANALYSIS",
           "name": "Technical Feasibility Analysis",
           "description": "Evaluate tech stack, dependencies, and risks",
           "input": [
@@ -403,10 +737,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P0-10"
         },
         {
-          "id": "P0-11",
+          "id": "P0-GENERATE_REQUIREMENT_DOCUMENT",
           "name": "Generate Requirement Document",
           "description": "Integrate all analysis results into structured requirement document",
           "input": [
@@ -421,10 +756,11 @@
           "required_tools": [
             "ccb"
           ],
-          "output_format": "mdx"
+          "output_format": "mdx",
+          "display_id": "P0-11"
         },
         {
-          "id": "P0-12",
+          "id": "P0-REVIEW_REQUIREMENT_DOCUMENT",
           "name": "Review Requirement Document",
           "description": "Multi-model review with auto-repair (up to 3 attempts)",
           "requires_human_approval": true,
@@ -454,128 +790,59 @@
               "max_attempts": 3,
               "ask_user_on_exhausted": true
             }
-          }
+          },
+          "display_id": "P0-12"
         }
       ],
       "groups": [
         {
           "id": "0.1",
           "name": "Requirement Intake & Clarification",
-          "description": "Collect and clarify user requirements",
           "step_ids": [
-            "P0-01",
-            "P0-02",
-            "P0-03",
-            "P0-04"
-          ],
-          "order": 1,
-          "depends_on_groups": [],
-          "ui": {
-            "short_name": "Intake",
-            "default_collapsed": true,
-            "breadcrumb_label": "Requirement Intake"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+            "P0-COLLECT_USER_REQUIREMENT",
+            "P0-DETECT_REQUIREMENT_TYPE",
+            "P0-REQUIREMENT_CLARIFICATION",
+            "P0-REQUIREMENT_EXPANSION"
+          ]
         },
         {
           "id": "0.2",
           "name": "Market & Competitive Analysis",
-          "description": "Research competitors and market positioning",
           "step_ids": [
-            "P0-05",
-            "P0-06",
-            "P0-07"
-          ],
-          "order": 2,
-          "depends_on_groups": [
-            "0.1"
-          ],
-          "ui": {
-            "short_name": "Market",
-            "default_collapsed": true,
-            "breadcrumb_label": "Market Analysis"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": true,
-            "milestone": false
-          }
+            "P0-COMPETITOR_RESEARCH",
+            "P0-COMPETITOR_ANALYSIS",
+            "P0-MARKET_POSITIONING"
+          ]
         },
         {
           "id": "0.3",
           "name": "Feature & Feasibility Analysis",
-          "description": "Break down features and evaluate technical feasibility",
           "step_ids": [
-            "P0-08",
-            "P0-09",
-            "P0-10"
-          ],
-          "order": 3,
-          "depends_on_groups": [
-            "0.1"
-          ],
-          "ui": {
-            "short_name": "Analysis",
-            "default_collapsed": true,
-            "breadcrumb_label": "Feature Analysis"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+            "P0-FEATURE_BREAKDOWN",
+            "P0-USER_STORY_GENERATION",
+            "P0-TECHNICAL_FEASIBILITY_ANALYSIS"
+          ]
         },
         {
           "id": "0.4",
           "name": "Requirement Document Generation",
-          "description": "Generate and review standardized requirement MDX",
           "step_ids": [
-            "P0-11",
-            "P0-12"
-          ],
-          "order": 4,
-          "depends_on_groups": [
-            "0.3"
-          ],
-          "ui": {
-            "short_name": "MDX",
-            "default_collapsed": true,
-            "breadcrumb_label": "MDX Generation"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+            "P0-GENERATE_REQUIREMENT_DOCUMENT",
+            "P0-REVIEW_REQUIREMENT_DOCUMENT"
+          ]
         }
       ]
     },
     {
       "id": "phase-1",
       "name": "Planning",
-      "description": "From requirement source to reviewed specs and roadmap artifacts.",
+      "description": "Development specification generation and review",
       "execution": {
-        "mode": "sequential_with_parallel_group"
+        "mode": "sequential"
       },
       "steps": [
         {
-          "id": "P1-01",
+          "id": "P1-FIND_EXISTING_WORK",
           "name": "Find Existing Work",
           "description": "Discover related jobs, branches, specs, and reusable outputs.",
           "input": [
@@ -589,10 +856,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-13"
         },
         {
-          "id": "P1-02",
+          "id": "P1-UPDATE_CAPABILITY_TREE",
           "name": "Update Capability Tree",
           "description": "Rebuild capability map using build-capability-tree.ts.",
           "input": [
@@ -605,53 +873,74 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-14"
         },
         {
-          "id": "P1-03",
-          "name": "Create Job and Git Branch",
-          "description": "Create job directory and working branch.",
+          "id": "P1-CREATE_JOB",
+          "name": "Create Job",
+          "description": "Create job directory and metadata file.",
           "input": [
             "CCB_REQ_ID",
             "exports/jobs/{job_id}/analysis/existing-work.json",
             "exports/jobs/{job_id}/analysis/capability-tree.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/metadata.json",
-            "git.branch.name"
+            "exports/jobs/{job_id}/metadata.json"
           ],
           "condition": "after_p1_01_and_p1_02",
           "min_mode": "lite",
           "required_tools": [
-            "git"
-          ]
+            "ccb"
+          ],
+          "display_id": "P1-15"
         },
         {
-          "id": "P1-04",
-          "name": "Convert Requirements to Specification Format",
-          "description": "Transform requirement document into structured specification format",
+          "id": "P1-CREATE_GIT_BRANCH",
+          "name": "Create Git Branch",
+          "description": "Create working branch for this job.",
+          "input": [
+            "exports/jobs/{job_id}/metadata.json"
+          ],
+          "output": [
+            "git.branch.name"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P1-16"
+        },
+        {
+          "id": "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",
+          "name": "Convert Requirements to OpenSpec Format",
+          "description": "Transform requirement document into OpenSpec format (proposal, tasks, design)",
           "input": [
             "exports/jobs/{job_id}/source/requirements.mdx",
             "exports/jobs/{job_id}/metadata.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
           ],
           "min_mode": "lite",
           "required_tools": [
             "openspec"
-          ]
+          ],
+          "display_id": "P1-17"
         },
         {
-          "id": "P1-05",
-          "name": "Review Specification Document",
-          "description": "Run multi-model review gate and auto-repair before passing",
+          "id": "P1-REVIEW_OPENSPEC_DOCUMENTS",
+          "name": "Review OpenSpec Documents",
+          "description": "Run multi-model review gate and auto-repair for OpenSpec quality",
           "input": [
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
           ],
           "output": [
-            "exports/jobs/{job_id}/reviews/openspec-review.json",
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/reviews/openspec-review.json"
           ],
           "review_config": {
             "models": [
@@ -673,14 +962,17 @@
             "ccb",
             "cca",
             "openspec"
-          ]
+          ],
+          "display_id": "P1-18"
         },
         {
-          "id": "P1-06",
-          "name": "Parse Specification to Structured Data",
-          "description": "Extract structured requirement docs from reviewed specification",
+          "id": "P1-PARSE_OPENSPEC_TO_STRUCTURED",
+          "name": "Parse OpenSpec to Structured Data",
+          "description": "Extract structured requirement docs from OpenSpec files",
           "input": [
-            "exports/jobs/{job_id}/source/openspec.mdx"
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
           ],
           "output": [
             "exports/jobs/{job_id}/parsed/docs.json"
@@ -688,10 +980,11 @@
           "min_mode": "standard",
           "required_tools": [
             "openspec"
-          ]
+          ],
+          "display_id": "P1-19"
         },
         {
-          "id": "P1-07",
+          "id": "P1-CHECK_OR_INFER_FORMJSON",
           "name": "Check or Infer form.json",
           "description": "Use existing form.json when valid, otherwise infer it.",
           "input": [
@@ -704,10 +997,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-19"
         },
         {
-          "id": "P1-08",
+          "id": "P1-MERGE_TO_UNIFIEDJSON",
           "name": "Merge to unified.json",
           "description": "Merge docs.json and form.json into one execution model.",
           "input": [
@@ -720,10 +1014,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-20"
         },
         {
-          "id": "P1-09",
+          "id": "P1-ANALYZE_CAPABILITY_DEPENDENCIES",
           "name": "Analyze Capability Dependencies",
           "description": "Map feature requirements to capabilities and dependency graph.",
           "input": [
@@ -736,34 +1031,41 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-21"
         },
         {
-          "id": "P1-10",
+          "id": "P1-GENERATE_DEVELOPMENT_SPECS",
           "name": "Generate Development Specs",
-          "description": "Generate detailed implementation specs under specs/.",
+          "description": "Generate structured specs for development (README + JSON files for ralph automation)",
           "input": [
             "exports/jobs/{job_id}/parsed/unified.json",
             "exports/jobs/{job_id}/analysis/capability-dependencies.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-22"
         },
         {
-          "id": "P1-11",
+          "id": "P1-REVIEW_DEVELOPMENT_SPECS",
           "name": "Review Development Specs",
-          "description": "Run multi-model quality gate and auto-repair for generated specs.",
+          "description": "Run multi-model quality gate and auto-repair for generated specs",
           "input": [
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/reviews/specs-review.json",
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/reviews/specs-review.json"
           ],
           "review_config": {
             "models": [
@@ -784,41 +1086,52 @@
           "required_tools": [
             "ccb",
             "cca"
-          ]
+          ],
+          "display_id": "P1-23"
         },
         {
-          "id": "P1-12",
+          "id": "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
           "name": "Generate Global Roadmap View",
-          "description": "Build cross-capability planning graph and milestones.",
+          "description": "Build cross-capability planning graph, milestones, and global todo list",
           "input": [
             "exports/jobs/{job_id}/analysis/capability-dependencies.json",
-            "exports/jobs/{job_id}/specs/*.mdx"
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/analysis/roadmap.json"
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
           ],
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-24"
         },
         {
-          "id": "P1-13",
+          "id": "P1-GENERATE_PLANNING_DOCS",
           "name": "Generate Planning Docs",
-          "description": "Render planning documents from roadmap JSON to MDX.",
+          "description": "Render planning documents from JSON to Markdown (ROADMAP, TODO, DEPENDENCIES)",
           "input": [
-            "exports/jobs/{job_id}/analysis/roadmap.json"
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
           ],
           "output": [
-            "exports/jobs/{job_id}/docs/roadmap.mdx"
+            "exports/jobs/{job_id}/docs/ROADMAP.md",
+            "exports/jobs/{job_id}/docs/TODO.md",
+            "exports/jobs/{job_id}/docs/DEPENDENCIES.md"
           ],
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P1-25"
         },
         {
-          "id": "P1-14",
+          "id": "P1-COMMIT_PLANNING_CHANGES",
           "name": "Commit Planning Changes",
           "description": "Commit planning artifacts to job branch.",
           "input": [
@@ -831,123 +1144,77 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P1-26"
         },
         {
-          "id": "P1-15",
+          "id": "P1-REVIEW_PLANNING_RESULTS",
           "name": "Review Planning Results",
           "description": "User reviews planning artifacts and decides whether to proceed with execution.",
           "input": [
-            "exports/jobs/{job_id}/docs/roadmap.mdx",
-            "exports/jobs/{job_id}/specs/*.mdx",
+            "exports/jobs/{job_id}/docs/ROADMAP.md",
+            "exports/jobs/{job_id}/docs/TODO.md",
+            "exports/jobs/{job_id}/docs/DEPENDENCIES.md",
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
             "exports/jobs/{job_id}/analysis/roadmap.json"
           ],
           "output": [
             "user_decision.proceed"
           ],
           "requires_human_approval": true,
-          "min_mode": "lite"
+          "min_mode": "lite",
+          "display_id": "P1-27"
         }
       ],
       "groups": [
         {
           "id": "1.1",
           "name": "Project Context Discovery",
-          "description": "Discover existing work and analyze system capabilities",
           "step_ids": [
-            "P1-01",
-            "P1-02",
-            "P1-03"
-          ],
-          "order": 1,
-          "depends_on_groups": [],
-          "ui": {
-            "short_name": "Discovery",
-            "default_collapsed": true,
-            "breadcrumb_label": "Context Discovery"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+            "P1-FIND_EXISTING_WORK",
+            "P1-UPDATE_CAPABILITY_TREE",
+            "P1-CREATE_JOB",
+            "P1-CREATE_GIT_BRANCH"
+          ]
         },
         {
           "id": "1.2",
           "name": "OpenSpec Generation & Review",
-          "description": "Generate and validate OpenSpec with multi-model review",
           "step_ids": [
-            "P1-04",
-            "P1-05",
-            "P1-06"
-          ],
-          "order": 2,
-          "depends_on_groups": [
-            "1.1"
-          ],
-          "ui": {
-            "short_name": "OpenSpec",
-            "default_collapsed": true,
-            "breadcrumb_label": "OpenSpec"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+            "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",
+            "P1-REVIEW_OPENSPEC_DOCUMENTS",
+            "P1-PARSE_OPENSPEC_TO_STRUCTURED"
+          ]
         },
         {
           "id": "1.3",
           "name": "Implementation Planning",
-          "description": "Generate development specs, roadmap, and planning documents",
           "step_ids": [
-            "P1-07",
-            "P1-08",
-            "P1-09",
-            "P1-10",
-            "P1-11",
-            "P1-12",
-            "P1-13",
-            "P1-14"
-          ],
-          "order": 3,
-          "depends_on_groups": [
-            "1.2"
-          ],
-          "ui": {
-            "short_name": "Planning",
-            "default_collapsed": true,
-            "breadcrumb_label": "Implementation Planning"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+            "P1-CHECK_OR_INFER_FORMJSON",
+            "P1-MERGE_TO_UNIFIEDJSON",
+            "P1-ANALYZE_CAPABILITY_DEPENDENCIES",
+            "P1-GENERATE_DEVELOPMENT_SPECS",
+            "P1-REVIEW_DEVELOPMENT_SPECS",
+            "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
+            "P1-GENERATE_PLANNING_DOCS",
+            "P1-COMMIT_PLANNING_CHANGES",
+            "P1-REVIEW_PLANNING_RESULTS"
+          ]
         }
       ]
     },
     {
       "id": "phase-2",
       "name": "Execution",
-      "description": "Execute tasks in a loop with automated testing and repair for each task until all tasks are completed.",
+      "description": "Full task execution loop",
       "execution": {
         "mode": "loop",
-        "entry_step": "P2-11",
-        "exit_condition": "all_tasks_done"
+        "entry_step": "P2-START_EXECUTION_DECISION"
       },
       "steps": [
         {
-          "id": "P2-11",
+          "id": "P2-START_EXECUTION_DECISION",
           "name": "Start Execution Decision",
           "description": "User decides whether to start execution or wait.",
           "input": [
@@ -958,10 +1225,11 @@
             "execution.started"
           ],
           "requires_human_approval": true,
-          "min_mode": "lite"
+          "min_mode": "lite",
+          "display_id": "P2-31"
         },
         {
-          "id": "P2-11a",
+          "id": "P2-CREATE_GITHUB_ISSUE",
           "name": "Create GitHub Issue",
           "description": "Create GitHub issue to track this job. Link issue to branch and record issue number.",
           "input": [
@@ -976,10 +1244,11 @@
           "min_mode": "standard",
           "required_tools": [
             "gh"
-          ]
+          ],
+          "display_id": "P2-32"
         },
         {
-          "id": "P2-12",
+          "id": "P2-GET_NEXT_TASK",
           "name": "Get Next Task",
           "description": "Retrieve next executable task from queue, checking blockedBy dependencies.",
           "input": [
@@ -992,10 +1261,11 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P2-33"
         },
         {
-          "id": "P2-13",
+          "id": "P2-EXECUTE_TASK",
           "name": "Execute Task",
           "description": "AI Agent implements the current task.",
           "input": [
@@ -1009,10 +1279,33 @@
           "min_mode": "lite",
           "required_tools": [
             "ccb"
-          ]
-        },
+          ],
+          "display_id": "P2-34"
+        }
+      ],
+      "groups": [
         {
-          "id": "P2-14a",
+          "id": "2.1",
+          "name": "Execution Initialization",
+          "step_ids": [
+            "P2-START_EXECUTION_DECISION",
+            "P2-CREATE_GITHUB_ISSUE",
+            "P2-GET_NEXT_TASK",
+            "P2-EXECUTE_TASK"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Acceptance",
+      "description": "Final review and auto-repair",
+      "execution": {
+        "mode": "loop"
+      },
+      "steps": [
+        {
+          "id": "P2-RUN_AUTOMATED_TESTS",
           "name": "Run Automated Tests",
           "description": "Run automated tests using testing frameworks (Jest, Vitest, Playwright, etc.) from verification.json.",
           "input": [
@@ -1025,10 +1318,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P2-35"
         },
         {
-          "id": "P2-14b",
+          "id": "P2-MULTIMODEL_CODE_REVIEW",
           "name": "Multi-Model Code Review",
           "description": "Review code logic and quality using multiple AI models (gemini, claude, codex).",
           "input": [
@@ -1056,10 +1350,11 @@
               "max_attempts": 3,
               "ask_user_on_exhausted": true
             }
-          }
+          },
+          "display_id": "P2-36"
         },
         {
-          "id": "P2-15",
+          "id": "P2-FIX_ISSUE",
           "name": "Fix Issue",
           "description": "Fix issues found during testing. Add comment to GitHub Issue tracking the fix attempt.",
           "input": [
@@ -1074,10 +1369,11 @@
           "min_mode": "lite",
           "required_tools": [
             "gh"
-          ]
+          ],
+          "display_id": "P2-37"
         },
         {
-          "id": "P2-16",
+          "id": "P2-UPDATE_SPECIFICATION_DOCUMENT",
           "name": "Update Specification Document",
           "description": "Mark task as completed in specification",
           "input": [
@@ -1091,10 +1387,11 @@
           "min_mode": "standard",
           "required_tools": [
             "openspec"
-          ]
+          ],
+          "display_id": "P2-38"
         },
         {
-          "id": "P2-17",
+          "id": "P2-UPDATE_PROGRESS",
           "name": "Update Progress",
           "description": "Update progress.json with task completion status.",
           "input": [
@@ -1107,10 +1404,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P2-39"
         },
         {
-          "id": "P2-18",
+          "id": "P2-COMMIT_TASK",
           "name": "Commit Task",
           "description": "Commit task changes to job branch (frontend/backend/OpenSpec).",
           "input": [
@@ -1124,79 +1422,20 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
-        }
-      ],
-      "groups": [
-        {
-          "id": "2.1",
-          "name": "Execution Initialization",
-          "description": "User decision and GitHub issue creation",
-          "step_ids": [
-            "P2-11"
           ],
-          "order": 1,
-          "depends_on_groups": [],
-          "ui": {
-            "short_name": "Init",
-            "default_collapsed": false,
-            "breadcrumb_label": "Initialization"
+          "requires_human_approval": true,
+          "approval": {
+            "when": "before_execute",
+            "reason": "commit_boundary",
+            "modes": [
+              "lite",
+              "standard"
+            ]
           },
-          "selection": {
-            "batch_selectable": false,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+          "display_id": "P2-40"
         },
         {
-          "id": "2.2",
-          "name": "Task Execution Loop",
-          "description": "Iterative task execution with automated testing and repair",
-          "step_ids": [
-            "P2-12",
-            "P2-13",
-            "P2-14a",
-            "P2-14b",
-            "P2-15",
-            "P2-16",
-            "P2-17",
-            "P2-18"
-          ],
-          "order": 2,
-          "depends_on_groups": [
-            "2.1"
-          ],
-          "ui": {
-            "short_name": "Loop",
-            "default_collapsed": false,
-            "breadcrumb_label": "Task Loop"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
-        }
-      ]
-    },
-    {
-      "id": "phase-3",
-      "name": "Acceptance",
-      "description": "Final acceptance with multi-model review and human confirmation before archiving.",
-      "execution": {
-        "mode": "loop",
-        "entry_step": "P3-19",
-        "exit_condition": "review_passed_or_exhausted"
-      },
-      "steps": [
-        {
-          "id": "P3-19",
+          "id": "P3-FINAL_REVIEW",
           "name": "Final Review",
           "description": "Multi-model review gate for final acceptance of all completed work.",
           "input": [
@@ -1229,10 +1468,11 @@
           "required_tools": [
             "ccb",
             "cca"
-          ]
+          ],
+          "display_id": "P3-41"
         },
         {
-          "id": "P3-20",
+          "id": "P3-AGGREGATE_REVIEW_RESULTS",
           "name": "Aggregate Review Results",
           "description": "Aggregate multi-model review results and calculate pass rate.",
           "input": [
@@ -1244,10 +1484,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P3-42"
         },
         {
-          "id": "P3-21",
+          "id": "P3-FIX_ISSUES",
           "name": "Fix Issues",
           "description": "Fix issues found in final review (max 3 attempts). Add comment to GitHub Issue tracking the fix attempt. If exhausted, return to Phase 2.",
           "input": [
@@ -1262,10 +1503,44 @@
           "min_mode": "standard",
           "required_tools": [
             "gh"
+          ],
+          "display_id": "P3-43"
+        }
+      ],
+      "groups": [
+        {
+          "id": "3.1",
+          "name": "Automated Testing",
+          "step_ids": [
+            "P2-RUN_AUTOMATED_TESTS",
+            "P2-MULTIMODEL_CODE_REVIEW",
+            "P2-FIX_ISSUE",
+            "P2-UPDATE_SPECIFICATION_DOCUMENT",
+            "P2-UPDATE_PROGRESS",
+            "P2-COMMIT_TASK"
           ]
         },
         {
-          "id": "P3-22",
+          "id": "3.2",
+          "name": "Final Quality Gate",
+          "step_ids": [
+            "P3-FINAL_REVIEW",
+            "P3-AGGREGATE_REVIEW_RESULTS",
+            "P3-FIX_ISSUES"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-4",
+      "name": "Review",
+      "description": "Human confirmation and PR creation",
+      "execution": {
+        "mode": "sequential"
+      },
+      "steps": [
+        {
+          "id": "P3-RECORD_TECHNICAL_DEBT",
           "name": "Record Technical Debt",
           "description": "Record issues to TECHNICAL_DEBT.md if review passed with minor issues.",
           "input": [
@@ -1278,10 +1553,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P3-44"
         },
         {
-          "id": "P3-23",
+          "id": "P3-HUMAN_FINAL_CONFIRMATION",
           "name": "Human Final Confirmation",
           "description": "Final human approval to proceed with archiving and deployment. Only executed after machine review passes.",
           "input": [
@@ -1294,10 +1570,11 @@
           ],
           "requires_human_approval": true,
           "condition": "review_passed",
-          "min_mode": "lite"
+          "min_mode": "lite",
+          "display_id": "P3-45"
         },
         {
-          "id": "P3-24",
+          "id": "P3-CREATE_PULL_REQUEST",
           "name": "Create Pull Request",
           "description": "Create GitHub Pull Request for code review. Link to issue and include review results.",
           "input": [
@@ -1313,98 +1590,42 @@
           "min_mode": "standard",
           "required_tools": [
             "gh"
-          ]
+          ],
+          "display_id": "P3-46"
         }
       ],
       "groups": [
         {
-          "id": "3.1",
-          "name": "Automated Quality Gate",
-          "description": "Multi-model review with automated repair attempts",
-          "step_ids": [
-            "P3-19",
-            "P3-20",
-            "P3-21",
-            "P3-22"
-          ],
-          "order": 1,
-          "depends_on_groups": [],
-          "ui": {
-            "short_name": "Review",
-            "default_collapsed": false,
-            "breadcrumb_label": "Quality Gate"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
-        },
-        {
           "id": "3.2",
           "name": "Human Approval Gate",
-          "description": "Final human confirmation before deployment",
-          "step_ids": [
-            "P3-23"
-          ],
-          "order": 2,
-          "depends_on_groups": [
-            "3.1"
-          ],
-          "ui": {
-            "short_name": "Approval",
-            "default_collapsed": false,
-            "breadcrumb_label": "Human Approval"
-          },
-          "selection": {
-            "batch_selectable": false,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+          "step_ids": []
         },
         {
           "id": "3.3",
           "name": "Pull Request Creation",
-          "description": "Create GitHub Pull Request for code review",
+          "step_ids": []
+        },
+        {
+          "id": "3.1",
+          "name": "Final Review & PR Creation",
           "step_ids": [
-            "P3-24"
-          ],
-          "order": 3,
-          "depends_on_groups": [
-            "3.2"
-          ],
-          "ui": {
-            "short_name": "PR",
-            "default_collapsed": true,
-            "breadcrumb_label": "Pull Request"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+            "P3-RECORD_TECHNICAL_DEBT",
+            "P3-HUMAN_FINAL_CONFIRMATION",
+            "P3-CREATE_PULL_REQUEST"
+          ]
         }
       ]
     },
     {
-      "id": "phase-4",
-      "name": "Archive",
-      "description": "Archive OpenSpec, update documentation, and rebuild capability tree.",
+      "id": "phase-5",
+      "name": "Archiving",
+      "description": "Archive, update documentation, and release",
       "execution": {
         "mode": "sequential"
       },
       "steps": [
         {
-          "id": "P4-22",
+          "id": "P4-MERGE_GIT_BRANCH",
           "name": "Merge Git Branch",
           "description": "Merge feature branch to main (frontend + backend).",
           "input": [
@@ -1417,10 +1638,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-47"
         },
         {
-          "id": "P4-23",
+          "id": "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
           "name": "Archive Specification Document",
           "description": "Archive specification document to repository",
           "input": [
@@ -1432,10 +1654,11 @@
           "min_mode": "standard",
           "required_tools": [
             "openspec"
-          ]
+          ],
+          "display_id": "P4-48"
         },
         {
-          "id": "P4-24",
+          "id": "P4-COMMIT_ARCHIVE",
           "name": "Commit Archive",
           "description": "Commit archived OpenSpec to openspec repository.",
           "input": [
@@ -1447,10 +1670,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-49"
         },
         {
-          "id": "P4-25",
+          "id": "P4-UPDATE_SPECS",
           "name": "Update Specs",
           "description": "Apply changes to capability specifications in specs/.",
           "input": [
@@ -1463,10 +1687,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P4-50"
         },
         {
-          "id": "P4-26",
+          "id": "P4-COMMIT_SPECS",
           "name": "Commit Specs",
           "description": "Commit updated specs to waoooo-docs repository.",
           "input": [
@@ -1478,10 +1703,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-51"
         },
         {
-          "id": "P4-27",
+          "id": "P4-UPDATE_DEVELOPMENT_DOCS",
           "name": "Update Development Docs",
           "description": "Generate and update capability documentation.",
           "input": [
@@ -1493,10 +1719,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P4-52"
         },
         {
-          "id": "P4-28",
+          "id": "P4-COMMIT_DOCS",
           "name": "Commit Docs",
           "description": "Commit updated documentation to waoooo-docs repository.",
           "input": [
@@ -1508,10 +1735,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-53"
         },
         {
-          "id": "P4-29",
+          "id": "P4-UPDATE_ROADMAP_DOCS",
           "name": "Update Roadmap Docs",
           "description": "Update planning documents (JSON → MDX final state).",
           "input": [
@@ -1523,10 +1751,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P4-54"
         },
         {
-          "id": "P4-30",
+          "id": "P4-COMMIT_ROADMAP",
           "name": "Commit Roadmap",
           "description": "Commit updated roadmap documents to waoooo-docs repository.",
           "input": [
@@ -1538,10 +1767,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-55"
         },
         {
-          "id": "P4-31",
+          "id": "P4-REBUILD_CAPABILITY_TREE",
           "name": "Rebuild Capability Tree",
           "description": "Rebuild capability tree using build-capability-tree.ts.",
           "input": [
@@ -1554,10 +1784,11 @@
           "min_mode": "standard",
           "required_tools": [
             "ccb"
-          ]
+          ],
+          "display_id": "P4-56"
         },
         {
-          "id": "P4-32",
+          "id": "P4-COMMIT_CAPABILITY_TREE",
           "name": "Commit Capability Tree",
           "description": "Commit updated capability tree to waoooo-web repository.",
           "input": [
@@ -1569,10 +1800,11 @@
           "min_mode": "lite",
           "required_tools": [
             "git"
-          ]
+          ],
+          "display_id": "P4-57"
         },
         {
-          "id": "P4-33",
+          "id": "P4-CREATE_RELEASE",
           "name": "Create Release",
           "description": "Create GitHub Release with changelog and version tag.",
           "input": [
@@ -1587,322 +1819,357 @@
           "min_mode": "standard",
           "required_tools": [
             "gh"
-          ]
+          ],
+          "display_id": "P4-58"
         }
       ],
       "groups": [
         {
           "id": "4.1",
           "name": "Code Integration & Archival",
-          "description": "Finalize code changes and secure project history",
-          "step_ids": [
-            "P4-22",
-            "P4-23",
-            "P4-24"
-          ],
-          "order": 1,
-          "depends_on_groups": [],
-          "ui": {
-            "short_name": "Integration",
-            "default_collapsed": true,
-            "breadcrumb_label": "Code Integration"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+          "step_ids": []
         },
         {
           "id": "4.2",
           "name": "Knowledge Base Synchronization",
-          "description": "Update all project documentation and external references",
-          "step_ids": [
-            "P4-25",
-            "P4-26",
-            "P4-27",
-            "P4-28",
-            "P4-29",
-            "P4-30"
-          ],
-          "order": 2,
-          "depends_on_groups": [
-            "4.1"
-          ],
-          "ui": {
-            "short_name": "Docs",
-            "default_collapsed": true,
-            "breadcrumb_label": "Knowledge Base"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+          "step_ids": []
         },
         {
           "id": "4.3",
           "name": "System Capabilities Update",
-          "description": "Refresh the system's understanding of available features",
-          "step_ids": [
-            "P4-31",
-            "P4-32"
-          ],
-          "order": 3,
-          "depends_on_groups": [
-            "4.2"
-          ],
-          "ui": {
-            "short_name": "Capabilities",
-            "default_collapsed": true,
-            "breadcrumb_label": "System Capabilities"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+          "step_ids": []
         },
         {
           "id": "4.4",
           "name": "Release Publication",
-          "description": "Package and publish the final release artifacts",
+          "step_ids": []
+        },
+        {
+          "id": "4.1",
+          "name": "Code Integration",
           "step_ids": [
-            "P4-33"
-          ],
-          "order": 4,
-          "depends_on_groups": [
-            "4.3"
-          ],
-          "ui": {
-            "short_name": "Release",
-            "default_collapsed": true,
-            "breadcrumb_label": "Release Publication"
-          },
-          "selection": {
-            "batch_selectable": true,
-            "default_select_behavior": "all_steps"
-          },
-          "policy": {
-            "allow_skip": false,
-            "milestone": true
-          }
+            "P4-MERGE_GIT_BRANCH"
+          ]
+        },
+        {
+          "id": "4.2",
+          "name": "Documentation Updates",
+          "step_ids": [
+            "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
+            "P4-COMMIT_ARCHIVE",
+            "P4-UPDATE_SPECS",
+            "P4-COMMIT_SPECS",
+            "P4-UPDATE_DEVELOPMENT_DOCS",
+            "P4-COMMIT_DOCS",
+            "P4-UPDATE_ROADMAP_DOCS",
+            "P4-COMMIT_ROADMAP"
+          ]
+        },
+        {
+          "id": "4.3",
+          "name": "System Updates & Release",
+          "step_ids": [
+            "P4-REBUILD_CAPABILITY_TREE",
+            "P4-COMMIT_CAPABILITY_TREE",
+            "P4-CREATE_RELEASE"
+          ]
         }
       ]
     }
   ],
   "transitions": [
     {
-      "from": "P0-01",
-      "to": "P0-02"
+      "from": "P0-COLLECT_USER_REQUIREMENT",
+      "to": "P0-DETECT_REQUIREMENT_TYPE"
     },
     {
-      "from": "P0-02",
-      "to": "P0-03",
-      "condition": "input_mode == 'ui_form'"
+      "from": "P0-DETECT_REQUIREMENT_TYPE",
+      "to": "P0-REQUIREMENT_CLARIFICATION",
+      "condition": "input_mode == 'ui_form'",
+      "enabled_in_modes": [
+        "standard",
+        "full"
+      ]
     },
     {
-      "from": "P0-02",
-      "to": "P0-04",
-      "condition": "input_mode == 'mdx'"
+      "from": "P0-DETECT_REQUIREMENT_TYPE",
+      "to": "P0-REQUIREMENT_EXPANSION",
+      "condition": "input_mode == 'mdx'",
+      "enabled_in_modes": [
+        "standard",
+        "full"
+      ]
     },
     {
-      "from": "P0-03",
-      "to": "P1-01"
+      "from": "P0-REQUIREMENT_CLARIFICATION",
+      "to": "P1-FIND_EXISTING_WORK"
     },
     {
-      "from": "P0-03",
-      "to": "P1-02"
+      "from": "P0-REQUIREMENT_CLARIFICATION",
+      "to": "P1-UPDATE_CAPABILITY_TREE"
     },
     {
-      "from": "P0-04",
-      "to": "P1-01"
+      "from": "P0-REQUIREMENT_EXPANSION",
+      "to": "P1-FIND_EXISTING_WORK"
     },
     {
-      "from": "P0-04",
-      "to": "P1-02"
+      "from": "P0-REQUIREMENT_EXPANSION",
+      "to": "P1-UPDATE_CAPABILITY_TREE"
     },
     {
-      "from": "P1-01",
-      "to": "P1-03",
+      "from": "P1-FIND_EXISTING_WORK",
+      "to": "P1-CREATE_JOB",
       "condition": "done('P1-02')"
     },
     {
-      "from": "P1-02",
-      "to": "P1-03",
+      "from": "P1-UPDATE_CAPABILITY_TREE",
+      "to": "P1-CREATE_JOB",
       "condition": "done('P1-01')"
     },
     {
-      "from": "P1-03",
-      "to": "P1-04"
+      "from": "P1-CREATE_JOB",
+      "to": "P1-CREATE_GIT_BRANCH"
     },
     {
-      "from": "P1-04",
-      "to": "P1-05"
+      "from": "P1-CREATE_GIT_BRANCH",
+      "to": "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",
+      "enabled_in_modes": [
+        "standard",
+        "full"
+      ]
     },
     {
-      "from": "P1-05",
-      "to": "P1-06",
+      "from": "P1-CREATE_GIT_BRANCH",
+      "to": "P1-PARSE_MDX_TO_UNIFIED_LITE",
+      "enabled_in_modes": [
+        "lite"
+      ]
+    },
+    {
+      "from": "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",
+      "to": "P1-REVIEW_OPENSPEC_DOCUMENTS"
+    },
+    {
+      "from": "P1-REVIEW_OPENSPEC_DOCUMENTS",
+      "to": "P1-PARSE_OPENSPEC_TO_STRUCTURED",
       "condition": "review_passed('P1-05')"
     },
     {
-      "from": "P1-06",
-      "to": "P1-07"
+      "from": "P1-PARSE_OPENSPEC_TO_STRUCTURED",
+      "to": "P1-CHECK_OR_INFER_FORMJSON"
     },
     {
-      "from": "P1-07",
-      "to": "P1-08"
+      "from": "P1-CHECK_OR_INFER_FORMJSON",
+      "to": "P1-MERGE_TO_UNIFIEDJSON"
     },
     {
-      "from": "P1-08",
-      "to": "P1-09"
+      "from": "P1-MERGE_TO_UNIFIEDJSON",
+      "to": "P1-ANALYZE_CAPABILITY_DEPENDENCIES"
     },
     {
-      "from": "P1-09",
-      "to": "P1-10"
+      "from": "P1-ANALYZE_CAPABILITY_DEPENDENCIES",
+      "to": "P1-GENERATE_DEVELOPMENT_SPECS"
     },
     {
-      "from": "P1-10",
-      "to": "P1-11"
+      "from": "P1-GENERATE_DEVELOPMENT_SPECS",
+      "to": "P1-REVIEW_DEVELOPMENT_SPECS",
+      "enabled_in_modes": [
+        "standard",
+        "full"
+      ]
     },
     {
-      "from": "P1-11",
-      "to": "P1-12",
+      "from": "P1-GENERATE_DEVELOPMENT_SPECS",
+      "to": "P1-COMMIT_PLANNING_CHANGES",
+      "enabled_in_modes": [
+        "lite"
+      ]
+    },
+    {
+      "from": "P1-REVIEW_DEVELOPMENT_SPECS",
+      "to": "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
       "condition": "review_passed('P1-11')"
     },
     {
-      "from": "P1-12",
-      "to": "P1-13"
+      "from": "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
+      "to": "P1-GENERATE_PLANNING_DOCS"
     },
     {
-      "from": "P1-13",
-      "to": "P1-14"
+      "from": "P1-GENERATE_PLANNING_DOCS",
+      "to": "P1-COMMIT_PLANNING_CHANGES"
     },
     {
-      "from": "P2-11",
-      "to": "P2-11a"
+      "from": "P2-START_EXECUTION_DECISION",
+      "to": "P2-CREATE_GITHUB_ISSUE"
     },
     {
-      "from": "P2-11a",
-      "to": "P2-12"
+      "from": "P2-CREATE_GITHUB_ISSUE",
+      "to": "P2-GET_NEXT_TASK",
+      "enabled_in_modes": [
+        "full"
+      ]
     },
     {
-      "from": "P2-18",
-      "to": "P2-12",
-      "condition": "has_more_tasks"
+      "from": "P2-CREATE_GITHUB_ISSUE",
+      "to": "P2-EXECUTE_TASK",
+      "enabled_in_modes": [
+        "lite",
+        "standard"
+      ]
     },
     {
-      "from": "P2-12",
-      "to": "P3-19",
-      "condition": "all_tasks_done"
+      "from": "P2-COMMIT_TASK",
+      "to": "P2-GET_NEXT_TASK",
+      "type": "loop_internal",
+      "condition": "has_more_tasks",
+      "enabled_in_modes": [
+        "full"
+      ]
     },
     {
-      "from": "P3-19",
-      "to": "P3-20"
+      "from": "P2-COMMIT_TASK",
+      "to": "P3-FINAL_REVIEW",
+      "type": "forward",
+      "condition": "!has_more_tasks",
+      "enabled_in_modes": [
+        "lite",
+        "standard",
+        "full"
+      ]
     },
     {
-      "from": "P3-20",
-      "to": "P3-21",
+      "from": "P2-GET_NEXT_TASK",
+      "to": "P3-FINAL_REVIEW",
+      "condition": "all_tasks_done",
+      "enabled_in_modes": [
+        "full"
+      ]
+    },
+    {
+      "from": "P3-FINAL_REVIEW",
+      "to": "P3-AGGREGATE_REVIEW_RESULTS"
+    },
+    {
+      "from": "P3-AGGREGATE_REVIEW_RESULTS",
+      "to": "P3-FIX_ISSUES",
       "condition": "review_needs_fix"
     },
     {
-      "from": "P3-20",
-      "to": "P3-22",
+      "from": "P3-AGGREGATE_REVIEW_RESULTS",
+      "to": "P3-RECORD_TECHNICAL_DEBT",
       "condition": "review_passed_with_issues"
     },
     {
-      "from": "P3-20",
-      "to": "P3-23",
+      "from": "P3-AGGREGATE_REVIEW_RESULTS",
+      "to": "P3-HUMAN_FINAL_CONFIRMATION",
       "condition": "review_passed"
     },
     {
-      "from": "P3-21",
-      "to": "P3-19",
-      "condition": "retry_review && auto_repair_attempts < 3"
+      "from": "P3-FIX_ISSUES",
+      "to": "P3-FINAL_REVIEW",
+      "type": "loop_internal",
+      "condition": "retry_review && auto_repair_attempts < 3",
+      "enabled_in_modes": [
+        "full"
+      ]
     },
     {
-      "from": "P3-21",
-      "to": "P2-12",
+      "from": "P3-FIX_ISSUES",
+      "to": "P2-GET_NEXT_TASK",
       "condition": "max_retries_exhausted && user_chooses_retry_phase2"
     },
     {
-      "from": "P3-21",
-      "to": "P3-22",
+      "from": "P3-FIX_ISSUES",
+      "to": "P3-RECORD_TECHNICAL_DEBT",
       "condition": "max_retries_exhausted && user_chooses_continue"
     },
     {
-      "from": "P3-22",
-      "to": "P3-23"
+      "from": "P3-RECORD_TECHNICAL_DEBT",
+      "to": "P3-HUMAN_FINAL_CONFIRMATION"
     },
     {
-      "from": "P3-23",
-      "to": "P3-24",
-      "condition": "human_approved == true"
+      "from": "P3-HUMAN_FINAL_CONFIRMATION",
+      "to": "P3-CREATE_PULL_REQUEST",
+      "condition": "human_approved == true",
+      "enabled_in_modes": [
+        "standard",
+        "full"
+      ]
     },
     {
-      "from": "P3-23",
+      "from": "P3-HUMAN_FINAL_CONFIRMATION",
+      "to": "P4-MERGE_GIT_BRANCH",
+      "condition": "human_approved == true",
+      "enabled_in_modes": [
+        "lite"
+      ]
+    },
+    {
+      "from": "P3-HUMAN_FINAL_CONFIRMATION",
       "to": "END",
       "condition": "human_approved == false"
     },
     {
-      "from": "P3-24",
-      "to": "P4-22"
+      "from": "P3-CREATE_PULL_REQUEST",
+      "to": "P4-MERGE_GIT_BRANCH"
     },
     {
-      "from": "P4-22",
-      "to": "P4-23"
+      "from": "P4-MERGE_GIT_BRANCH",
+      "to": "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
+      "enabled_in_modes": [
+        "standard",
+        "full"
+      ]
     },
     {
-      "from": "P4-23",
-      "to": "P4-24"
+      "from": "P4-MERGE_GIT_BRANCH",
+      "to": "END",
+      "enabled_in_modes": [
+        "lite"
+      ]
     },
     {
-      "from": "P4-24",
-      "to": "P4-25"
+      "from": "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
+      "to": "P4-COMMIT_ARCHIVE"
     },
     {
-      "from": "P4-25",
-      "to": "P4-26"
+      "from": "P4-COMMIT_ARCHIVE",
+      "to": "P4-UPDATE_SPECS"
     },
     {
-      "from": "P4-26",
-      "to": "P4-27"
+      "from": "P4-UPDATE_SPECS",
+      "to": "P4-COMMIT_SPECS"
     },
     {
-      "from": "P4-27",
-      "to": "P4-28"
+      "from": "P4-COMMIT_SPECS",
+      "to": "P4-UPDATE_DEVELOPMENT_DOCS"
     },
     {
-      "from": "P4-28",
-      "to": "P4-29"
+      "from": "P4-UPDATE_DEVELOPMENT_DOCS",
+      "to": "P4-COMMIT_DOCS"
     },
     {
-      "from": "P4-29",
-      "to": "P4-30"
+      "from": "P4-COMMIT_DOCS",
+      "to": "P4-UPDATE_ROADMAP_DOCS"
     },
     {
-      "from": "P4-30",
-      "to": "P4-31"
+      "from": "P4-UPDATE_ROADMAP_DOCS",
+      "to": "P4-COMMIT_ROADMAP"
     },
     {
-      "from": "P4-31",
-      "to": "P4-32"
+      "from": "P4-COMMIT_ROADMAP",
+      "to": "P4-REBUILD_CAPABILITY_TREE"
     },
     {
-      "from": "P4-32",
-      "to": "P4-33"
+      "from": "P4-REBUILD_CAPABILITY_TREE",
+      "to": "P4-COMMIT_CAPABILITY_TREE"
     },
     {
-      "from": "P4-33",
+      "from": "P4-COMMIT_CAPABILITY_TREE",
+      "to": "P4-CREATE_RELEASE"
+    },
+    {
+      "from": "P4-CREATE_RELEASE",
       "to": "END"
     }
   ],
@@ -1930,6 +2197,2074 @@
       "package": "@product-builder/openclaw",
       "required": false,
       "description": "Advanced code analysis tool"
+    }
+  },
+  "_comment_phase_registry": "Modular step group library. Each module (intake, research, planning, execution, etc.) contains reusable step definitions. Modes compose these modules via 'pipeline' arrays. Variants (e.g., planning_lite, planning_standard, planning) provide mode-specific implementations. This enables flexible workflow assembly and supports upgrade/downgrade between modes.",
+  "phase_registry": {
+    "intake": {
+      "id": "intake",
+      "name": "Intake",
+      "description": "Quick requirement collection and documentation",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "ccb"
+      },
+      "groups": [],
+      "steps": [
+        {
+          "id": "P0-COLLECT_USER_REQUIREMENT",
+          "name": "Collect User Requirement",
+          "description": "Extract scope, constraints, and acceptance hints from user input",
+          "input": [
+            "user_input.raw"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/source/raw-requirement.txt"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-01"
+        },
+        {
+          "id": "P0-DETECT_REQUIREMENT_TYPE",
+          "name": "Detect Requirement Type",
+          "description": "Determine whether requirement is brief (one sentence) or detailed (with planning)",
+          "input": [
+            "exports/jobs/{job_id}/source/raw-requirement.txt"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/parsed/requirement-type.json"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-02"
+        },
+        {
+          "id": "P0-GENERATE_REQUIREMENT_DOCUMENT",
+          "name": "Generate Requirement Document",
+          "description": "Integrate all analysis results into structured requirement document",
+          "input": [
+            "exports/jobs/{job_id}/analysis/feature-breakdown.json",
+            "exports/jobs/{job_id}/analysis/user-stories.md",
+            "exports/jobs/{job_id}/analysis/feasibility-analysis.md"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/source/requirement.mdx"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "output_format": "mdx",
+          "display_id": "P0-11"
+        },
+        {
+          "id": "P0-FEATURE_BREAKDOWN",
+          "name": "Feature Breakdown",
+          "description": "Break down core features and sub-features",
+          "input": [
+            "exports/jobs/{job_id}/parsed/expanded-requirement.md"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/feature-breakdown.json"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-08",
+          "enabled_in_modes": [
+            "lite"
+          ]
+        }
+      ]
+    },
+    "research": {
+      "id": "research",
+      "name": "Research",
+      "description": "Comprehensive requirement research and analysis",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "ccb"
+      },
+      "groups": [
+        {
+          "id": "0.1",
+          "name": "Requirement Intake & Clarification",
+          "step_ids": [
+            "P0-COLLECT_USER_REQUIREMENT",
+            "P0-DETECT_REQUIREMENT_TYPE",
+            "P0-REQUIREMENT_CLARIFICATION",
+            "P0-REQUIREMENT_EXPANSION"
+          ]
+        },
+        {
+          "id": "0.2",
+          "name": "Market & Competitive Analysis",
+          "step_ids": [
+            "P0-COMPETITOR_RESEARCH",
+            "P0-COMPETITOR_ANALYSIS",
+            "P0-MARKET_POSITIONING"
+          ]
+        },
+        {
+          "id": "0.3",
+          "name": "Feature & Feasibility Analysis",
+          "step_ids": [
+            "P0-FEATURE_BREAKDOWN",
+            "P0-USER_STORY_GENERATION",
+            "P0-TECHNICAL_FEASIBILITY_ANALYSIS"
+          ]
+        },
+        {
+          "id": "0.4",
+          "name": "Requirement Document Generation",
+          "step_ids": [
+            "P0-GENERATE_REQUIREMENT_DOCUMENT",
+            "P0-REVIEW_REQUIREMENT_DOCUMENT"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "id": "P0-COLLECT_USER_REQUIREMENT",
+          "name": "Collect User Requirement",
+          "description": "Extract scope, constraints, and acceptance hints from user input",
+          "input": [
+            "user_input.raw"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/source/raw-requirement.txt"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-01"
+        },
+        {
+          "id": "P0-DETECT_REQUIREMENT_TYPE",
+          "name": "Detect Requirement Type",
+          "description": "Determine whether requirement is brief (one sentence) or detailed (with planning)",
+          "input": [
+            "exports/jobs/{job_id}/source/raw-requirement.txt"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/parsed/requirement-type.json"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-02"
+        },
+        {
+          "id": "P0-REQUIREMENT_CLARIFICATION",
+          "name": "Requirement Clarification",
+          "description": "Ask about target users, core problems, key features, and constraints",
+          "input": [
+            "exports/jobs/{job_id}/source/raw-requirement.txt"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/parsed/clarified-requirement.md"
+          ],
+          "condition": "when_requirement_brief",
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-03"
+        },
+        {
+          "id": "P0-REQUIREMENT_EXPANSION",
+          "name": "Requirement Expansion",
+          "description": "Expand brief requirement into detailed description",
+          "input": [
+            "exports/jobs/{job_id}/parsed/clarified-requirement.md"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/parsed/expanded-requirement.md"
+          ],
+          "condition": "when_requirement_brief",
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-04"
+        },
+        {
+          "id": "P0-COMPETITOR_RESEARCH",
+          "name": "Competitor Research",
+          "description": "Use web_search and context7 to find competitors",
+          "input": [
+            "exports/jobs/{job_id}/parsed/expanded-requirement.md"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/competitor-list.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "optional_tools": [
+            "web_search",
+            "context7"
+          ],
+          "display_id": "P0-05"
+        },
+        {
+          "id": "P0-COMPETITOR_ANALYSIS",
+          "name": "Competitor Analysis",
+          "description": "Analyze feature comparison, pricing, user reviews, and market positioning",
+          "input": [
+            "exports/jobs/{job_id}/analysis/competitor-list.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/competitor-analysis.md"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-06"
+        },
+        {
+          "id": "P0-MARKET_POSITIONING",
+          "name": "Market Positioning",
+          "description": "Determine differentiation advantages and target market",
+          "input": [
+            "exports/jobs/{job_id}/analysis/competitor-analysis.md"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/market-positioning.md"
+          ],
+          "min_mode": "full",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-07"
+        },
+        {
+          "id": "P0-FEATURE_BREAKDOWN",
+          "name": "Feature Breakdown",
+          "description": "Break down core features and sub-features",
+          "input": [
+            "exports/jobs/{job_id}/parsed/expanded-requirement.md"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/feature-breakdown.json"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-08"
+        },
+        {
+          "id": "P0-USER_STORY_GENERATION",
+          "name": "User Story Generation",
+          "description": "Generate user stories and usage scenarios",
+          "input": [
+            "exports/jobs/{job_id}/analysis/feature-breakdown.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/user-stories.md"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-09"
+        },
+        {
+          "id": "P0-TECHNICAL_FEASIBILITY_ANALYSIS",
+          "name": "Technical Feasibility Analysis",
+          "description": "Evaluate tech stack, dependencies, and risks",
+          "input": [
+            "exports/jobs/{job_id}/analysis/feature-breakdown.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/feasibility-analysis.md"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P0-10"
+        },
+        {
+          "id": "P0-GENERATE_REQUIREMENT_DOCUMENT",
+          "name": "Generate Requirement Document",
+          "description": "Integrate all analysis results into structured requirement document",
+          "input": [
+            "exports/jobs/{job_id}/analysis/feature-breakdown.json",
+            "exports/jobs/{job_id}/analysis/user-stories.md",
+            "exports/jobs/{job_id}/analysis/feasibility-analysis.md"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/source/requirement.mdx"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "output_format": "mdx",
+          "display_id": "P0-11"
+        },
+        {
+          "id": "P0-REVIEW_REQUIREMENT_DOCUMENT",
+          "name": "Review Requirement Document",
+          "description": "Multi-model review with auto-repair (up to 3 attempts)",
+          "requires_human_approval": true,
+          "input": [
+            "exports/jobs/{job_id}/source/requirement.mdx"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/source/requirement.mdx",
+            "exports/jobs/{job_id}/reviews/requirement-review.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb",
+            "cca"
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true
+            }
+          },
+          "display_id": "P0-12"
+        }
+      ]
+    },
+    "ideate": {
+      "id": "ideate",
+      "name": "Ideate",
+      "description": "OpenSpec generation and review",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "ccb"
+      },
+      "groups": [
+        {
+          "id": "1.1",
+          "name": "Project Context Discovery",
+          "step_ids": [
+            "P1-FIND_EXISTING_WORK",
+            "P1-UPDATE_CAPABILITY_TREE",
+            "P1-CREATE_JOB",
+            "P1-CREATE_GIT_BRANCH"
+          ]
+        },
+        {
+          "id": "1.2",
+          "name": "OpenSpec Generation & Review",
+          "step_ids": [
+            "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",
+            "P1-REVIEW_OPENSPEC_DOCUMENTS",
+            "P1-PARSE_OPENSPEC_TO_STRUCTURED"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "id": "P1-FIND_EXISTING_WORK",
+          "name": "Find Existing Work",
+          "description": "Discover related jobs, branches, specs, and reusable outputs.",
+          "input": [
+            "exports/jobs/index.json",
+            "repo/specs/**",
+            "repo/docs/**"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/existing-work.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-13"
+        },
+        {
+          "id": "P1-UPDATE_CAPABILITY_TREE",
+          "name": "Update Capability Tree",
+          "description": "Rebuild capability map using build-capability-tree.ts.",
+          "input": [
+            "repo/specs/**",
+            "repo/src/**"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/capability-tree.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-14"
+        },
+        {
+          "id": "P1-CREATE_JOB",
+          "name": "Create Job",
+          "description": "Create job directory and metadata file.",
+          "input": [
+            "CCB_REQ_ID",
+            "exports/jobs/{job_id}/analysis/existing-work.json",
+            "exports/jobs/{job_id}/analysis/capability-tree.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/metadata.json"
+          ],
+          "condition": "after_p1_01_and_p1_02",
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-15"
+        },
+        {
+          "id": "P1-CREATE_GIT_BRANCH",
+          "name": "Create Git Branch",
+          "description": "Create working branch for this job.",
+          "input": [
+            "exports/jobs/{job_id}/metadata.json"
+          ],
+          "output": [
+            "git.branch.name"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P1-16"
+        },
+        {
+          "id": "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",
+          "name": "Convert Requirements to OpenSpec Format",
+          "description": "Transform requirement document into OpenSpec format (proposal, tasks, design)",
+          "input": [
+            "exports/jobs/{job_id}/source/requirements.mdx",
+            "exports/jobs/{job_id}/metadata.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "openspec"
+          ],
+          "display_id": "P1-17"
+        },
+        {
+          "id": "P1-REVIEW_OPENSPEC_DOCUMENTS",
+          "name": "Review OpenSpec Documents",
+          "description": "Run multi-model review gate and auto-repair for OpenSpec quality",
+          "input": [
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/reviews/openspec-review.json"
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true
+            }
+          },
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb",
+            "cca",
+            "openspec"
+          ],
+          "display_id": "P1-18"
+        },
+        {
+          "id": "P1-PARSE_OPENSPEC_TO_STRUCTURED",
+          "name": "Parse OpenSpec to Structured Data",
+          "description": "Extract structured requirement docs from OpenSpec files",
+          "input": [
+            "exports/jobs/{job_id}/source/openspec/proposal.md",
+            "exports/jobs/{job_id}/source/openspec/tasks.md",
+            "exports/jobs/{job_id}/source/openspec/design.md"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/parsed/docs.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "openspec"
+          ],
+          "display_id": "P1-19"
+        }
+      ]
+    },
+    "planning_lite": {
+      "id": "planning_lite",
+      "name": "Planning",
+      "description": "Simplified planning for quick development",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "ccb"
+      },
+      "groups": [],
+      "steps": [
+        {
+          "id": "P1-CREATE_JOB",
+          "name": "Create Job",
+          "description": "Create job directory and metadata file.",
+          "input": [
+            "CCB_REQ_ID",
+            "exports/jobs/{job_id}/analysis/existing-work.json",
+            "exports/jobs/{job_id}/analysis/capability-tree.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/metadata.json"
+          ],
+          "condition": "after_p1_01_and_p1_02",
+          "min_mode": "lite",
+          "enabled_in_modes": [
+            "lite"
+          ],
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-15"
+        },
+        {
+          "id": "P1-CREATE_GIT_BRANCH",
+          "name": "Create Git Branch",
+          "description": "Create working branch for this job.",
+          "input": [
+            "exports/jobs/{job_id}/metadata.json"
+          ],
+          "output": [
+            "git.branch.name"
+          ],
+          "min_mode": "lite",
+          "enabled_in_modes": [
+            "lite"
+          ],
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P1-16"
+        },
+        {
+          "id": "P1-PARSE_MDX_TO_UNIFIED_LITE",
+          "name": "Parse MDX to Unified (Lite)",
+          "description": "Direct transformation from requirements.mdx to unified.json, bypassing OpenSpec conversion",
+          "input": [
+            "exports/jobs/{job_id}/source/requirements.mdx",
+            "exports/jobs/{job_id}/metadata.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/parsed/unified.json"
+          ],
+          "min_mode": "lite",
+          "enabled_in_modes": [
+            "lite"
+          ],
+          "required_tools": [
+            "basic_parser"
+          ],
+          "display_id": "P1-28"
+        },
+        {
+          "id": "P1-ANALYZE_CAPABILITIES_LITE",
+          "name": "Analyze Capabilities (Lite)",
+          "description": "Simplified capability analysis for Lite mode",
+          "input": [
+            "exports/jobs/{job_id}/parsed/unified.json",
+            "exports/jobs/{job_id}/analysis/capability-tree.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+          ],
+          "min_mode": "lite",
+          "enabled_in_modes": [
+            "lite"
+          ],
+          "required_tools": [
+            "basic_parser"
+          ],
+          "display_id": "P1-29"
+        },
+        {
+          "id": "P1-GENERATE_DEVELOPMENT_SPECS",
+          "name": "Generate Development Specs",
+          "description": "Generate structured specs for development (README + JSON files for ralph automation)",
+          "input": [
+            "exports/jobs/{job_id}/parsed/unified.json",
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
+          ],
+          "min_mode": "lite",
+          "enabled_in_modes": [
+            "lite"
+          ],
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-22"
+        },
+        {
+          "id": "P1-GENERATE_PLANNING_DOCS_LITE",
+          "name": "Generate Planning Docs (Lite)",
+          "description": "Generate simplified planning documents for Lite mode",
+          "input": [
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/docs/TODO.md"
+          ],
+          "min_mode": "lite",
+          "enabled_in_modes": [
+            "lite"
+          ],
+          "required_tools": [
+            "basic_parser"
+          ],
+          "display_id": "P1-30"
+        },
+        {
+          "id": "P1-COMMIT_PLANNING_CHANGES",
+          "name": "Commit Planning Changes",
+          "description": "Commit planning artifacts to job branch.",
+          "input": [
+            "exports/jobs/{job_id}/**",
+            "git.branch.name"
+          ],
+          "output": [
+            "git.commit.planning"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P1-26"
+        }
+      ]
+    },
+    "planning": {
+      "id": "planning",
+      "name": "Planning",
+      "description": "Development specification generation and review",
+      "execution": {
+        "mode": "sequential_with_parallel_group",
+        "orchestrator": "ccb"
+      },
+      "groups": [
+        {
+          "id": "1.3",
+          "name": "Implementation Planning",
+          "step_ids": [
+            "P1-CHECK_OR_INFER_FORMJSON",
+            "P1-MERGE_TO_UNIFIEDJSON",
+            "P1-ANALYZE_CAPABILITY_DEPENDENCIES",
+            "P1-GENERATE_DEVELOPMENT_SPECS",
+            "P1-REVIEW_DEVELOPMENT_SPECS",
+            "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
+            "P1-GENERATE_PLANNING_DOCS",
+            "P1-COMMIT_PLANNING_CHANGES",
+            "P1-REVIEW_PLANNING_RESULTS"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "id": "P1-CHECK_OR_INFER_FORMJSON",
+          "name": "Check or Infer form.json",
+          "description": "Use existing form.json when valid, otherwise infer it.",
+          "input": [
+            "exports/jobs/{job_id}/parsed/docs.json",
+            "source/form.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/parsed/form.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-19"
+        },
+        {
+          "id": "P1-MERGE_TO_UNIFIEDJSON",
+          "name": "Merge to unified.json",
+          "description": "Merge docs.json and form.json into one execution model.",
+          "input": [
+            "exports/jobs/{job_id}/parsed/docs.json",
+            "exports/jobs/{job_id}/parsed/form.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/parsed/unified.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-20"
+        },
+        {
+          "id": "P1-ANALYZE_CAPABILITY_DEPENDENCIES",
+          "name": "Analyze Capability Dependencies",
+          "description": "Map feature requirements to capabilities and dependency graph.",
+          "input": [
+            "exports/jobs/{job_id}/parsed/unified.json",
+            "exports/jobs/{job_id}/analysis/capability-tree.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-21"
+        },
+        {
+          "id": "P1-GENERATE_DEVELOPMENT_SPECS",
+          "name": "Generate Development Specs",
+          "description": "Generate structured specs for development (README + JSON files for ralph automation)",
+          "input": [
+            "exports/jobs/{job_id}/parsed/unified.json",
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-22"
+        },
+        {
+          "id": "P1-REVIEW_DEVELOPMENT_SPECS",
+          "name": "Review Development Specs",
+          "description": "Run multi-model quality gate and auto-repair for generated specs",
+          "input": [
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/reviews/specs-review.json"
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true
+            }
+          },
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb",
+            "cca"
+          ],
+          "display_id": "P1-23"
+        },
+        {
+          "id": "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
+          "name": "Generate Global Roadmap View",
+          "description": "Build cross-capability planning graph, milestones, and global todo list",
+          "input": [
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-24"
+        },
+        {
+          "id": "P1-GENERATE_PLANNING_DOCS",
+          "name": "Generate Planning Docs",
+          "description": "Render planning documents from JSON to Markdown (ROADMAP, TODO, DEPENDENCIES)",
+          "input": [
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/docs/ROADMAP.md",
+            "exports/jobs/{job_id}/docs/TODO.md",
+            "exports/jobs/{job_id}/docs/DEPENDENCIES.md"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-25"
+        },
+        {
+          "id": "P1-COMMIT_PLANNING_CHANGES",
+          "name": "Commit Planning Changes",
+          "description": "Commit planning artifacts to job branch.",
+          "input": [
+            "exports/jobs/{job_id}/**",
+            "git.branch.name"
+          ],
+          "output": [
+            "git.commit.planning"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P1-26"
+        },
+        {
+          "id": "P1-REVIEW_PLANNING_RESULTS",
+          "name": "Review Planning Results",
+          "description": "User reviews planning artifacts and decides whether to proceed with execution.",
+          "input": [
+            "exports/jobs/{job_id}/docs/ROADMAP.md",
+            "exports/jobs/{job_id}/docs/TODO.md",
+            "exports/jobs/{job_id}/docs/DEPENDENCIES.md",
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/analysis/roadmap.json"
+          ],
+          "output": [
+            "user_decision.proceed"
+          ],
+          "requires_human_approval": true,
+          "min_mode": "lite",
+          "display_id": "P1-27"
+        }
+      ]
+    },
+    "execution_lite": {
+      "id": "execution_lite",
+      "name": "Execution",
+      "description": "Simple task execution",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "user"
+      },
+      "groups": [],
+      "steps": [
+        {
+          "id": "P2-EXECUTE_TASK",
+          "name": "Execute Task",
+          "description": "AI Agent implements the current task.",
+          "input": [
+            "tasks.current",
+            "exports/jobs/{job_id}/specs/*.mdx"
+          ],
+          "output": [
+            "workspace.code_changes"
+          ],
+          "condition": "has_executable_task",
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P2-34"
+        }
+      ]
+    },
+    "execution_standard": {
+      "id": "execution_standard",
+      "name": "Execution",
+      "description": "Task execution with automated testing",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "user"
+      },
+      "groups": [],
+      "steps": [
+        {
+          "id": "P2-CREATE_GITHUB_ISSUE",
+          "name": "Create GitHub Issue",
+          "description": "Create GitHub issue to track this job. Link issue to branch and record issue number.",
+          "input": [
+            "exports/jobs/{job_id}/metadata.json",
+            "git.branch.name",
+            "exports/jobs/{job_id}/docs/roadmap.mdx"
+          ],
+          "output": [
+            "github.issue.number",
+            "github.issue.url"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "gh"
+          ],
+          "display_id": "P2-32"
+        },
+        {
+          "id": "P2-EXECUTE_TASK",
+          "name": "Execute Task",
+          "description": "AI Agent implements the current task.",
+          "input": [
+            "tasks.current",
+            "exports/jobs/{job_id}/specs/*.mdx"
+          ],
+          "output": [
+            "workspace.code_changes"
+          ],
+          "condition": "has_executable_task",
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P2-34"
+        },
+        {
+          "id": "P2-RUN_AUTOMATED_TESTS",
+          "name": "Run Automated Tests",
+          "description": "Run automated tests using testing frameworks (Jest, Vitest, Playwright, etc.) from verification.json.",
+          "input": [
+            "workspace.code_changes",
+            "exports/jobs/{job_id}/specs/verification.json"
+          ],
+          "output": [
+            "test.results"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P2-35"
+        },
+        {
+          "id": "P2-MULTIMODEL_CODE_REVIEW",
+          "name": "Multi-Model Code Review",
+          "description": "Review code logic and quality using multiple AI models (gemini, claude, codex).",
+          "input": [
+            "workspace.code_changes",
+            "test.results"
+          ],
+          "output": [
+            "review.results"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true
+            }
+          },
+          "display_id": "P2-36"
+        },
+        {
+          "id": "P2-FIX_ISSUE",
+          "name": "Fix Issue",
+          "description": "Fix issues found during testing. Add comment to GitHub Issue tracking the fix attempt.",
+          "input": [
+            "test.results",
+            "workspace.code_changes",
+            "github.issue.number"
+          ],
+          "output": [
+            "workspace.code_changes"
+          ],
+          "condition": "test_failed",
+          "min_mode": "lite",
+          "required_tools": [
+            "gh"
+          ],
+          "display_id": "P2-37"
+        },
+        {
+          "id": "P2-UPDATE_SPECIFICATION_DOCUMENT",
+          "name": "Update Specification Document",
+          "description": "Mark task as completed in specification",
+          "input": [
+            "tasks.current",
+            "exports/jobs/{job_id}/source/openspec.mdx"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/source/openspec.mdx"
+          ],
+          "condition": "test_passed",
+          "min_mode": "standard",
+          "required_tools": [
+            "openspec"
+          ],
+          "display_id": "P2-38"
+        },
+        {
+          "id": "P2-UPDATE_PROGRESS",
+          "name": "Update Progress",
+          "description": "Update progress.json with task completion status.",
+          "input": [
+            "tasks.current",
+            "exports/jobs/{job_id}/analysis/progress.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/progress.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P2-39"
+        },
+        {
+          "id": "P2-COMMIT_TASK",
+          "name": "Commit Task",
+          "description": "Commit task changes to job branch (frontend/backend/OpenSpec).",
+          "input": [
+            "workspace.code_changes",
+            "exports/jobs/{job_id}/source/openspec.mdx",
+            "exports/jobs/{job_id}/analysis/progress.json"
+          ],
+          "output": [
+            "git.commit.task"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "requires_human_approval": true,
+          "approval": {
+            "when": "before_execute",
+            "reason": "commit_boundary",
+            "modes": [
+              "lite",
+              "standard"
+            ]
+          },
+          "display_id": "P2-40"
+        }
+      ]
+    },
+    "execution": {
+      "id": "execution",
+      "name": "Execution",
+      "description": "Full task execution loop",
+      "execution": {
+        "mode": "loop",
+        "orchestrator": "ralph"
+      },
+      "groups": [
+        {
+          "id": "2.1",
+          "name": "Execution Initialization",
+          "step_ids": [
+            "P2-START_EXECUTION_DECISION",
+            "P2-CREATE_GITHUB_ISSUE",
+            "P2-GET_NEXT_TASK",
+            "P2-EXECUTE_TASK"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "id": "P2-START_EXECUTION_DECISION",
+          "name": "Start Execution Decision",
+          "description": "User decides whether to start execution or wait.",
+          "input": [
+            "exports/jobs/{job_id}/docs/roadmap.mdx",
+            "user_decision.proceed"
+          ],
+          "output": [
+            "execution.started"
+          ],
+          "requires_human_approval": true,
+          "min_mode": "lite",
+          "display_id": "P2-31"
+        },
+        {
+          "id": "P2-CREATE_GITHUB_ISSUE",
+          "name": "Create GitHub Issue",
+          "description": "Create GitHub issue to track this job. Link issue to branch and record issue number.",
+          "input": [
+            "exports/jobs/{job_id}/metadata.json",
+            "git.branch.name",
+            "exports/jobs/{job_id}/docs/roadmap.mdx"
+          ],
+          "output": [
+            "github.issue.number",
+            "github.issue.url"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "gh"
+          ],
+          "display_id": "P2-32"
+        },
+        {
+          "id": "P2-GET_NEXT_TASK",
+          "name": "Get Next Task",
+          "description": "Retrieve next executable task from queue, checking blockedBy dependencies.",
+          "input": [
+            "exports/jobs/{job_id}/parsed/unified.json",
+            "exports/jobs/{job_id}/analysis/progress.json"
+          ],
+          "output": [
+            "tasks.current"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P2-33"
+        },
+        {
+          "id": "P2-EXECUTE_TASK",
+          "name": "Execute Task",
+          "description": "AI Agent implements the current task.",
+          "input": [
+            "tasks.current",
+            "exports/jobs/{job_id}/specs/*.mdx"
+          ],
+          "output": [
+            "workspace.code_changes"
+          ],
+          "condition": "has_executable_task",
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P2-34"
+        }
+      ]
+    },
+    "testing": {
+      "id": "testing",
+      "name": "Testing",
+      "description": "Automated testing, LLM review, and repair",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "ccb"
+      },
+      "groups": [],
+      "steps": [
+        {
+          "id": "P2-RUN_AUTOMATED_TESTS",
+          "name": "Run Automated Tests",
+          "description": "Run automated tests using testing frameworks (Jest, Vitest, Playwright, etc.) from verification.json.",
+          "input": [
+            "workspace.code_changes",
+            "exports/jobs/{job_id}/specs/verification.json"
+          ],
+          "output": [
+            "test.results"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P2-35"
+        },
+        {
+          "id": "P2-MULTIMODEL_CODE_REVIEW",
+          "name": "Multi-Model Code Review",
+          "description": "Review code logic and quality using multiple AI models (gemini, claude, codex).",
+          "input": [
+            "workspace.code_changes",
+            "test.results"
+          ],
+          "output": [
+            "review.results"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true
+            }
+          },
+          "display_id": "P2-36"
+        },
+        {
+          "id": "P2-FIX_ISSUE",
+          "name": "Fix Issue",
+          "description": "Fix issues found during testing. Add comment to GitHub Issue tracking the fix attempt.",
+          "input": [
+            "test.results",
+            "workspace.code_changes",
+            "github.issue.number"
+          ],
+          "output": [
+            "workspace.code_changes"
+          ],
+          "condition": "test_failed",
+          "min_mode": "lite",
+          "required_tools": [
+            "gh"
+          ],
+          "display_id": "P2-37"
+        },
+        {
+          "id": "P2-UPDATE_SPECIFICATION_DOCUMENT",
+          "name": "Update Specification Document",
+          "description": "Mark task as completed in specification",
+          "input": [
+            "tasks.current",
+            "exports/jobs/{job_id}/source/openspec.mdx"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/source/openspec.mdx"
+          ],
+          "condition": "test_passed",
+          "min_mode": "standard",
+          "required_tools": [
+            "openspec"
+          ],
+          "display_id": "P2-38"
+        },
+        {
+          "id": "P2-UPDATE_PROGRESS",
+          "name": "Update Progress",
+          "description": "Update progress.json with task completion status.",
+          "input": [
+            "tasks.current",
+            "exports/jobs/{job_id}/analysis/progress.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/progress.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P2-39"
+        },
+        {
+          "id": "P2-COMMIT_TASK",
+          "name": "Commit Task",
+          "description": "Commit task changes to job branch (frontend/backend/OpenSpec).",
+          "input": [
+            "workspace.code_changes",
+            "exports/jobs/{job_id}/source/openspec.mdx",
+            "exports/jobs/{job_id}/analysis/progress.json"
+          ],
+          "output": [
+            "git.commit.task"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "requires_human_approval": true,
+          "approval": {
+            "when": "before_execute",
+            "reason": "commit_boundary",
+            "modes": [
+              "lite",
+              "standard"
+            ]
+          },
+          "display_id": "P2-40"
+        }
+      ]
+    },
+    "testing_lite": {
+      "id": "testing_lite",
+      "name": "Testing",
+      "description": "Basic automated testing",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "ccb"
+      },
+      "groups": [],
+      "steps": [
+        {
+          "id": "P2-RUN_AUTOMATED_TESTS",
+          "name": "Run Automated Tests",
+          "description": "Run automated tests using testing frameworks (Jest, Vitest, Playwright, etc.) from verification.json.",
+          "input": [
+            "workspace.code_changes",
+            "exports/jobs/{job_id}/specs/verification.json"
+          ],
+          "output": [
+            "test.results"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P2-35"
+        },
+        {
+          "id": "P2-MULTIMODEL_CODE_REVIEW",
+          "name": "Multi-Model Code Review",
+          "description": "Review code logic and quality using multiple AI models (gemini, claude, codex).",
+          "input": [
+            "workspace.code_changes",
+            "test.results"
+          ],
+          "output": [
+            "review.results"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true
+            }
+          },
+          "display_id": "P2-36"
+        },
+        {
+          "id": "P2-COMMIT_TASK",
+          "name": "Commit Task",
+          "description": "Commit task changes to job branch (frontend/backend/OpenSpec).",
+          "input": [
+            "workspace.code_changes",
+            "exports/jobs/{job_id}/source/openspec.mdx",
+            "exports/jobs/{job_id}/analysis/progress.json"
+          ],
+          "output": [
+            "git.commit.task"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "requires_human_approval": true,
+          "approval": {
+            "when": "before_execute",
+            "reason": "commit_boundary",
+            "modes": [
+              "lite",
+              "standard"
+            ]
+          },
+          "display_id": "P2-40",
+          "enabled_in_modes": [
+            "lite"
+          ]
+        }
+      ]
+    },
+    "optimize": {
+      "id": "optimize",
+      "name": "Optimize",
+      "description": "Final review and auto-repair",
+      "execution": {
+        "mode": "loop",
+        "orchestrator": "ccb"
+      },
+      "groups": [],
+      "steps": [
+        {
+          "id": "P3-FINAL_REVIEW",
+          "name": "Final Review",
+          "description": "Multi-model review gate for final acceptance of all completed work.",
+          "input": [
+            "workspace.all_changes",
+            "exports/jobs/{job_id}/specs/*.mdx"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/reviews/final-review.json"
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true,
+              "user_options": [
+                "retry_phase2",
+                "continue"
+              ]
+            }
+          },
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb",
+            "cca"
+          ],
+          "display_id": "P3-41"
+        },
+        {
+          "id": "P3-AGGREGATE_REVIEW_RESULTS",
+          "name": "Aggregate Review Results",
+          "description": "Aggregate multi-model review results and calculate pass rate.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P3-42"
+        },
+        {
+          "id": "P3-FIX_ISSUES",
+          "name": "Fix Issues",
+          "description": "Fix issues found in final review (max 3 attempts). Add comment to GitHub Issue tracking the fix attempt. If exhausted, return to Phase 2.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+            "workspace.all_changes",
+            "github.issue.number"
+          ],
+          "output": [
+            "workspace.all_changes"
+          ],
+          "condition": "review_needs_fix",
+          "min_mode": "standard",
+          "required_tools": [
+            "gh"
+          ],
+          "display_id": "P3-43"
+        }
+      ]
+    },
+    "review": {
+      "id": "review",
+      "name": "Review",
+      "description": "Human confirmation and PR creation",
+      "execution": {
+        "mode": "loop",
+        "orchestrator": "user"
+      },
+      "groups": [
+        {
+          "id": "3.2",
+          "name": "Human Approval Gate",
+          "step_ids": []
+        },
+        {
+          "id": "3.3",
+          "name": "Pull Request Creation",
+          "step_ids": []
+        },
+        {
+          "id": "3.1",
+          "name": "Final Review & PR Creation",
+          "step_ids": [
+            "P3-RECORD_TECHNICAL_DEBT",
+            "P3-HUMAN_FINAL_CONFIRMATION",
+            "P3-CREATE_PULL_REQUEST"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "id": "P3-RECORD_TECHNICAL_DEBT",
+          "name": "Record Technical Debt",
+          "description": "Record issues to TECHNICAL_DEBT.md if review passed with minor issues.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
+          ],
+          "condition": "review_passed_with_issues",
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P3-44"
+        },
+        {
+          "id": "P3-HUMAN_FINAL_CONFIRMATION",
+          "name": "Human Final Confirmation",
+          "description": "Final human approval to proceed with archiving and deployment. Only executed after machine review passes.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+            "exports/jobs/{job_id}/TECHNICAL_DEBT.md",
+            "workspace.all_changes"
+          ],
+          "output": [
+            "human_approval.final"
+          ],
+          "requires_human_approval": true,
+          "condition": "review_passed",
+          "min_mode": "lite",
+          "display_id": "P3-45"
+        },
+        {
+          "id": "P3-CREATE_PULL_REQUEST",
+          "name": "Create Pull Request",
+          "description": "Create GitHub Pull Request for code review. Link to issue and include review results.",
+          "input": [
+            "git.branch.name",
+            "github.issue.number",
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+            "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
+          ],
+          "output": [
+            "github.pr.number",
+            "github.pr.url"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "gh"
+          ],
+          "display_id": "P3-46"
+        }
+      ]
+    },
+    "review_lite": {
+      "id": "review_lite",
+      "name": "Review",
+      "description": "Basic human confirmation",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "user"
+      },
+      "groups": [],
+      "steps": [
+        {
+          "id": "P3-RECORD_TECHNICAL_DEBT",
+          "name": "Record Technical Debt",
+          "description": "Record issues to TECHNICAL_DEBT.md if review passed with minor issues.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/TECHNICAL_DEBT.md"
+          ],
+          "condition": "review_passed_with_issues",
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P3-44"
+        },
+        {
+          "id": "P3-HUMAN_FINAL_CONFIRMATION",
+          "name": "Human Final Confirmation",
+          "description": "Final human approval to proceed with archiving and deployment. Only executed after machine review passes.",
+          "input": [
+            "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
+            "exports/jobs/{job_id}/TECHNICAL_DEBT.md",
+            "workspace.all_changes"
+          ],
+          "output": [
+            "human_approval.final"
+          ],
+          "requires_human_approval": true,
+          "condition": "review_passed",
+          "min_mode": "lite",
+          "display_id": "P3-45"
+        }
+      ]
+    },
+    "archiving": {
+      "id": "archiving",
+      "name": "Archiving",
+      "description": "Archive, update documentation, and release",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "ccb"
+      },
+      "groups": [
+        {
+          "id": "4.1",
+          "name": "Code Integration & Archival",
+          "step_ids": []
+        },
+        {
+          "id": "4.2",
+          "name": "Knowledge Base Synchronization",
+          "step_ids": []
+        },
+        {
+          "id": "4.3",
+          "name": "System Capabilities Update",
+          "step_ids": []
+        },
+        {
+          "id": "4.4",
+          "name": "Release Publication",
+          "step_ids": []
+        },
+        {
+          "id": "4.1",
+          "name": "Code Integration",
+          "step_ids": [
+            "P4-MERGE_GIT_BRANCH"
+          ]
+        },
+        {
+          "id": "4.2",
+          "name": "Documentation Updates",
+          "step_ids": [
+            "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
+            "P4-COMMIT_ARCHIVE",
+            "P4-UPDATE_SPECS",
+            "P4-COMMIT_SPECS",
+            "P4-UPDATE_DEVELOPMENT_DOCS",
+            "P4-COMMIT_DOCS",
+            "P4-UPDATE_ROADMAP_DOCS",
+            "P4-COMMIT_ROADMAP"
+          ]
+        },
+        {
+          "id": "4.3",
+          "name": "System Updates & Release",
+          "step_ids": [
+            "P4-REBUILD_CAPABILITY_TREE",
+            "P4-COMMIT_CAPABILITY_TREE",
+            "P4-CREATE_RELEASE"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "id": "P4-MERGE_GIT_BRANCH",
+          "name": "Merge Git Branch",
+          "description": "Merge feature branch to main (frontend + backend).",
+          "input": [
+            "git.branch.name",
+            "human_approval.final"
+          ],
+          "output": [
+            "git.merge.result"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P4-47"
+        },
+        {
+          "id": "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
+          "name": "Archive Specification Document",
+          "description": "Archive specification document to repository",
+          "input": [
+            "exports/jobs/{job_id}/source/openspec.mdx"
+          ],
+          "output": [
+            "openspec.archived_path"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "openspec"
+          ],
+          "display_id": "P4-48"
+        },
+        {
+          "id": "P4-COMMIT_ARCHIVE",
+          "name": "Commit Archive",
+          "description": "Commit archived OpenSpec to openspec repository.",
+          "input": [
+            "openspec.archived_path"
+          ],
+          "output": [
+            "git.commit.archive"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P4-49"
+        },
+        {
+          "id": "P4-UPDATE_SPECS",
+          "name": "Update Specs",
+          "description": "Apply changes to capability specifications in specs/.",
+          "input": [
+            "exports/jobs/{job_id}/specs/*.mdx",
+            "repo/specs/**"
+          ],
+          "output": [
+            "repo/specs/**"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P4-50"
+        },
+        {
+          "id": "P4-COMMIT_SPECS",
+          "name": "Commit Specs",
+          "description": "Commit updated specs to waoooo-docs repository.",
+          "input": [
+            "repo/specs/**"
+          ],
+          "output": [
+            "git.commit.specs"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P4-51"
+        },
+        {
+          "id": "P4-UPDATE_DEVELOPMENT_DOCS",
+          "name": "Update Development Docs",
+          "description": "Generate and update capability documentation.",
+          "input": [
+            "repo/specs/**"
+          ],
+          "output": [
+            "repo/docs/**"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P4-52"
+        },
+        {
+          "id": "P4-COMMIT_DOCS",
+          "name": "Commit Docs",
+          "description": "Commit updated documentation to waoooo-docs repository.",
+          "input": [
+            "repo/docs/**"
+          ],
+          "output": [
+            "git.commit.docs"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P4-53"
+        },
+        {
+          "id": "P4-UPDATE_ROADMAP_DOCS",
+          "name": "Update Roadmap Docs",
+          "description": "Update planning documents (JSON → MDX final state).",
+          "input": [
+            "exports/jobs/{job_id}/analysis/roadmap.json"
+          ],
+          "output": [
+            "repo/docs/roadmap/**"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P4-54"
+        },
+        {
+          "id": "P4-COMMIT_ROADMAP",
+          "name": "Commit Roadmap",
+          "description": "Commit updated roadmap documents to waoooo-docs repository.",
+          "input": [
+            "repo/docs/roadmap/**"
+          ],
+          "output": [
+            "git.commit.roadmap"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P4-55"
+        },
+        {
+          "id": "P4-REBUILD_CAPABILITY_TREE",
+          "name": "Rebuild Capability Tree",
+          "description": "Rebuild capability tree using build-capability-tree.ts.",
+          "input": [
+            "repo/specs/**",
+            "repo/src/**"
+          ],
+          "output": [
+            "repo/capability-tree.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P4-56"
+        },
+        {
+          "id": "P4-COMMIT_CAPABILITY_TREE",
+          "name": "Commit Capability Tree",
+          "description": "Commit updated capability tree to waoooo-web repository.",
+          "input": [
+            "repo/capability-tree.json"
+          ],
+          "output": [
+            "git.commit.capability_tree"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P4-57"
+        },
+        {
+          "id": "P4-CREATE_RELEASE",
+          "name": "Create Release",
+          "description": "Create GitHub Release with changelog and version tag.",
+          "input": [
+            "github.pr.number",
+            "git.merge.result",
+            "exports/jobs/{job_id}/metadata.json"
+          ],
+          "output": [
+            "github.release.tag",
+            "github.release.url"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "gh"
+          ],
+          "display_id": "P4-58"
+        }
+      ]
+    },
+    "archiving_lite": {
+      "id": "archiving_lite",
+      "name": "Archiving",
+      "description": "Basic archiving",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "ccb"
+      },
+      "groups": [],
+      "steps": [
+        {
+          "id": "P4-MERGE_GIT_BRANCH",
+          "name": "Merge Git Branch",
+          "description": "Merge feature branch to main (frontend + backend).",
+          "input": [
+            "git.branch.name",
+            "human_approval.final"
+          ],
+          "output": [
+            "git.merge.result"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P4-47"
+        }
+      ]
+    },
+    "planning_standard": {
+      "id": "planning_standard",
+      "name": "Planning",
+      "description": "Simplified planning with human-readable specs (no JSON for automation)",
+      "execution": {
+        "mode": "sequential",
+        "orchestrator": "ccb"
+      },
+      "groups": [
+        {
+          "id": "1.3",
+          "name": "Implementation Planning",
+          "step_ids": [
+            "P1-GENERATE_DEVELOPMENT_SPECS",
+            "P1-REVIEW_DEVELOPMENT_SPECS",
+            "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
+            "P1-GENERATE_PLANNING_DOCS",
+            "P1-COMMIT_PLANNING_CHANGES"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "id": "P1-GENERATE_DEVELOPMENT_SPECS",
+          "name": "Generate Development Specs",
+          "description": "Generate structured specs for development (README + JSON files for ralph automation)",
+          "input": [
+            "exports/jobs/{job_id}/parsed/unified.json",
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-22"
+        },
+        {
+          "id": "P1-REVIEW_DEVELOPMENT_SPECS",
+          "name": "Review Development Specs",
+          "description": "Run multi-model quality gate and auto-repair for generated specs",
+          "input": [
+            "exports/jobs/{job_id}/specs/README.md",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/reviews/specs-review.json"
+          ],
+          "review_config": {
+            "models": [
+              "gemini",
+              "claude",
+              "codex"
+            ],
+            "pass_threshold": 0.75,
+            "max_critical": 0,
+            "max_medium": 2,
+            "auto_repair": {
+              "enabled": true,
+              "max_attempts": 3,
+              "ask_user_on_exhausted": true
+            }
+          },
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb",
+            "cca"
+          ],
+          "display_id": "P1-23"
+        },
+        {
+          "id": "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
+          "name": "Generate Global Roadmap View",
+          "description": "Build cross-capability planning graph, milestones, and global todo list",
+          "input": [
+            "exports/jobs/{job_id}/analysis/capability-dependencies.json",
+            "exports/jobs/{job_id}/specs/tasks.json",
+            "exports/jobs/{job_id}/specs/verification.json",
+            "exports/jobs/{job_id}/specs/progress.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-24"
+        },
+        {
+          "id": "P1-GENERATE_PLANNING_DOCS",
+          "name": "Generate Planning Docs",
+          "description": "Render planning documents from JSON to Markdown (ROADMAP, TODO, DEPENDENCIES)",
+          "input": [
+            "exports/jobs/{job_id}/analysis/roadmap.json",
+            "exports/jobs/{job_id}/analysis/global-todo.json",
+            "exports/jobs/{job_id}/analysis/dependency-graph.json"
+          ],
+          "output": [
+            "exports/jobs/{job_id}/docs/ROADMAP.md",
+            "exports/jobs/{job_id}/docs/TODO.md",
+            "exports/jobs/{job_id}/docs/DEPENDENCIES.md"
+          ],
+          "min_mode": "standard",
+          "required_tools": [
+            "ccb"
+          ],
+          "display_id": "P1-25"
+        },
+        {
+          "id": "P1-COMMIT_PLANNING_CHANGES",
+          "name": "Commit Planning Changes",
+          "description": "Commit planning artifacts to job branch.",
+          "input": [
+            "exports/jobs/{job_id}/**",
+            "git.branch.name"
+          ],
+          "output": [
+            "git.commit.planning"
+          ],
+          "min_mode": "lite",
+          "required_tools": [
+            "git"
+          ],
+          "display_id": "P1-26"
+        }
+      ]
     }
   }
 }
