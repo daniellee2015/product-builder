@@ -14,7 +14,9 @@
         "P1-FIND_EXISTING_WORK",
         "P1-UPDATE_CAPABILITY_TREE",
         "P1-CREATE_JOB",
-        "P1-CREATE_GIT_BRANCH"
+        "P1-CREATE_GIT_BRANCH",
+        "P1-CHECK_PARALLEL_NEED",
+        "P1-CREATE_WORKTREE"
       ]
     },
     {
@@ -97,6 +99,42 @@
         "git"
       ],
       "display_id": "P1-16"
+    },
+    {
+      "id": "P1-CHECK_PARALLEL_NEED",
+      "name": "Check Parallel Development Need",
+      "description": "Detect if parallel development is needed for multiple tasks to avoid conflicts.",
+      "input": [
+        "exports/jobs/{job_id}/parsed/unified.json",
+        "exports/jobs/{job_id}/analysis/roadmap.json"
+      ],
+      "output": [
+        "parallel.needed"
+      ],
+      "min_mode": "standard",
+      "required_tools": [
+        "ccb"
+      ]
+    },
+    {
+      "id": "P1-CREATE_WORKTREE",
+      "name": "Create Worktree",
+      "description": "Create git worktrees for parallel task development with isolated workspaces.",
+      "input": [
+        "parallel.needed",
+        "git.branch.name",
+        "exports/jobs/{job_id}/metadata.json"
+      ],
+      "output": [
+        "worktree.paths",
+        "worktree.branches"
+      ],
+      "condition": "parallel_needed",
+      "min_mode": "standard",
+      "required_tools": [
+        "git",
+        "ccb-worktree"
+      ]
     },
     {
       "id": "P1-CONVERT_REQUIREMENTS_TO_OPENSPEC",

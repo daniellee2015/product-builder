@@ -49,7 +49,7 @@
     "standard": {
       "label": "Standard",
       "description": "OpenSpec workflow with capability tree, manual execution, no complex JSON generation",
-      "steps": 44,
+      "steps": 48,
       "review_gates": 3,
       "features": {
         "openspec_enabled": true,
@@ -89,6 +89,8 @@
         "P1-COMMIT_PLANNING_CHANGES",
         "P1-REVIEW_PLANNING_RESULTS",
         "P2-CREATE_GITHUB_ISSUE",
+        "P1-CHECK_PARALLEL_NEED",
+        "P1-CREATE_WORKTREE",
         "P2-EXECUTE_TASK",
         "P2-RUN_AUTOMATED_TESTS",
         "P2-MULTIMODEL_CODE_REVIEW",
@@ -102,6 +104,8 @@
         "P3-RECORD_TECHNICAL_DEBT",
         "P3-HUMAN_FINAL_CONFIRMATION",
         "P3-CREATE_PULL_REQUEST",
+        "P4-MERGE_WORKTREE_BRANCH",
+        "P4-CLEANUP_WORKTREE",
         "P4-MERGE_GIT_BRANCH",
         "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
         "P4-COMMIT_ARCHIVE",
@@ -138,7 +142,7 @@
     "full": {
       "label": "Full",
       "description": "Complete workflow with automatic loop (Phase 2 uses ralph), multi-model review, and all automation. Openclaw is experimental top-level monitoring.",
-      "steps": 56,
+      "steps": 60,
       "review_gates": 3,
       "features": {
         "openspec_enabled": true,
@@ -189,6 +193,8 @@
         "P1-REVIEW_PLANNING_RESULTS",
         "P2-START_EXECUTION_DECISION",
         "P2-CREATE_GITHUB_ISSUE",
+        "P1-CHECK_PARALLEL_NEED",
+        "P1-CREATE_WORKTREE",
         "P2-GET_NEXT_TASK",
         "P2-EXECUTE_TASK",
         "P2-RUN_AUTOMATED_TESTS",
@@ -203,6 +209,8 @@
         "P3-RECORD_TECHNICAL_DEBT",
         "P3-HUMAN_FINAL_CONFIRMATION",
         "P3-CREATE_PULL_REQUEST",
+        "P4-MERGE_WORKTREE_BRANCH",
+        "P4-CLEANUP_WORKTREE",
         "P4-MERGE_GIT_BRANCH",
         "P4-ARCHIVE_SPECIFICATION_DOCUMENT",
         "P4-COMMIT_ARCHIVE",

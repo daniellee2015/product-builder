@@ -31,8 +31,7 @@
         "execution.started"
       ],
       "requires_human_approval": true,
-      "min_mode": "lite",
-      "display_id": "P2-31"
+      "min_mode": "lite"
     },
     {
       "id": "P2-CREATE_GITHUB_ISSUE",
@@ -50,8 +49,7 @@
       "min_mode": "standard",
       "required_tools": [
         "gh"
-      ],
-      "display_id": "P2-32"
+      ]
     },
     {
       "id": "P2-GET_NEXT_TASK",
@@ -67,8 +65,7 @@
       "min_mode": "lite",
       "required_tools": [
         "ccb"
-      ],
-      "display_id": "P2-33"
+      ]
     },
     {
       "id": "P2-EXECUTE_TASK",
@@ -85,8 +82,7 @@
       "min_mode": "lite",
       "required_tools": [
         "ccb"
-      ],
-      "display_id": "P2-34"
+      ]
     }
   ]
 }

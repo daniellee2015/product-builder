@@ -24,8 +24,7 @@
       "min_mode": "standard",
       "required_tools": [
         "gh"
-      ],
-      "display_id": "P2-32"
+      ]
     },
     {
       "id": "P2-EXECUTE_TASK",
@@ -42,8 +41,7 @@
       "min_mode": "lite",
       "required_tools": [
         "ccb"
-      ],
-      "display_id": "P2-34"
+      ]
     },
     {
       "id": "P2-RUN_AUTOMATED_TESTS",
@@ -59,8 +57,7 @@
       "min_mode": "standard",
       "required_tools": [
         "ccb"
-      ],
-      "display_id": "P2-35"
+      ]
     },
     {
       "id": "P2-MULTIMODEL_CODE_REVIEW",
@@ -91,8 +88,7 @@
           "max_attempts": 3,
           "ask_user_on_exhausted": true
         }
-      },
-      "display_id": "P2-36"
+      }
     },
     {
       "id": "P2-FIX_ISSUE",
@@ -110,8 +106,7 @@
       "min_mode": "lite",
       "required_tools": [
         "gh"
-      ],
-      "display_id": "P2-37"
+      ]
     },
     {
       "id": "P2-UPDATE_SPECIFICATION_DOCUMENT",
@@ -128,8 +123,7 @@
       "min_mode": "standard",
       "required_tools": [
         "openspec"
-      ],
-      "display_id": "P2-38"
+      ]
     },
     {
       "id": "P2-UPDATE_PROGRESS",
@@ -145,8 +139,7 @@
       "min_mode": "standard",
       "required_tools": [
         "ccb"
-      ],
-      "display_id": "P2-39"
+      ]
     },
     {
       "id": "P2-COMMIT_TASK",
@@ -172,8 +165,7 @@
           "lite",
           "standard"
         ]
-      },
-      "display_id": "P2-40"
+      }
     }
   ]
 }

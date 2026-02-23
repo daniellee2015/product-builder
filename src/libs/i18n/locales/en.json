@@ -48,7 +48,9 @@
       "test_passed": "Test passed",
       "all_tasks_done": "All tasks done",
       "review_needs_fix": "Review needs fix",
-      "review_passed_with_issues": "Review passed with issues"
+      "review_passed_with_issues": "Review passed with issues",
+      "parallel_needed": "Parallel development needed",
+      "worktree_exists": "Worktree exists"
     },
     "switchMode": {
       "title": "Switch Workflow Mode",
@@ -115,7 +117,8 @@
       "noStepsSelected": "No steps selected. Changes not saved."
     },
     "view": {
-      "edit": "Edit workflow"
+      "edit": "Edit workflow",
+      "switchMode": "Switch Mode"
     }
   },
   "llm": {
