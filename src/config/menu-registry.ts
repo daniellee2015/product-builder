@@ -102,21 +102,17 @@ export const MENUS: Record<string, MenuConfig> = {
   },
 
   'llm-cli': {
-    title: 'LLM CLI Configuration',
+    title: 'Configure API / Routing',
     desc: 'Configure AI model providers and routing',
     headerLevel: 'section',
     headerWidth: 50,
     backLabel: 'Back to main menu',
     items: [
-      { key: '1', id: 'view-api', label: 'View API configuration', desc: 'Show current API settings' },
-      { key: '2', id: 'sync', label: 'Sync LLM configs', desc: 'Auto-detect LLM CLIs' },
-      { key: '3', id: 'claude', label: 'Configure Claude', desc: 'Set up Claude API' },
-      { key: '4', id: 'gemini', label: 'Configure Gemini', desc: 'Set up Gemini API' },
-      { key: '5', id: 'codex', label: 'Configure Codex', desc: 'Set up Codex API' },
-      { key: '6', id: 'opencode', label: 'Configure OpenCode', desc: 'Set up OpenCode API' },
-      { key: '7', id: 'default-llm', label: 'Set default LLM', desc: 'Choose default model' },
-      { key: '8', id: 'routing', label: 'Configure routing', desc: 'Set up fallback order' },
-      { key: '9', id: 'code-hub', label: 'Enable code hub', desc: 'Enable claude-code-hub' }
+      { key: '1', id: 'official-api', label: 'Official API', desc: 'Configure official API endpoints' },
+      { key: '2', id: 'custom-api', label: 'Custom API', desc: 'Configure custom endpoints (PackyAPI, self-hosted, etc.)' },
+      { key: '3', id: 'view-status', label: 'View Status', desc: 'Show current configuration' },
+      { key: '4', id: 'switch-config', label: 'Switch Configuration', desc: 'Manage multiple configs' },
+      { key: '5', id: 'enable-hub', label: 'Enable Code Hub', desc: 'Use cchub for routing' }
     ]
   },
 

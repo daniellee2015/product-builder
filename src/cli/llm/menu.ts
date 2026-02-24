@@ -17,16 +17,8 @@ import {
 import { MENUS, buildMenuOptions, findSelectedItem } from '../../config/menu-registry';
 import { displayAPIConfig } from './display';
 import i18n from '../../libs/i18n';
-
-/**
- * Prompt to continue
- */
-async function promptContinue(): Promise<void> {
-  await input.text({
-    prompt: i18n.t('common.continue'),
-    allowEmpty: true
-  });
-}
+import { CLI_CONFIGS, COMMON_PRESETS } from './providers';
+import { writeConfig } from './config-writer';
 
 /**
  * View API configuration
@@ -183,17 +175,180 @@ async function enableClaudeCodeHub(): Promise<void> {
   console.log('');
 }
 
+/**
+ * Show Official API menu
+ */
+async function showOfficialAPIMenu(): Promise<void> {
+  console.log(chalk.cyan.bold('\nConfigure Official API\n'));
+  console.log('Select CLI to configure:\n');
+
+  const options = [
+    '1. Claude (Anthropic)',
+    '2. Gemini (Google)',
+    '3. Codex (OpenAI)',
+    '4. OpenCode',
+    'b. Back'
+  ];
+
+  const result = await menu.radio({
+    options,
+    allowLetterKeys: true,
+    allowNumberKeys: true,
+    preserveOnSelect: true
+  });
+
+  if (result.value.includes('Back')) {
+    return;
+  }
+
+  // Show message that CLI will handle login
+  console.log(chalk.yellow('\nℹ This CLI will handle authentication itself.'));
+  console.log(chalk.gray('Please use the CLI\'s login command to authenticate.\n'));
+}
+
+/**
+ * Show Custom API menu
+ */
+async function showCustomAPIMenu(): Promise<void> {
+  console.log(chalk.cyan.bold('\nConfigure Custom API\n'));
+  console.log('Select CLI to configure:\n');
+
+  const options = [
+    '1. Claude',
+    '2. Gemini',
+    '3. Codex',
+    '4. OpenCode',
+    'b. Back'
+  ];
+
+  const result = await menu.radio({
+    options,
+    allowLetterKeys: true,
+    allowNumberKeys: true,
+    preserveOnSelect: true
+  });
+
+  if (result.value.includes('Back')) {
+    return;
+  }
+
+  // Determine which CLI was selected
+  let cliId = '';
+  if (result.value.includes('Claude')) cliId = 'claude';
+  else if (result.value.includes('Gemini')) cliId = 'gemini';
+  else if (result.value.includes('Codex')) cliId = 'codex';
+  else if (result.value.includes('OpenCode')) cliId = 'opencode';
+
+  if (cliId) {
+    await configureCustomAPI(cliId);
+  }
+}
+
+/**
+ * View API status
+ */
+async function viewAPIStatus(): Promise<void> {
+  console.log(chalk.cyan.bold('\nAPI Status\n'));
+  displayAPIConfig();
+}
+
+/**
+ * Switch configuration
+ */
+async function switchConfiguration(): Promise<void> {
+  console.log(chalk.cyan.bold('\nSwitch Configuration\n'));
+  console.log('Coming soon...\n');
+}
+
+/**
+ * Configure Custom API for a specific CLI
+ */
+async function configureCustomAPI(cliId: string): Promise<void> {
+  const cliConfig = CLI_CONFIGS.find(c => c.id === cliId);
+  if (!cliConfig) {
+    console.log(chalk.red(`\n✗ Unknown CLI: ${cliId}\n`));
+    return;
+  }
+
+  console.log(chalk.cyan.bold(`\nConfigure Custom API for ${cliConfig.name}\n`));
+  console.log('Select provider preset:\n');
+
+  // Build preset options
+  const presetOptions = cliConfig.presets.map((preset, index) => {
+    const desc = preset.description ? ` - ${preset.description}` : '';
+    return `${index + 1}. ${preset.name}${desc}`;
+  });
+  presetOptions.push('b. Back');
+
+  const result = await menu.radio({
+    options: presetOptions,
+    allowLetterKeys: true,
+    allowNumberKeys: true,
+    preserveOnSelect: true
+  });
+
+  if (result.value.includes('Back')) {
+    return;
+  }
+
+  const selectedPreset = cliConfig.presets[result.index];
+  if (!selectedPreset) {
+    return;
+  }
+
+  // Get base URL
+  let baseUrl = selectedPreset.baseUrl;
+  if (selectedPreset.id === 'custom') {
+    baseUrl = await input.text({
+      prompt: 'Base URL',
+      allowEmpty: false
+    });
+  } else {
+    console.log(chalk.gray(`\nBase URL: ${baseUrl}`));
+  }
+
+  // Get API key
+  const apiKey = await input.text({
+    prompt: 'API Key',
+    allowEmpty: false
+  });
+
+  // Write configuration based on CLI format
+  try {
+    if (cliConfig.format === 'json') {
+      // For Claude and OpenCode
+      writeConfig(cliConfig.configPath, 'json', {
+        api_base_url: baseUrl,
+        api_key: apiKey
+      });
+    } else if (cliConfig.format === 'env') {
+      // For Gemini
+      writeConfig(cliConfig.configPath, 'env', {
+        GOOGLE_GEMINI_BASE_URL: baseUrl,
+        GEMINI_API_KEY: apiKey
+      });
+    } else if (cliConfig.format === 'toml') {
+      // For Codex
+      writeConfig(cliConfig.configPath, 'toml', {
+        base_url: baseUrl,
+        api_key: apiKey
+      });
+    }
+
+    console.log(chalk.green(`\n✓ ${cliConfig.name} custom API configured successfully!`));
+    console.log(chalk.gray(`Config file: ${cliConfig.configPath}\n`));
+  } catch (error) {
+    console.log(chalk.red(`\n✗ Failed to write configuration: ${error}\n`));
+  }
+}
+
 // Route map: menu item id → handler
 const LLM_ROUTES: Record<string, () => Promise<void>> = {
-  'view-api': viewAPIConfig,
-  'sync': syncLLMConfigsInteractive,
-  'claude': () => configureLLMAPI('claude'),
-  'gemini': () => configureLLMAPI('gemini'),
-  'codex': () => configureLLMAPI('codex'),
-  'opencode': () => configureLLMAPI('opencode'),
-  'default-llm': setDefaultLLM,
-  'routing': configureRouting,
-  'code-hub': enableClaudeCodeHub,
+  'official-api': showOfficialAPIMenu,
+  'custom-api': showCustomAPIMenu,
+  'view-status': viewAPIStatus,
+  'switch-config': switchConfiguration,
+  'enable-hub': enableClaudeCodeHub,
 };
 
 /**
@@ -228,6 +383,6 @@ export async function showLLMCLIMenu(showMainMenu: () => Promise<void>): Promise
     await handler();
   }
 
-  await promptContinue();
+  // Directly show menu again without prompting
   await showLLMCLIMenu(showMainMenu);
 }
