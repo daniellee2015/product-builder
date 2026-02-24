@@ -1,5 +1,6 @@
-import { renderPage, generateMenuHints, setLanguage } from 'cli-menu-kit';
+import { renderPage, generateMenuHints } from 'cli-menu-kit';
 import chalk from 'chalk';
+import * as path from 'path';
 import {
   showLLMCLIMenu,
   showArchToolsMenu,
@@ -17,9 +18,19 @@ import {
 } from './menus';
 import { initializeProject } from './init';
 import { MENUS, buildMenuOptions, findSelectedItem } from '../config/menu-registry';
+import { showSettingsMenu } from './settings';
+import { initCLI } from './init-cli';
 
-// Set language to English for consistency
-setLanguage('en');
+// Initialize CLI with unified configuration
+initCLI({
+  appName: 'product-builder',
+  languagesPath: path.join(__dirname, '../../languages.json'),
+  defaults: {
+    language: 'en',
+    workflow_mode: 'full',
+    auto_save: true
+  }
+});
 
 // Route map: menu item id → handler
 const MAIN_ROUTES: Record<string, (back: () => Promise<void>) => Promise<void>> = {
@@ -36,6 +47,7 @@ const MAIN_ROUTES: Record<string, (back: () => Promise<void>) => Promise<void>> 
   'agents': (back) => showAgentsMenu(back),
   'view-config': (back) => showViewConfigMenu(back),
   'deps': (back) => showDependenciesMenu(back),
+  'settings': (back) => showSettingsMenu(back),
   'help': (back) => showHelpMenu(back),
 };
 
