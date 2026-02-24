@@ -17,8 +17,10 @@ import {
   isStepActive,
   countActiveSteps,
   countReviewGates,
-  countTotalSteps
+  countTotalSteps,
+  loadWorkflow
 } from '../../services/workflow-service';
+import { switchWorkflowMode } from './switch';
 import i18n from '../../libs/i18n';
 
 /**
@@ -249,6 +251,7 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
       menu: {
         options: [
           `e. ${i18n.t('workflow.view.edit')}`,
+          `m. ${i18n.t('workflow.view.switchMode')}`,
           `b. ${i18n.t('common.back')}`
         ],
         allowLetterKeys: true,
@@ -260,6 +263,18 @@ export async function viewWorkflow(data: WorkflowData): Promise<string> {
       })
     }
   });
+
+  // Handle mode switch action
+  if (result.value.includes(i18n.t('workflow.view.switchMode'))) {
+    await switchWorkflowMode(data);
+
+    // Reload workflow data after mode switch
+    const updatedData = loadWorkflow();
+    if (updatedData) {
+      // Recursively call viewWorkflow to refresh the view
+      return await viewWorkflow(updatedData);
+    }
+  }
 
   return result.value;
 }

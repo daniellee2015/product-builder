@@ -12,10 +12,17 @@ export interface WorkflowStep {
   min_mode: WorkflowMode;
   input: string[];
   output: string[];
+  output_format?: string;
   condition?: string;
+  enabled_in_modes?: WorkflowMode[];
   required_tools?: string[];
   optional_tools?: string[];
   requires_human_approval?: boolean;
+  approval?: {
+    type: string;
+    approvers?: string[];
+    timeout?: number;
+  };
   review_config?: {
     models: string[];
     pass_threshold: number;
@@ -52,11 +59,26 @@ export interface WorkflowPhase {
 
 export interface ModeConfig {
   label: string;
-  required_tools: string[];
-  enabled_steps?: string[];
   description: string;
   steps: number;
   review_gates: number;
+  features?: {
+    openspec_enabled: boolean;
+    multi_model_review: boolean;
+    auto_loop: boolean;
+    directory_scaffolding: string;
+  };
+  orchestrator?: string;
+  execution_mode?: string;
+  loop_policy?: string;
+  step_trigger_policy?: string;
+  requires_user_iteration?: boolean;
+  required_tools: string[];
+  tool_profile?: string;
+  scaffold_profile?: string;
+  enabled_steps?: string[];
+  pipeline?: string[];
+  overrides?: Record<string, any>;
   is_custom?: boolean;
   base_mode?: WorkflowMode;
 }
@@ -74,6 +96,7 @@ export interface WorkflowTransition {
   from: string;
   to: string;
   condition?: string;
+  enabled_in_modes?: string[];
 }
 
 export interface ReviewPolicyDefaults {
@@ -91,29 +114,13 @@ export interface ReviewPolicyDefaults {
 
 export interface WorkflowData {
   $schema: string;
+  schema_version: string;
   version: string;
   workflow_id: string;
   name: string;
   description: string;
   mode: WorkflowMode;
   available_modes: Record<string, ModeConfig>;
-  metadata: {
-    owner: string;
-    created_at: string;
-    job_id_format: string;
-    job_root: string;
-    supported_input_modes: string[];
-  };
-  job_structure: {
-    required_dirs: string[];
-    required_files: string[];
-  };
-  review_policy_defaults: ReviewPolicyDefaults;
-  cli_view: {
-    default_group_by: string;
-    show_step_fields: string[];
-    show_transitions: boolean;
-  };
   phase_registry: Record<string, {
     steps: WorkflowStep[];
     groups?: any[];
