@@ -348,6 +348,12 @@ class WorkflowOrchestrator:
                 step_result = self._execute_step(step)
                 visited_steps.add(current_step_id)
 
+                # Handle skipped steps
+                if step_result.get('status') == 'skipped':
+                    print(f"   ⏭️  Step skipped, continuing to next transition")
+                    current_step_id = self._find_next_step(current_step_id, enabled_steps)
+                    continue
+
                 # Check if step failed
                 if step_result['status'] == 'failed':
                     # Try to find failure transition
@@ -372,7 +378,9 @@ class WorkflowOrchestrator:
                     # Strict mode: halt when no transition matches
                     print(f"\\n⚠️  No matching transition from {current_step_id} (strict mode)")
                     print(f"   Halting execution")
-                    break
+                    self.state['status'] = 'halted'
+                    self._save_state()
+                    raise Exception(f"No matching transition from {current_step_id} in strict mode")
                 else:
                     # Permissive mode: try sequential fallback
                     print(f"\\n⚠️  No matching transition from {current_step_id}")
@@ -387,14 +395,22 @@ class WorkflowOrchestrator:
         # Check if there are any remaining enabled steps that weren't executed
         # Only in permissive mode
         if not self.strict_transitions:
-            remaining_steps = [s for s in enabled_steps if s not in self.state['completed_steps']]
+            # Exclude both completed and failed steps
+            completed_or_failed = set(self.state['completed_steps']) | set(self.state.get('failed_steps', []))
+            remaining_steps = [s for s in enabled_steps if s not in completed_or_failed]
             if remaining_steps:
                 print(f"\\n⚠️  {len(remaining_steps)} enabled steps were not reached by transitions")
                 print(f"   Executing remaining steps in sequence (permissive mode)...")
                 for step_id in remaining_steps:
                     if step_id in self.step_map:
                         step_info = self.step_map[step_id]
-                        self._execute_step(step_info['step'])
+                        step_result = self._execute_step(step_info['step'])
+                        # Check if safety-net step failed
+                        if step_result.get('status') == 'failed':
+                            print(f"   ❌ Safety-net step {step_id} failed")
+                            self.state['status'] = 'failed'
+                            self._save_state()
+                            raise Exception(f"Safety-net step {step_id} failed: {step_result.get('error', 'Unknown error')}")
 
     def _find_start_step(self, enabled_steps: List[str]) -> Optional[str]:
         """Find the first step to execute"""
@@ -469,7 +485,14 @@ class WorkflowOrchestrator:
                     print(f"\\n⏭️  Step {step_id}: {step['name']} (already completed)")
                     continue
 
-                self._execute_step(step)
+                step_result = self._execute_step(step)
+
+                # Check if step failed in linear mode
+                if step_result.get('status') == 'failed':
+                    print(f"\\n❌ Step {step_id} failed in linear mode")
+                    self.state['status'] = 'failed'
+                    self._save_state()
+                    raise Exception(f"Step {step_id} failed: {step_result.get('error', 'Unknown error')}")
 
     def _execute_step(self, step: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a single step using CodeAct
@@ -487,7 +510,7 @@ class WorkflowOrchestrator:
         if 'condition' in step:
             if not self._evaluate_condition(step['condition']):
                 print(f"   ⏭️  Step skipped (condition not met)")
-                return
+                return {'status': 'skipped', 'step_id': step_id}
 
         self.state['current_step'] = step_id
         self._save_state()
@@ -902,24 +925,28 @@ class WorkflowOrchestrator:
 def main():
     """Main entry point"""
     if len(sys.argv) < 3:
-        print("Usage: python orchestrator.py <workflow.json> <job_id> [llm_provider] [--auto-approve]")
+        print("Usage: python orchestrator.py <workflow.json> <job_id> [llm_provider] [--auto-approve] [--strict-transitions]")
         print("  llm_provider: codex (default) or gemini")
         print("  --auto-approve: Enable automatic approval in non-interactive mode")
+        print("  --strict-transitions: Enable strict transition mode (halt on no-match)")
         sys.exit(1)
 
     workflow_path = sys.argv[1]
     job_id = sys.argv[2]
     llm_provider = "codex"
     auto_approve = False
+    strict_transitions = False
 
     # Parse remaining arguments
     for arg in sys.argv[3:]:
         if arg == "--auto-approve":
             auto_approve = True
+        elif arg == "--strict-transitions":
+            strict_transitions = True
         elif arg in ["codex", "gemini"]:
             llm_provider = arg
 
-    orchestrator = WorkflowOrchestrator(workflow_path, job_id, llm_provider, auto_approve)
+    orchestrator = WorkflowOrchestrator(workflow_path, job_id, llm_provider, auto_approve, strict_transitions)
     orchestrator.execute()
 
 
