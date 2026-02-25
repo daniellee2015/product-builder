@@ -163,12 +163,18 @@ class WorkflowOrchestrator:
             return json.load(f)
 
     def _load_transitions(self) -> List[Dict[str, Any]]:
-        """Load transitions from transitions.json if available"""
+        """Load transitions from workflow data or external file"""
+        # Priority 1: Load from embedded workflow data
+        if 'transitions' in self.workflow_data:
+            return self.workflow_data['transitions']
+
+        # Priority 2: Load from sibling transitions.json file
         transitions_file = self.workflow_path.parent / 'transitions.json'
         if transitions_file.exists():
             with open(transitions_file, 'r') as f:
                 data = json.load(f)
                 return data.get('transitions', [])
+
         return []
 
     def _build_step_map(self) -> Dict[str, Dict[str, Any]]:
@@ -476,6 +482,12 @@ class WorkflowOrchestrator:
 
         # All retries exhausted
         print(f"   ❌ Step failed after {max_retries} attempts")
+
+        # Update variables for failure case before raising exception
+        # This allows failure-driven transitions to work
+        result = {'status': 'failed', 'error': last_error, 'output': ''}
+        self._update_variables_from_result(step_id, step, result)
+
         if 'failed_steps' not in self.state:
             self.state['failed_steps'] = []
         # Add to failed_steps (avoid duplicates)
@@ -667,12 +679,13 @@ class WorkflowOrchestrator:
 
             if func_name == 'done':
                 step_id = args[0] if args else ''
-                return step_id in self.state['completed_steps']
+                # Check both the provided ID and normalized variations
+                return self._is_step_completed(step_id)
 
             elif func_name == 'review_passed':
-                # For now, treat as step completed
                 step_id = args[0] if args else ''
-                return step_id in self.state['completed_steps']
+                # Check both the provided ID and normalized variations
+                return self._is_step_completed(step_id)
 
             else:
                 print(f"   ⚠️  Unknown function: {func_name}, returning false")
@@ -688,6 +701,37 @@ class WorkflowOrchestrator:
         if isinstance(value, (int, float)):
             return value != 0
         return bool(value)
+
+    def _is_step_completed(self, step_id: str) -> bool:
+        """Check if a step is completed, supporting multiple ID formats"""
+        if not step_id:
+            return False
+
+        # Direct match
+        if step_id in self.state['completed_steps']:
+            return True
+
+        # Try to find matching step in step_map
+        # This handles cases where the condition uses display IDs like "P1-02"
+        # but the stored ID might be different
+        for stored_id in self.state['completed_steps']:
+            # Check if stored_id ends with the provided step_id
+            # e.g., "P1-FIND_EXISTING_WORK" matches "P1-02" if it's the 2nd step in P1
+            if stored_id == step_id:
+                return True
+
+            # Check if step_id is a display ID pattern (e.g., "P1-02")
+            # and try to map it to the actual step_id
+            if step_id in self.step_map:
+                return True
+
+        # Check in step_map for reverse lookup
+        # If step_id is like "P1-02", try to find the actual step
+        if step_id in self.step_map:
+            actual_step_id = step_id
+            return actual_step_id in self.state['completed_steps']
+
+        return False
 
     def _get_expression_value(self, expr: str):
         """Get the value of an expression variable or literal"""
