@@ -12,6 +12,14 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 import os
 
+# Import adapters
+try:
+    from adapters import GitAdapter, GitHubAdapter, TestAdapter
+except ImportError:
+    # Fallback for when running from different directory
+    sys.path.insert(0, str(Path(__file__).parent))
+    from adapters import GitAdapter, GitHubAdapter, TestAdapter
+
 
 class CodeActExecutor:
     """CodeAct execution layer - calls LLM to generate and execute code"""
@@ -136,6 +144,14 @@ class WorkflowOrchestrator:
         self.state_file = Path(f".product-builder/jobs/{job_id}/state.json")
         self.state = self._load_state()
 
+        # Initialize adapters
+        self.adapters = {
+            'git': GitAdapter(),
+            'github': GitHubAdapter(),
+            'gh': GitHubAdapter(),  # Alias
+            'test': TestAdapter()
+        }
+
     def _load_workflow(self) -> Dict[str, Any]:
         """Load workflow.json"""
         with open(self.workflow_path, 'r') as f:
@@ -242,7 +258,7 @@ class WorkflowOrchestrator:
                 print(f"   ❌ Step rejected by user")
                 return
 
-        # Prepare context for CodeAct execution
+        # Prepare context for execution
         context = {
             'job_id': self.job_id,
             'step_id': step_id,
@@ -254,6 +270,9 @@ class WorkflowOrchestrator:
         max_retries = step.get('retry', {}).get('max_attempts', 1)
         retry_delay = step.get('retry', {}).get('delay_seconds', 0)
 
+        # Determine execution method: adapter or CodeAct
+        tool = step.get('tool', 'codeact')
+
         # Execute with retry logic
         last_error = None
         for attempt in range(max_retries):
@@ -263,11 +282,16 @@ class WorkflowOrchestrator:
                     print(f"   ⏳ Waiting {retry_delay} seconds before retry...")
                     time.sleep(retry_delay)
 
-            print(f"   🤖 Executing with {self.executor.llm_provider}...")
-            result = self.executor.execute_task(
-                task_prompt=step.get('description', step_name),
-                context=context
-            )
+            # Route to appropriate executor
+            if tool in self.adapters:
+                print(f"   🔧 Executing with {tool} adapter...")
+                result = self.adapters[tool].execute(step, context)
+            else:
+                print(f"   🤖 Executing with {self.executor.llm_provider}...")
+                result = self.executor.execute_task(
+                    task_prompt=step.get('description', step_name),
+                    context=context
+                )
 
             # Log execution
             log_entry = {
