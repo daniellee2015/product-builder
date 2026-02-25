@@ -135,7 +135,7 @@ class CodeActExecutor:
 class WorkflowOrchestrator:
     """Main workflow orchestrator using CodeAct approach"""
 
-    def __init__(self, workflow_path: str, job_id: str, llm_provider: str = "codex", auto_approve: bool = False):
+    def __init__(self, workflow_path: str, job_id: str, llm_provider: str = "codex", auto_approve: bool = False, strict_transitions: bool = False):
         self.workflow_path = Path(workflow_path)
         self.job_id = job_id
         self.workflow_data = self._load_workflow()
@@ -145,6 +145,7 @@ class WorkflowOrchestrator:
         self.state_file = Path(f".product-builder/jobs/{job_id}/state.json")
         self.state = self._load_state()
         self.auto_approve = auto_approve  # Explicit auto-approve flag
+        self.strict_transitions = strict_transitions  # Strict transition mode
 
         # Initialize adapters
         self.adapters = {
@@ -344,15 +345,39 @@ class WorkflowOrchestrator:
                 print(f"📦 Phase: {phase['name']}")
                 print(f"{'='*60}")
 
-                self._execute_step(step)
+                step_result = self._execute_step(step)
                 visited_steps.add(current_step_id)
+
+                # Check if step failed
+                if step_result['status'] == 'failed':
+                    # Try to find failure transition
+                    failure_transition = self._find_next_step(current_step_id, enabled_steps)
+                    if failure_transition:
+                        print(f"   🔀 Following failure transition to {failure_transition}")
+                        current_step_id = failure_transition
+                        continue
+                    else:
+                        # No failure transition found, workflow fails
+                        print(f"   ❌ No failure transition found, workflow failed")
+                        self.state['status'] = 'failed'
+                        self._save_state()
+                        raise Exception(f"Step {current_step_id} failed and no failure transition exists")
 
             # Find next step based on transitions
             next_step = self._find_next_step(current_step_id, enabled_steps)
 
-            # If no transition found, try to find next enabled step in sequence
+            # If no transition found, handle based on strict mode
             if not next_step:
-                next_step = self._find_next_enabled_step(current_step_id, enabled_steps)
+                if self.strict_transitions:
+                    # Strict mode: halt when no transition matches
+                    print(f"\\n⚠️  No matching transition from {current_step_id} (strict mode)")
+                    print(f"   Halting execution")
+                    break
+                else:
+                    # Permissive mode: try sequential fallback
+                    print(f"\\n⚠️  No matching transition from {current_step_id}")
+                    print(f"   Falling back to sequential execution")
+                    next_step = self._find_next_enabled_step(current_step_id, enabled_steps)
 
             current_step_id = next_step
 
@@ -360,14 +385,16 @@ class WorkflowOrchestrator:
             raise Exception(f"Maximum iterations ({max_iterations}) exceeded - possible infinite loop")
 
         # Check if there are any remaining enabled steps that weren't executed
-        remaining_steps = [s for s in enabled_steps if s not in self.state['completed_steps']]
-        if remaining_steps:
-            print(f"\\n⚠️  {len(remaining_steps)} enabled steps were not reached by transitions")
-            print(f"   Executing remaining steps in sequence...")
-            for step_id in remaining_steps:
-                if step_id in self.step_map:
-                    step_info = self.step_map[step_id]
-                    self._execute_step(step_info['step'])
+        # Only in permissive mode
+        if not self.strict_transitions:
+            remaining_steps = [s for s in enabled_steps if s not in self.state['completed_steps']]
+            if remaining_steps:
+                print(f"\\n⚠️  {len(remaining_steps)} enabled steps were not reached by transitions")
+                print(f"   Executing remaining steps in sequence (permissive mode)...")
+                for step_id in remaining_steps:
+                    if step_id in self.step_map:
+                        step_info = self.step_map[step_id]
+                        self._execute_step(step_info['step'])
 
     def _find_start_step(self, enabled_steps: List[str]) -> Optional[str]:
         """Find the first step to execute"""
@@ -444,8 +471,12 @@ class WorkflowOrchestrator:
 
                 self._execute_step(step)
 
-    def _execute_step(self, step: Dict[str, Any]):
-        """Execute a single step using CodeAct"""
+    def _execute_step(self, step: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a single step using CodeAct
+
+        Returns:
+            Dict with 'status' ('success' or 'failed') and other execution details
+        """
         step_id = step.get('step_id', step.get('id', ''))
         step_name = step['name']
 
@@ -560,7 +591,7 @@ class WorkflowOrchestrator:
                 self._update_variables_from_result(step_id, step, result)
 
                 self._save_state()
-                return
+                return {'status': 'success', 'step_id': step_id}
 
             last_error = result['error']
             print(f"   ❌ Attempt {attempt + 1} failed: {last_error}")
@@ -568,18 +599,19 @@ class WorkflowOrchestrator:
         # All retries exhausted
         print(f"   ❌ Step failed after {max_retries} attempts")
 
-        # Update variables for failure case before raising exception
-        # This allows failure-driven transitions to work
+        # Update variables for failure case
         result = {'status': 'failed', 'error': last_error, 'output': ''}
         self._update_variables_from_result(step_id, step, result)
 
         if 'failed_steps' not in self.state:
             self.state['failed_steps'] = []
-        # Add to failed_steps (avoid duplicates)
         if step_id not in self.state['failed_steps']:
             self.state['failed_steps'].append(step_id)
         self._save_state()
-        raise Exception(f"Step {step_id} failed after {max_retries} attempts: {last_error}")
+
+        # Return failure status instead of raising exception
+        # This allows transition-driven execution to handle failure branches
+        return {'status': 'failed', 'step_id': step_id, 'error': last_error}
 
     def _resolve_paths(self, paths) -> List[str]:
         """Resolve paths with job_id placeholder
