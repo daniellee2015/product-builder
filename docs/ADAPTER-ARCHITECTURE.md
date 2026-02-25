@@ -31,52 +31,84 @@ The `CodeActExecutor` class is the core execution engine that calls LLM CLI tool
 - Workspace write permissions
 - Sandbox isolation
 
-#### 2. Git Adapter (TODO)
+#### 2. Git Adapter (✅ Implemented)
 
 **Purpose**: Version control operations
 
-**Planned Operations**:
-- `git commit`
-- `git push`
-- `git branch`
-- `git merge`
-- `git status`
+**File**: `scripts/python/adapters/git_adapter.py`
 
-**Implementation Approach**:
-- Direct git CLI calls
-- Structured output parsing
-- Error handling and retry
+**Supported Operations**:
+- `status` - Get git status (porcelain format)
+- `add` - Stage files for commit
+- `commit` - Create commits with messages
+- `push` - Push to remote (with force option)
+- `branch` - Branch management (list, create, checkout)
+- `diff` - Show differences (with cached/stat options)
 
-#### 3. GitHub Adapter (TODO)
+**Implementation**:
+- Direct git CLI calls via subprocess
+- 30-second timeout per operation
+- Structured output with status/output/error
+- Repository path context support
 
-**Purpose**: GitHub API operations
+**Known Limitations**:
+- No support for complex merge operations
+- No interactive rebase support
+- Force push requires explicit flag
 
-**Planned Operations**:
-- Create/update issues
-- Create/merge PRs
-- Add comments
-- Manage labels
-- Check CI status
+#### 3. GitHub Adapter (✅ Implemented)
 
-**Implementation Approach**:
-- Use `gh` CLI tool
+**Purpose**: GitHub API operations via gh CLI
+
+**File**: `scripts/python/adapters/github_adapter.py`
+
+**Supported Operations**:
+- `pr-create` - Create pull requests (with draft option)
+- `pr-list` - List PRs with filters (state, limit)
+- `pr-merge` - Merge PRs (merge/squash/rebase methods)
+- `issue-create` - Create issues (with labels, assignees)
+- `issue-list` - List issues with filters
+- `repo-view` - View repository information
+
+**Implementation**:
+- Uses `gh` CLI tool
+- 60-second timeout per operation
 - JSON output parsing
-- Rate limiting handling
+- Repository path context support (fixed in latest version)
 
-#### 4. Test Adapter (TODO)
+**Known Limitations**:
+- Requires gh CLI authentication
+- No support for GitHub Actions operations
+- No support for release management
 
-**Purpose**: Run test suites
+#### 4. Test Adapter (✅ Implemented)
 
-**Planned Operations**:
-- Run unit tests
-- Run integration tests
-- Parse test results
-- Generate coverage reports
+**Purpose**: Run test suites with framework auto-detection
 
-**Implementation Approach**:
-- Detect test framework (pytest, jest, etc.)
-- Execute tests with appropriate runner
-- Parse output for pass/fail status
+**File**: `scripts/python/adapters/test_adapter.py`
+
+**Supported Frameworks**:
+- `pytest` - Python testing (auto-detected from pytest.ini)
+- `jest` - JavaScript testing (auto-detected from package.json)
+- `vitest` - Vite testing (auto-detected from package.json)
+- `mocha` - JavaScript testing (auto-detected from package.json)
+
+**Features**:
+- Automatic framework detection
+- Coverage reporting support
+- Configurable test paths and markers
+- 5-minute timeout for long test suites
+- Proper exit code handling (non-zero = failed)
+
+**Implementation**:
+- Framework detection from config files
+- Subprocess execution with output capture
+- Status correctly reflects test pass/fail
+
+**Known Limitations**:
+- No support for parallel test execution
+- No support for test result parsing (JUnit XML, etc.)
+- Coverage reports not structured
 
 #### 5. Routing Adapter (TODO)
 
@@ -119,18 +151,54 @@ class Adapter:
 
 ## Integration with Workflow
 
-The workflow executor should:
+The workflow executor implements the following routing logic:
 
-1. Detect the `tool` field in each step
-2. Route to the appropriate adapter
-3. Pass task configuration and context
-4. Handle adapter response
-5. Log execution results
+1. **Tool Detection** (Priority Order):
+   - Check explicit `tool` field in step configuration
+   - If not present, infer from `required_tools` array
+   - Fallback to CodeAct executor if no match
 
-## Next Steps
+2. **Adapter Routing**:
+   - Map tool name to registered adapter
+   - Pass step configuration and execution context
+   - Handle adapter response (status, output, error)
 
-1. Implement adapter registry and routing
-2. Create git adapter
-3. Create gh adapter
-4. Create test adapter
-5. Add adapter configuration to workflow.json
+3. **Tool Mapping**:
+   ```python
+   tool_mapping = {
+       'git': 'git',
+       'gh': 'github',
+       'github': 'github',
+       'pytest': 'test',
+       'jest': 'test',
+       'vitest': 'test',
+       'mocha': 'test'
+   }
+   ```
+
+4. **Execution Context**:
+   - `job_id`: Current job identifier
+   - `step_id`: Current step identifier
+   - `input_files`: Resolved input file paths
+   - `output_files`: Resolved output file paths
+
+5. **Response Handling**:
+   - Log execution results
+   - Update state (completed_steps/failed_steps)
+   - Trigger retry logic on failure
+
+## Implementation Status
+
+✅ **Completed**:
+- Adapter registry and routing system
+- Git adapter (6 operations)
+- GitHub adapter (6 operations)
+- Test adapter (4 frameworks)
+- Tool inference from required_tools
+- Proper error handling and state management
+
+⏳ **Remaining**:
+- Routing adapter (model selection)
+- Additional adapters as needed (file system, API, etc.)
+- Automated test suite for adapters
+- Performance optimization for large workflows
