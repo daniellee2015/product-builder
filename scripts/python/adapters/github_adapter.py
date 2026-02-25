@@ -6,11 +6,15 @@ Provides GitHub operations via gh CLI
 
 import subprocess
 import json
+from pathlib import Path
 from typing import Dict, Any, List
 
 
 class GitHubAdapter:
     """Adapter for GitHub operations using gh CLI"""
+
+    def __init__(self, repo_path: str = "."):
+        self.repo_path = Path(repo_path)
 
     def execute(self, task: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -60,6 +64,7 @@ class GitHubAdapter:
         try:
             result = subprocess.run(
                 ['gh'] + args,
+                cwd=self.repo_path,
                 capture_output=True,
                 text=True,
                 timeout=60

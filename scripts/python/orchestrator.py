@@ -135,7 +135,7 @@ class CodeActExecutor:
 class WorkflowOrchestrator:
     """Main workflow orchestrator using CodeAct approach"""
 
-    def __init__(self, workflow_path: str, job_id: str, llm_provider: str = "codex"):
+    def __init__(self, workflow_path: str, job_id: str, llm_provider: str = "codex", auto_approve: bool = False):
         self.workflow_path = Path(workflow_path)
         self.job_id = job_id
         self.workflow_data = self._load_workflow()
@@ -143,6 +143,7 @@ class WorkflowOrchestrator:
         self.executor = CodeActExecutor(llm_provider)
         self.state_file = Path(f".product-builder/jobs/{job_id}/state.json")
         self.state = self._load_state()
+        self.auto_approve = auto_approve  # Explicit auto-approve flag
 
         # Initialize adapters
         self.adapters = {
@@ -271,7 +272,32 @@ class WorkflowOrchestrator:
         retry_delay = step.get('retry', {}).get('delay_seconds', 0)
 
         # Determine execution method: adapter or CodeAct
-        tool = step.get('tool', 'codeact')
+        # Priority: 1) explicit 'tool' field, 2) infer from 'required_tools', 3) CodeAct fallback
+        tool = step.get('tool')
+
+        if not tool:
+            # Try to infer from required_tools
+            required_tools = step.get('required_tools', [])
+            if required_tools:
+                # Map required_tools to adapter names
+                tool_mapping = {
+                    'git': 'git',
+                    'gh': 'github',
+                    'github': 'github',
+                    'pytest': 'test',
+                    'jest': 'test',
+                    'vitest': 'test',
+                    'mocha': 'test'
+                }
+
+                # Use first recognized tool
+                for req_tool in required_tools:
+                    if req_tool in tool_mapping:
+                        tool = tool_mapping[req_tool]
+                        break
+
+        if not tool:
+            tool = 'codeact'  # Default fallback
 
         # Execute with retry logic
         last_error = None
@@ -306,7 +332,14 @@ class WorkflowOrchestrator:
 
             if result['status'] == 'success':
                 print(f"   ✅ Step completed successfully")
-                self.state['completed_steps'].append(step_id)
+                # Remove from failed_steps if it was there
+                if 'failed_steps' not in self.state:
+                    self.state['failed_steps'] = []
+                if step_id in self.state['failed_steps']:
+                    self.state['failed_steps'].remove(step_id)
+                # Add to completed_steps (avoid duplicates)
+                if step_id not in self.state['completed_steps']:
+                    self.state['completed_steps'].append(step_id)
                 self._save_state()
                 return
 
@@ -317,28 +350,56 @@ class WorkflowOrchestrator:
         print(f"   ❌ Step failed after {max_retries} attempts")
         if 'failed_steps' not in self.state:
             self.state['failed_steps'] = []
-        self.state['failed_steps'].append(step_id)
+        # Add to failed_steps (avoid duplicates)
+        if step_id not in self.state['failed_steps']:
+            self.state['failed_steps'].append(step_id)
         self._save_state()
         raise Exception(f"Step {step_id} failed after {max_retries} attempts: {last_error}")
 
-    def _resolve_paths(self, paths: List[str]) -> List[str]:
-        """Resolve paths with job_id placeholder"""
+    def _resolve_paths(self, paths) -> List[str]:
+        """Resolve paths with job_id placeholder
+
+        Args:
+            paths: Can be a string or list of strings
+        """
+        # Normalize to list
+        if isinstance(paths, str):
+            paths = [paths]
+        elif not isinstance(paths, list):
+            paths = []
+
         resolved = []
         for path in paths:
             # Replace {job_id} placeholder
-            resolved_path = path.replace('{job_id}', self.job_id)
+            resolved_path = str(path).replace('{job_id}', self.job_id)
             resolved.append(resolved_path)
         return resolved
 
-    def _evaluate_condition(self, condition: Dict[str, Any]) -> bool:
+    def _evaluate_condition(self, condition) -> bool:
         """Evaluate a condition to determine if step should execute
 
-        Supported condition types:
+        Supports both dict-style and string-style conditions:
+        - Dict: {'type': 'step_completed', 'step_id': 'step-1'}
+        - String: 'has_executable_task' (expression-style, currently treated as always true)
+
+        Supported dict condition types:
         - step_completed: Check if a specific step was completed
         - step_failed: Check if a specific step failed
         - file_exists: Check if a file exists
         - env_var: Check if environment variable matches value
         """
+        # Handle string conditions (expression-style)
+        if isinstance(condition, str):
+            # TODO: Implement expression evaluator for string conditions
+            # For now, log and return True (permissive)
+            print(f"   ℹ️  String condition '{condition}' - expression evaluation not yet implemented, allowing step")
+            return True
+
+        # Handle dict conditions
+        if not isinstance(condition, dict):
+            print(f"   ⚠️  Invalid condition type: {type(condition)}, allowing step")
+            return True
+
         condition_type = condition.get('type')
 
         if condition_type == 'step_completed':
@@ -361,7 +422,7 @@ class WorkflowOrchestrator:
             return actual_value == expected_value
 
         else:
-            print(f"   ⚠️  Unknown condition type: {condition_type}, skipping condition check")
+            print(f"   ⚠️  Unknown condition type: {condition_type}, allowing step")
             return True
 
     def _wait_for_approval(self, step: Dict[str, Any]) -> bool:
@@ -374,9 +435,14 @@ class WorkflowOrchestrator:
             response = input("   Approve this step? (y/n): ")
             return response.lower() == 'y'
         else:
-            # In non-interactive mode, auto-approve
-            print(f"   [Auto-approved in non-interactive mode]")
-            return True
+            # In non-interactive mode, check auto_approve flag
+            if self.auto_approve:
+                print(f"   [Auto-approved via --auto-approve flag]")
+                return True
+            else:
+                print(f"   ❌ Approval required but running in non-interactive mode without --auto-approve")
+                print(f"   Use --auto-approve flag to enable automatic approval in CI/headless environments")
+                return False
 
     def _save_execution_log(self):
         """Save execution log to file"""
@@ -392,15 +458,24 @@ class WorkflowOrchestrator:
 def main():
     """Main entry point"""
     if len(sys.argv) < 3:
-        print("Usage: python orchestrator.py <workflow.json> <job_id> [llm_provider]")
+        print("Usage: python orchestrator.py <workflow.json> <job_id> [llm_provider] [--auto-approve]")
         print("  llm_provider: codex (default) or gemini")
+        print("  --auto-approve: Enable automatic approval in non-interactive mode")
         sys.exit(1)
 
     workflow_path = sys.argv[1]
     job_id = sys.argv[2]
-    llm_provider = sys.argv[3] if len(sys.argv) > 3 else "codex"
+    llm_provider = "codex"
+    auto_approve = False
 
-    orchestrator = WorkflowOrchestrator(workflow_path, job_id, llm_provider)
+    # Parse remaining arguments
+    for arg in sys.argv[3:]:
+        if arg == "--auto-approve":
+            auto_approve = True
+        elif arg in ["codex", "gemini"]:
+            llm_provider = arg
+
+    orchestrator = WorkflowOrchestrator(workflow_path, job_id, llm_provider, auto_approve)
     orchestrator.execute()
 
 

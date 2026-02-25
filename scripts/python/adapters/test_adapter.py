@@ -104,11 +104,14 @@ class TestAdapter:
             )
 
             # Test commands return non-zero on test failures
-            # We consider this a "success" execution with failed tests
+            # Treat non-zero exit as failed status
+            status = 'success' if result.returncode == 0 else 'failed'
+            error = None if result.returncode == 0 else f"Tests failed with exit code {result.returncode}"
+
             return {
-                'status': 'success',
+                'status': status,
                 'output': result.stdout + '\n' + result.stderr,
-                'error': None,
+                'error': error,
                 'exit_code': result.returncode
             }
         except subprocess.TimeoutExpired:
