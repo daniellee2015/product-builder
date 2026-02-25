@@ -139,6 +139,7 @@ class WorkflowOrchestrator:
         self.workflow_path = Path(workflow_path)
         self.job_id = job_id
         self.workflow_data = self._load_workflow()
+        self.transitions = self._load_transitions()  # Load transitions
         self.execution_log = []
         self.executor = CodeActExecutor(llm_provider)
         self.state_file = Path(f".product-builder/jobs/{job_id}/state.json")
@@ -153,10 +154,34 @@ class WorkflowOrchestrator:
             'test': TestAdapter()
         }
 
+        # Build step lookup map
+        self.step_map = self._build_step_map()
+
     def _load_workflow(self) -> Dict[str, Any]:
         """Load workflow.json"""
         with open(self.workflow_path, 'r') as f:
             return json.load(f)
+
+    def _load_transitions(self) -> List[Dict[str, Any]]:
+        """Load transitions from transitions.json if available"""
+        transitions_file = self.workflow_path.parent / 'transitions.json'
+        if transitions_file.exists():
+            with open(transitions_file, 'r') as f:
+                data = json.load(f)
+                return data.get('transitions', [])
+        return []
+
+    def _build_step_map(self) -> Dict[str, Dict[str, Any]]:
+        """Build a map of step_id -> step for quick lookup"""
+        step_map = {}
+        for phase in self.workflow_data['phases']:
+            for step in phase['steps']:
+                step_id = step.get('step_id', step.get('id', ''))
+                step_map[step_id] = {
+                    'step': step,
+                    'phase': phase
+                }
+        return step_map
 
     def _load_state(self) -> Dict[str, Any]:
         """Load execution state from file"""
@@ -200,9 +225,15 @@ class WorkflowOrchestrator:
         self._save_state()
 
         try:
-            # Execute phases
-            for phase in self.workflow_data['phases']:
-                self._execute_phase(phase, enabled_steps)
+            if self.transitions:
+                # Use transition-driven execution
+                print(f"🔀 Using transition-driven execution ({len(self.transitions)} transitions)")
+                self._execute_with_transitions(enabled_steps)
+            else:
+                # Fallback to linear execution
+                print(f"📝 Using linear execution (no transitions defined)")
+                for phase in self.workflow_data['phases']:
+                    self._execute_phase(phase, enabled_steps)
 
             self.state['status'] = 'completed'
             print(f"\\n✅ Workflow execution completed")
@@ -215,6 +246,91 @@ class WorkflowOrchestrator:
         finally:
             self._save_state()
             self._save_execution_log()
+
+    def _execute_with_transitions(self, enabled_steps: List[str]):
+        """Execute workflow using transition-driven control flow"""
+        # Find the first step (no incoming transitions or explicitly marked as start)
+        current_step_id = self._find_start_step(enabled_steps)
+
+        if not current_step_id:
+            print("⚠️  No start step found, falling back to linear execution")
+            for phase in self.workflow_data['phases']:
+                self._execute_phase(phase, enabled_steps)
+            return
+
+        visited_steps = set()
+        max_iterations = len(enabled_steps) * 10  # Prevent infinite loops
+        iteration = 0
+
+        while current_step_id and current_step_id != 'END' and iteration < max_iterations:
+            iteration += 1
+
+            # Check if step is enabled
+            if current_step_id not in enabled_steps:
+                print(f"⏭️  Step {current_step_id} not enabled in current mode")
+                current_step_id = self._find_next_step(current_step_id, enabled_steps)
+                continue
+
+            # Check if already completed (for resume)
+            if current_step_id in self.state['completed_steps']:
+                print(f"⏭️  Step {current_step_id} already completed")
+                current_step_id = self._find_next_step(current_step_id, enabled_steps)
+                continue
+
+            # Execute the step
+            if current_step_id in self.step_map:
+                step_info = self.step_map[current_step_id]
+                step = step_info['step']
+                phase = step_info['phase']
+
+                print(f"\\n{'='*60}")
+                print(f"📦 Phase: {phase['name']}")
+                print(f"{'='*60}")
+
+                self._execute_step(step)
+                visited_steps.add(current_step_id)
+
+            # Find next step based on transitions
+            current_step_id = self._find_next_step(current_step_id, enabled_steps)
+
+        if iteration >= max_iterations:
+            raise Exception(f"Maximum iterations ({max_iterations}) exceeded - possible infinite loop")
+
+    def _find_start_step(self, enabled_steps: List[str]) -> Optional[str]:
+        """Find the first step to execute"""
+        # Find steps that have no incoming transitions
+        all_targets = set()
+        for transition in self.transitions:
+            all_targets.add(transition['to'])
+
+        for step_id in enabled_steps:
+            if step_id not in all_targets:
+                return step_id
+
+        # Fallback: return first enabled step
+        return enabled_steps[0] if enabled_steps else None
+
+    def _find_next_step(self, current_step_id: str, enabled_steps: List[str]) -> Optional[str]:
+        """Find the next step based on transitions"""
+        current_mode = self.workflow_data.get('mode', 'standard')
+
+        # Find all transitions from current step
+        matching_transitions = []
+        for transition in self.transitions:
+            if transition['from'] == current_step_id:
+                # Check if transition is enabled in current mode
+                enabled_modes = transition.get('enabled_in_modes', [])
+                if not enabled_modes or current_mode in enabled_modes:
+                    matching_transitions.append(transition)
+
+        # Evaluate conditions and find first matching transition
+        for transition in matching_transitions:
+            condition = transition.get('condition')
+            if not condition or self._evaluate_condition(condition):
+                return transition['to']
+
+        # No matching transition found
+        return None
 
     def _execute_phase(self, phase: Dict[str, Any], enabled_steps: List[str]):
         """Execute a single phase"""
@@ -348,6 +464,10 @@ class WorkflowOrchestrator:
                 # Add to completed_steps (avoid duplicates)
                 if step_id not in self.state['completed_steps']:
                     self.state['completed_steps'].append(step_id)
+
+                # Update runtime variables based on step result
+                self._update_variables_from_result(step_id, step, result)
+
                 self._save_state()
                 return
 
@@ -382,6 +502,62 @@ class WorkflowOrchestrator:
             resolved_path = str(path).replace('{job_id}', self.job_id)
             resolved.append(resolved_path)
         return resolved
+
+    def _update_variables_from_result(self, step_id: str, step: Dict[str, Any], result: Dict[str, Any]):
+        """Update runtime variables based on step execution result"""
+        if 'variables' not in self.state:
+            self.state['variables'] = {}
+
+        # Extract variables from step configuration
+        variable_updates = step.get('output_variables', {})
+        for var_name, var_config in variable_updates.items():
+            if isinstance(var_config, dict):
+                # Complex variable extraction (e.g., from output parsing)
+                source = var_config.get('source', 'output')
+                if source == 'output':
+                    # Parse output for specific patterns
+                    pattern = var_config.get('pattern')
+                    if pattern and result.get('output'):
+                        import re
+                        match = re.search(pattern, result['output'])
+                        if match:
+                            self.state['variables'][var_name] = match.group(1) if match.groups() else match.group(0)
+            else:
+                # Simple variable assignment
+                self.state['variables'][var_name] = var_config
+
+        # Common variable patterns based on step type and result
+        # These are heuristics for common workflow patterns
+
+        # Test-related variables
+        if 'test' in step_id.lower() or step.get('tool') == 'test':
+            self.state['variables']['test_passed'] = (result['status'] == 'success')
+            self.state['variables']['test_failed'] = (result['status'] != 'success')
+
+        # Review-related variables
+        if 'review' in step_id.lower():
+            self.state['variables'][f'review_passed'] = (result['status'] == 'success')
+            self.state['variables'][f'{step_id}_passed'] = (result['status'] == 'success')
+
+        # Task execution variables
+        if 'task' in step_id.lower() or 'execute' in step_id.lower():
+            # Check if there are more tasks (heuristic: look for task count in output)
+            if result.get('output'):
+                output_lower = result['output'].lower()
+                if 'no more tasks' in output_lower or 'all tasks done' in output_lower:
+                    self.state['variables']['has_more_tasks'] = False
+                    self.state['variables']['all_tasks_done'] = True
+                elif 'more tasks' in output_lower or 'next task' in output_lower:
+                    self.state['variables']['has_more_tasks'] = True
+                    self.state['variables']['all_tasks_done'] = False
+
+        # Approval variables
+        if 'approval' in step_id.lower() or step.get('requires_human_approval'):
+            self.state['variables']['human_approved'] = (result['status'] == 'success')
+
+        # Generic success/failure tracking
+        self.state['variables'][f'{step_id}_completed'] = True
+        self.state['variables'][f'{step_id}_success'] = (result['status'] == 'success')
 
     def _evaluate_condition(self, condition) -> bool:
         """Evaluate a condition to determine if step should execute
