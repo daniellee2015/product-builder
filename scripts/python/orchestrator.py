@@ -156,6 +156,8 @@ class WorkflowOrchestrator:
 
         # Build step lookup map
         self.step_map = self._build_step_map()
+        # Build display ID to step ID mapping
+        self.display_id_map = self._build_display_id_map()
 
     def _load_workflow(self) -> Dict[str, Any]:
         """Load workflow.json"""
@@ -188,6 +190,25 @@ class WorkflowOrchestrator:
                     'phase': phase
                 }
         return step_map
+
+    def _build_display_id_map(self) -> Dict[str, str]:
+        """Build a map of display_id -> step_id for ID normalization"""
+        display_map = {}
+        for phase in self.workflow_data['phases']:
+            phase_id = phase.get('phase_id', phase.get('id', ''))
+            # Extract phase prefix (e.g., "P1" from "P1-PLANNING")
+            phase_prefix = phase_id.split('-')[0] if '-' in phase_id else phase_id
+
+            for idx, step in enumerate(phase['steps'], start=1):
+                step_id = step.get('step_id', step.get('id', ''))
+                # Create display ID like "P1-01", "P1-02", etc.
+                display_id = f"{phase_prefix}-{idx:02d}"
+                display_map[display_id] = step_id
+
+                # Also map the step_id to itself for consistency
+                display_map[step_id] = step_id
+
+        return display_map
 
     def _load_state(self) -> Dict[str, Any]:
         """Load execution state from file"""
@@ -707,31 +728,12 @@ class WorkflowOrchestrator:
         if not step_id:
             return False
 
-        # Direct match
-        if step_id in self.state['completed_steps']:
-            return True
+        # Normalize the step_id using display_id_map
+        # This handles cases like done("P1-02") -> actual step_id
+        normalized_id = self.display_id_map.get(step_id, step_id)
 
-        # Try to find matching step in step_map
-        # This handles cases where the condition uses display IDs like "P1-02"
-        # but the stored ID might be different
-        for stored_id in self.state['completed_steps']:
-            # Check if stored_id ends with the provided step_id
-            # e.g., "P1-FIND_EXISTING_WORK" matches "P1-02" if it's the 2nd step in P1
-            if stored_id == step_id:
-                return True
-
-            # Check if step_id is a display ID pattern (e.g., "P1-02")
-            # and try to map it to the actual step_id
-            if step_id in self.step_map:
-                return True
-
-        # Check in step_map for reverse lookup
-        # If step_id is like "P1-02", try to find the actual step
-        if step_id in self.step_map:
-            actual_step_id = step_id
-            return actual_step_id in self.state['completed_steps']
-
-        return False
+        # Check if the normalized ID is in completed steps
+        return normalized_id in self.state['completed_steps']
 
     def _get_expression_value(self, expr: str):
         """Get the value of an expression variable or literal"""
