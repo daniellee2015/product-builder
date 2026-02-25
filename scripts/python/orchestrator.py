@@ -372,7 +372,25 @@ class WorkflowOrchestrator:
                     if current_step_id not in self.state['skipped_steps']:
                         self.state['skipped_steps'].append(current_step_id)
                     self._save_state()
-                    current_step_id = self._find_next_step(current_step_id, enabled_steps, 'skipped')
+
+                    # Find next step for skipped status
+                    next_step_after_skip = self._find_next_step(current_step_id, enabled_steps, 'skipped')
+
+                    # Check if no transition found in strict mode
+                    if not next_step_after_skip:
+                        if self.strict_transitions:
+                            print(f"\\n⚠️  No matching transition from skipped step {current_step_id} (strict mode)")
+                            print(f"   Halting execution")
+                            self.state['status'] = 'halted'
+                            self._save_state()
+                            raise WorkflowHalted(f"No matching transition from skipped step {current_step_id} in strict mode")
+                        else:
+                            # Permissive mode: try sequential fallback
+                            print(f"\\n⚠️  No matching transition from skipped step {current_step_id}")
+                            print(f"   Falling back to sequential execution")
+                            next_step_after_skip = self._find_next_enabled_step(current_step_id, enabled_steps)
+
+                    current_step_id = next_step_after_skip
                     continue
 
                 # Check if step failed
@@ -430,12 +448,21 @@ class WorkflowOrchestrator:
                     if step_id in self.step_map:
                         step_info = self.step_map[step_id]
                         step_result = self._execute_step(step_info['step'])
-                        # Check if safety-net step failed
+
+                        # Handle safety-net step results
                         if step_result.get('status') == 'failed':
                             print(f"   ❌ Safety-net step {step_id} failed")
                             self.state['status'] = 'failed'
                             self._save_state()
                             raise Exception(f"Safety-net step {step_id} failed: {step_result.get('error', 'Unknown error')}")
+                        elif step_result.get('status') == 'skipped':
+                            # Track skipped step from safety-net
+                            if 'skipped_steps' not in self.state:
+                                self.state['skipped_steps'] = []
+                            if step_id not in self.state['skipped_steps']:
+                                self.state['skipped_steps'].append(step_id)
+                            self._save_state()
+                            print(f"   ⏭️  Safety-net step {step_id} skipped")
 
     def _find_start_step(self, enabled_steps: List[str]) -> Optional[str]:
         """Find the first step to execute"""
