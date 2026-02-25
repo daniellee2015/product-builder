@@ -1,0 +1,71 @@
+{
+  "name": "Orchestrator Test Workflow",
+  "mode": "test",
+  "phases": [
+    {
+      "phase_id": "P0-TEST",
+      "name": "Test Phase",
+      "steps": [
+        {
+          "step_id": "P0-STEP1",
+          "name": "Always Success Step",
+          "description": "Echo test message",
+          "required_tools": ["bash"],
+          "output": ["test-output-1.txt"],
+          "display_id": "P0-01"
+        },
+        {
+          "step_id": "P0-STEP2",
+          "name": "Conditional Step",
+          "description": "This step is skipped if condition is false",
+          "required_tools": ["bash"],
+          "condition": "test_mode == 'full'",
+          "output": ["test-output-2.txt"],
+          "display_id": "P0-02"
+        },
+        {
+          "step_id": "P0-STEP3",
+          "name": "Final Step",
+          "description": "Echo final message",
+          "required_tools": ["bash"],
+          "output": ["test-output-3.txt"],
+          "display_id": "P0-03"
+        }
+      ]
+    }
+  ],
+  "available_modes": {
+    "test": {
+      "enabled_steps": [
+        "P0-STEP1",
+        "P0-STEP2",
+        "P0-STEP3"
+      ]
+    }
+  },
+  "variables": {
+    "test_mode": "basic"
+  },
+  "transitions": [
+    {
+      "from": "P0-STEP1",
+      "to": "P0-STEP2",
+      "on": "success"
+    },
+    {
+      "from": "P0-STEP2",
+      "to": "P0-STEP3",
+      "on": "success"
+    },
+    {
+      "from": "P0-STEP2",
+      "to": "P0-STEP3",
+      "on": "skipped"
+    },
+    {
+      "from": "P0-STEP3",
+      "to": "END",
+      "on": "success"
+    }
+  ]
+}
