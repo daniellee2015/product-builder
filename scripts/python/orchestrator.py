@@ -192,15 +192,30 @@ class WorkflowOrchestrator:
         return step_map
 
     def _build_display_id_map(self) -> Dict[str, str]:
-        """Build a map of display_id -> step_id for ID normalization"""
-        display_map = {}
-        for phase in self.workflow_data['phases']:
-            phase_id = phase.get('phase_id', phase.get('id', ''))
-            # Extract phase prefix (e.g., "P1" from "P1-PLANNING")
-            phase_prefix = phase_id.split('-')[0] if '-' in phase_id else phase_id
+        """Build a map of display_id -> step_id for ID normalization
 
-            for idx, step in enumerate(phase['steps'], start=1):
+        Maps display IDs like "P1-01", "P1-02" to actual step_ids like "P1-FIND_EXISTING_WORK"
+        """
+        display_map = {}
+
+        # Group steps by phase prefix (P0, P1, P2, etc.)
+        phase_steps = {}
+        for phase in self.workflow_data['phases']:
+            for step in phase['steps']:
                 step_id = step.get('step_id', step.get('id', ''))
+                if not step_id:
+                    continue
+
+                # Extract phase prefix from step_id (e.g., "P1" from "P1-FIND_EXISTING_WORK")
+                if '-' in step_id:
+                    phase_prefix = step_id.split('-')[0]
+                    if phase_prefix not in phase_steps:
+                        phase_steps[phase_prefix] = []
+                    phase_steps[phase_prefix].append(step_id)
+
+        # Build display_id mappings for each phase
+        for phase_prefix, steps in phase_steps.items():
+            for idx, step_id in enumerate(steps, start=1):
                 # Create display ID like "P1-01", "P1-02", etc.
                 display_id = f"{phase_prefix}-{idx:02d}"
                 display_map[display_id] = step_id
