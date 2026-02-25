@@ -333,10 +333,26 @@ class WorkflowOrchestrator:
                 visited_steps.add(current_step_id)
 
             # Find next step based on transitions
-            current_step_id = self._find_next_step(current_step_id, enabled_steps)
+            next_step = self._find_next_step(current_step_id, enabled_steps)
+
+            # If no transition found, try to find next enabled step in sequence
+            if not next_step:
+                next_step = self._find_next_enabled_step(current_step_id, enabled_steps)
+
+            current_step_id = next_step
 
         if iteration >= max_iterations:
             raise Exception(f"Maximum iterations ({max_iterations}) exceeded - possible infinite loop")
+
+        # Check if there are any remaining enabled steps that weren't executed
+        remaining_steps = [s for s in enabled_steps if s not in self.state['completed_steps']]
+        if remaining_steps:
+            print(f"\\n⚠️  {len(remaining_steps)} enabled steps were not reached by transitions")
+            print(f"   Executing remaining steps in sequence...")
+            for step_id in remaining_steps:
+                if step_id in self.step_map:
+                    step_info = self.step_map[step_id]
+                    self._execute_step(step_info['step'])
 
     def _find_start_step(self, enabled_steps: List[str]) -> Optional[str]:
         """Find the first step to execute"""
@@ -372,6 +388,24 @@ class WorkflowOrchestrator:
                 return transition['to']
 
         # No matching transition found
+        return None
+
+    def _find_next_enabled_step(self, current_step_id: str, enabled_steps: List[str]) -> Optional[str]:
+        """Find the next enabled step in sequence (fallback when no transition matches)"""
+        # Find current step's position in enabled_steps
+        try:
+            current_index = enabled_steps.index(current_step_id)
+            # Return next enabled step that hasn't been completed
+            for i in range(current_index + 1, len(enabled_steps)):
+                next_step = enabled_steps[i]
+                if next_step not in self.state['completed_steps']:
+                    return next_step
+        except ValueError:
+            # Current step not in enabled_steps, return first uncompleted step
+            for step in enabled_steps:
+                if step not in self.state['completed_steps']:
+                    return step
+
         return None
 
     def _execute_phase(self, phase: Dict[str, Any], enabled_steps: List[str]):
