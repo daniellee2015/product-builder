@@ -7,6 +7,7 @@ CodeAct-based workflow execution engine with real LLM integration
 import json
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import os
@@ -226,6 +227,12 @@ class WorkflowOrchestrator:
         print(f"\\n🔹 Step {step_id}: {step_name}")
         print(f"   Description: {step.get('description', 'N/A')}")
 
+        # Check condition if specified
+        if 'condition' in step:
+            if not self._evaluate_condition(step['condition']):
+                print(f"   ⏭️  Step skipped (condition not met)")
+                return
+
         self.state['current_step'] = step_id
         self._save_state()
 
@@ -243,30 +250,52 @@ class WorkflowOrchestrator:
             'output_files': self._resolve_paths(step.get('output', []))
         }
 
-        # Execute using CodeAct
-        print(f"   🤖 Executing with {self.executor.llm_provider}...")
-        result = self.executor.execute_task(
-            task_prompt=step.get('description', step_name),
-            context=context
-        )
+        # Get retry configuration
+        max_retries = step.get('retry', {}).get('max_attempts', 1)
+        retry_delay = step.get('retry', {}).get('delay_seconds', 0)
 
-        # Log execution
-        log_entry = {
-            'step_id': step_id,
-            'step_name': step_name,
-            'status': result['status'],
-            'output': result['output'][:500] if result['output'] else None,  # Truncate for log
-            'error': result['error'] if result['error'] else None
-        }
-        self.execution_log.append(log_entry)
+        # Execute with retry logic
+        last_error = None
+        for attempt in range(max_retries):
+            if attempt > 0:
+                print(f"   🔄 Retry attempt {attempt + 1}/{max_retries}")
+                if retry_delay > 0:
+                    print(f"   ⏳ Waiting {retry_delay} seconds before retry...")
+                    time.sleep(retry_delay)
 
-        if result['status'] == 'success':
-            print(f"   ✅ Step completed successfully")
-            self.state['completed_steps'].append(step_id)
-            self._save_state()
-        else:
-            print(f"   ❌ Step failed: {result['error']}")
-            raise Exception(f"Step {step_id} failed: {result['error']}")
+            print(f"   🤖 Executing with {self.executor.llm_provider}...")
+            result = self.executor.execute_task(
+                task_prompt=step.get('description', step_name),
+                context=context
+            )
+
+            # Log execution
+            log_entry = {
+                'step_id': step_id,
+                'step_name': step_name,
+                'attempt': attempt + 1,
+                'status': result['status'],
+                'output': result['output'][:500] if result['output'] else None,
+                'error': result['error'] if result['error'] else None
+            }
+            self.execution_log.append(log_entry)
+
+            if result['status'] == 'success':
+                print(f"   ✅ Step completed successfully")
+                self.state['completed_steps'].append(step_id)
+                self._save_state()
+                return
+
+            last_error = result['error']
+            print(f"   ❌ Attempt {attempt + 1} failed: {last_error}")
+
+        # All retries exhausted
+        print(f"   ❌ Step failed after {max_retries} attempts")
+        if 'failed_steps' not in self.state:
+            self.state['failed_steps'] = []
+        self.state['failed_steps'].append(step_id)
+        self._save_state()
+        raise Exception(f"Step {step_id} failed after {max_retries} attempts: {last_error}")
 
     def _resolve_paths(self, paths: List[str]) -> List[str]:
         """Resolve paths with job_id placeholder"""
@@ -276,6 +305,40 @@ class WorkflowOrchestrator:
             resolved_path = path.replace('{job_id}', self.job_id)
             resolved.append(resolved_path)
         return resolved
+
+    def _evaluate_condition(self, condition: Dict[str, Any]) -> bool:
+        """Evaluate a condition to determine if step should execute
+
+        Supported condition types:
+        - step_completed: Check if a specific step was completed
+        - step_failed: Check if a specific step failed
+        - file_exists: Check if a file exists
+        - env_var: Check if environment variable matches value
+        """
+        condition_type = condition.get('type')
+
+        if condition_type == 'step_completed':
+            step_id = condition.get('step_id')
+            return step_id in self.state['completed_steps']
+
+        elif condition_type == 'step_failed':
+            step_id = condition.get('step_id')
+            # Check if step was attempted but not completed
+            return step_id in self.state.get('failed_steps', [])
+
+        elif condition_type == 'file_exists':
+            file_path = self._resolve_paths([condition.get('path')])[0]
+            return Path(file_path).exists()
+
+        elif condition_type == 'env_var':
+            var_name = condition.get('name')
+            expected_value = condition.get('value')
+            actual_value = os.environ.get(var_name)
+            return actual_value == expected_value
+
+        else:
+            print(f"   ⚠️  Unknown condition type: {condition_type}, skipping condition check")
+            return True
 
     def _wait_for_approval(self, step: Dict[str, Any]) -> bool:
         """Wait for human approval"""
