@@ -165,8 +165,15 @@ class WorkflowOrchestrator:
         print(f"🤖 LLM Provider: {self.executor.llm_provider}")
 
         # Get enabled steps for current mode
-        mode_config = self.workflow_data['available_modes'][self.workflow_data['mode']]
-        enabled_steps = mode_config.get('enabled_steps', [])
+        enabled_steps = []
+        if 'available_modes' in self.workflow_data:
+            mode_config = self.workflow_data['available_modes'][self.workflow_data['mode']]
+            enabled_steps = mode_config.get('enabled_steps', [])
+        else:
+            # For simple workflows without mode config, enable all steps
+            for phase in self.workflow_data['phases']:
+                for step in phase['steps']:
+                    enabled_steps.append(step.get('step_id', step.get('id', '')))
 
         print(f"📊 Total steps: {len(enabled_steps)}")
 
@@ -197,21 +204,23 @@ class WorkflowOrchestrator:
         print(f"📦 Phase: {phase_name}")
         print(f"{'='*60}")
 
-        self.state['current_phase'] = phase['id']
+        phase_id = phase.get('phase_id', phase.get('id', ''))
+        self.state['current_phase'] = phase_id
         self._save_state()
 
         for step in phase['steps']:
-            if step['id'] in enabled_steps:
+            step_id = step.get('step_id', step.get('id', ''))
+            if step_id in enabled_steps:
                 # Skip if already completed
-                if step['id'] in self.state['completed_steps']:
-                    print(f"\\n⏭️  Step {step['id']}: {step['name']} (already completed)")
+                if step_id in self.state['completed_steps']:
+                    print(f"\\n⏭️  Step {step_id}: {step['name']} (already completed)")
                     continue
 
                 self._execute_step(step)
 
     def _execute_step(self, step: Dict[str, Any]):
         """Execute a single step using CodeAct"""
-        step_id = step['id']
+        step_id = step.get('step_id', step.get('id', ''))
         step_name = step['name']
 
         print(f"\\n🔹 Step {step_id}: {step_name}")
