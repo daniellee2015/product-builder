@@ -194,34 +194,49 @@ class WorkflowOrchestrator:
     def _build_display_id_map(self) -> Dict[str, str]:
         """Build a map of display_id -> step_id for ID normalization
 
-        Maps display IDs like "P1-01", "P1-02" to actual step_ids like "P1-FIND_EXISTING_WORK"
+        Uses actual display_id field from workflow steps as source of truth.
+        Falls back to generated index-based IDs if display_id is not present.
         """
         display_map = {}
 
-        # Group steps by phase prefix (P0, P1, P2, etc.)
-        phase_steps = {}
+        # First pass: Use actual display_id fields from workflow
         for phase in self.workflow_data['phases']:
             for step in phase['steps']:
                 step_id = step.get('step_id', step.get('id', ''))
                 if not step_id:
                     continue
 
-                # Extract phase prefix from step_id (e.g., "P1" from "P1-FIND_EXISTING_WORK")
+                # Use actual display_id if present
+                display_id = step.get('display_id')
+                if display_id:
+                    display_map[display_id] = step_id
+
+                # Always map step_id to itself for consistency
+                display_map[step_id] = step_id
+
+        # Second pass: Generate fallback IDs for steps without display_id
+        # Group steps by phase prefix for fallback generation
+        phase_steps = {}
+        for phase in self.workflow_data['phases']:
+            for step in phase['steps']:
+                step_id = step.get('step_id', step.get('id', ''))
+                if not step_id or step.get('display_id'):
+                    continue  # Skip if already has display_id
+
+                # Extract phase prefix from step_id
                 if '-' in step_id:
                     phase_prefix = step_id.split('-')[0]
                     if phase_prefix not in phase_steps:
                         phase_steps[phase_prefix] = []
                     phase_steps[phase_prefix].append(step_id)
 
-        # Build display_id mappings for each phase
+        # Generate fallback display IDs for steps without explicit display_id
         for phase_prefix, steps in phase_steps.items():
             for idx, step_id in enumerate(steps, start=1):
-                # Create display ID like "P1-01", "P1-02", etc.
                 display_id = f"{phase_prefix}-{idx:02d}"
-                display_map[display_id] = step_id
-
-                # Also map the step_id to itself for consistency
-                display_map[step_id] = step_id
+                # Only add if not already mapped
+                if display_id not in display_map:
+                    display_map[display_id] = step_id
 
         return display_map
 
