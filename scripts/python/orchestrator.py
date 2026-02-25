@@ -12,6 +12,16 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 import os
 
+
+class WorkflowHalted(Exception):
+    """Exception raised when workflow is halted in strict mode"""
+    pass
+
+
+class WorkflowFailed(Exception):
+    """Exception raised when workflow fails"""
+    pass
+
 # Import adapters
 try:
     from adapters import GitAdapter, GitHubAdapter, TestAdapter
@@ -250,6 +260,7 @@ class WorkflowOrchestrator:
             'current_phase': None,
             'current_step': None,
             'completed_steps': [],
+            'skipped_steps': [],  # Track skipped steps
             'status': 'idle',
             'variables': {}  # Runtime variables for condition evaluation
         }
@@ -295,6 +306,10 @@ class WorkflowOrchestrator:
 
             self.state['status'] = 'completed'
             print(f"\\n✅ Workflow execution completed")
+
+        except WorkflowHalted as e:
+            # Preserve halted status (already set before raising)
+            print(f"\\n⏸️  Workflow halted: {e}")
 
         except Exception as e:
             self.state['status'] = 'failed'
@@ -351,13 +366,19 @@ class WorkflowOrchestrator:
                 # Handle skipped steps
                 if step_result.get('status') == 'skipped':
                     print(f"   ⏭️  Step skipped, continuing to next transition")
-                    current_step_id = self._find_next_step(current_step_id, enabled_steps)
+                    # Track skipped step
+                    if 'skipped_steps' not in self.state:
+                        self.state['skipped_steps'] = []
+                    if current_step_id not in self.state['skipped_steps']:
+                        self.state['skipped_steps'].append(current_step_id)
+                    self._save_state()
+                    current_step_id = self._find_next_step(current_step_id, enabled_steps, 'skipped')
                     continue
 
                 # Check if step failed
                 if step_result['status'] == 'failed':
                     # Try to find failure transition
-                    failure_transition = self._find_next_step(current_step_id, enabled_steps)
+                    failure_transition = self._find_next_step(current_step_id, enabled_steps, 'failed')
                     if failure_transition:
                         print(f"   🔀 Following failure transition to {failure_transition}")
                         current_step_id = failure_transition
@@ -369,8 +390,8 @@ class WorkflowOrchestrator:
                         self._save_state()
                         raise Exception(f"Step {current_step_id} failed and no failure transition exists")
 
-            # Find next step based on transitions
-            next_step = self._find_next_step(current_step_id, enabled_steps)
+            # Find next step based on transitions (for successful steps)
+            next_step = self._find_next_step(current_step_id, enabled_steps, 'success')
 
             # If no transition found, handle based on strict mode
             if not next_step:
@@ -380,7 +401,7 @@ class WorkflowOrchestrator:
                     print(f"   Halting execution")
                     self.state['status'] = 'halted'
                     self._save_state()
-                    raise Exception(f"No matching transition from {current_step_id} in strict mode")
+                    raise WorkflowHalted(f"No matching transition from {current_step_id} in strict mode")
                 else:
                     # Permissive mode: try sequential fallback
                     print(f"\\n⚠️  No matching transition from {current_step_id}")
@@ -395,9 +416,13 @@ class WorkflowOrchestrator:
         # Check if there are any remaining enabled steps that weren't executed
         # Only in permissive mode
         if not self.strict_transitions:
-            # Exclude both completed and failed steps
-            completed_or_failed = set(self.state['completed_steps']) | set(self.state.get('failed_steps', []))
-            remaining_steps = [s for s in enabled_steps if s not in completed_or_failed]
+            # Exclude completed, failed, and skipped steps
+            completed_or_failed_or_skipped = (
+                set(self.state['completed_steps']) |
+                set(self.state.get('failed_steps', [])) |
+                set(self.state.get('skipped_steps', []))
+            )
+            remaining_steps = [s for s in enabled_steps if s not in completed_or_failed_or_skipped]
             if remaining_steps:
                 print(f"\\n⚠️  {len(remaining_steps)} enabled steps were not reached by transitions")
                 print(f"   Executing remaining steps in sequence (permissive mode)...")
@@ -426,8 +451,17 @@ class WorkflowOrchestrator:
         # Fallback: return first enabled step
         return enabled_steps[0] if enabled_steps else None
 
-    def _find_next_step(self, current_step_id: str, enabled_steps: List[str]) -> Optional[str]:
-        """Find the next step based on transitions"""
+    def _find_next_step(self, current_step_id: str, enabled_steps: List[str], step_status: str = 'success') -> Optional[str]:
+        """Find the next step based on transitions
+
+        Args:
+            current_step_id: The current step ID
+            enabled_steps: List of enabled step IDs
+            step_status: Status of the current step ('success', 'failed', 'skipped')
+
+        Returns:
+            Next step ID or None if no matching transition found
+        """
         current_mode = self.workflow_data.get('mode', 'standard')
 
         # Find all transitions from current step
@@ -437,7 +471,10 @@ class WorkflowOrchestrator:
                 # Check if transition is enabled in current mode
                 enabled_modes = transition.get('enabled_in_modes', [])
                 if not enabled_modes or current_mode in enabled_modes:
-                    matching_transitions.append(transition)
+                    # Check transition trigger condition (on: success/failure/always)
+                    on_condition = transition.get('on', 'success')  # Default to success
+                    if on_condition == 'always' or on_condition == step_status:
+                        matching_transitions.append(transition)
 
         # Evaluate conditions and find first matching transition
         for transition in matching_transitions:
