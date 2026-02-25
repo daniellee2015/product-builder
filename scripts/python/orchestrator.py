@@ -167,7 +167,8 @@ class WorkflowOrchestrator:
             'current_phase': None,
             'current_step': None,
             'completed_steps': [],
-            'status': 'idle'
+            'status': 'idle',
+            'variables': {}  # Runtime variables for condition evaluation
         }
 
     def _save_state(self):
@@ -257,7 +258,14 @@ class WorkflowOrchestrator:
         if step.get('requires_human_approval', False):
             if not self._wait_for_approval(step):
                 print(f"   ❌ Step rejected by user")
-                return
+                # Mark as failed and raise exception to stop workflow
+                if 'failed_steps' not in self.state:
+                    self.state['failed_steps'] = []
+                if step_id not in self.state['failed_steps']:
+                    self.state['failed_steps'].append(step_id)
+                self.state['status'] = 'failed'
+                self._save_state()
+                raise Exception(f"Step {step_id} rejected by user - workflow stopped")
 
         # Prepare context for execution
         context = {
@@ -380,7 +388,7 @@ class WorkflowOrchestrator:
 
         Supports both dict-style and string-style conditions:
         - Dict: {'type': 'step_completed', 'step_id': 'step-1'}
-        - String: 'has_executable_task' (expression-style, currently treated as always true)
+        - String: Expression-style conditions (e.g., 'has_executable_task', 'input_mode == "ui_form"')
 
         Supported dict condition types:
         - step_completed: Check if a specific step was completed
@@ -390,10 +398,7 @@ class WorkflowOrchestrator:
         """
         # Handle string conditions (expression-style)
         if isinstance(condition, str):
-            # TODO: Implement expression evaluator for string conditions
-            # For now, log and return True (permissive)
-            print(f"   ℹ️  String condition '{condition}' - expression evaluation not yet implemented, allowing step")
-            return True
+            return self._evaluate_expression(condition)
 
         # Handle dict conditions
         if not isinstance(condition, dict):
@@ -424,6 +429,127 @@ class WorkflowOrchestrator:
         else:
             print(f"   ⚠️  Unknown condition type: {condition_type}, allowing step")
             return True
+
+    def _evaluate_expression(self, expr: str) -> bool:
+        """Evaluate a string expression safely
+
+        Supported patterns:
+        - Simple variables: 'has_more_tasks', 'all_tasks_done'
+        - Negation: '!has_more_tasks'
+        - Equality: 'input_mode == "ui_form"', 'human_approved == true'
+        - Inequality: 'auto_repair_attempts < 3'
+        - Logical AND: 'retry_review && auto_repair_attempts < 3'
+        - Function calls: 'done("step-1")', 'review_passed("step-2")'
+        """
+        expr = expr.strip()
+
+        # Handle logical AND
+        if '&&' in expr:
+            parts = [p.strip() for p in expr.split('&&')]
+            return all(self._evaluate_expression(p) for p in parts)
+
+        # Handle logical OR
+        if '||' in expr:
+            parts = [p.strip() for p in expr.split('||')]
+            return any(self._evaluate_expression(p) for p in parts)
+
+        # Handle negation
+        if expr.startswith('!'):
+            return not self._evaluate_expression(expr[1:].strip())
+
+        # Handle equality comparisons
+        if '==' in expr:
+            left, right = [p.strip() for p in expr.split('==', 1)]
+            left_val = self._get_expression_value(left)
+            right_val = self._get_expression_value(right)
+            return left_val == right_val
+
+        # Handle inequality comparisons
+        if '<' in expr:
+            left, right = [p.strip() for p in expr.split('<', 1)]
+            left_val = self._get_expression_value(left)
+            right_val = self._get_expression_value(right)
+            try:
+                return float(left_val) < float(right_val)
+            except (ValueError, TypeError):
+                return False
+
+        if '>' in expr:
+            left, right = [p.strip() for p in expr.split('>', 1)]
+            left_val = self._get_expression_value(left)
+            right_val = self._get_expression_value(right)
+            try:
+                return float(left_val) > float(right_val)
+            except (ValueError, TypeError):
+                return False
+
+        # Handle function calls
+        if '(' in expr and expr.endswith(')'):
+            func_name = expr[:expr.index('(')].strip()
+            args_str = expr[expr.index('(') + 1:-1].strip()
+            args = [a.strip().strip('"').strip("'") for a in args_str.split(',') if a.strip()]
+
+            if func_name == 'done':
+                step_id = args[0] if args else ''
+                return step_id in self.state['completed_steps']
+
+            elif func_name == 'review_passed':
+                # For now, treat as step completed
+                step_id = args[0] if args else ''
+                return step_id in self.state['completed_steps']
+
+            else:
+                print(f"   ⚠️  Unknown function: {func_name}, returning false")
+                return False
+
+        # Handle simple variable lookup
+        value = self._get_expression_value(expr)
+        # Treat truthy values as true
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.lower() in ('true', 'yes', '1')
+        if isinstance(value, (int, float)):
+            return value != 0
+        return bool(value)
+
+    def _get_expression_value(self, expr: str):
+        """Get the value of an expression variable or literal"""
+        expr = expr.strip()
+
+        # Handle string literals
+        if (expr.startswith('"') and expr.endswith('"')) or \
+           (expr.startswith("'") and expr.endswith("'")):
+            return expr[1:-1]
+
+        # Handle boolean literals
+        if expr == 'true':
+            return True
+        if expr == 'false':
+            return False
+
+        # Handle numeric literals
+        try:
+            if '.' in expr:
+                return float(expr)
+            return int(expr)
+        except ValueError:
+            pass
+
+        # Handle variable lookup from state
+        # Check workflow_data for variables
+        if 'variables' in self.workflow_data:
+            if expr in self.workflow_data['variables']:
+                return self.workflow_data['variables'][expr]
+
+        # Check state for variables
+        if 'variables' in self.state:
+            if expr in self.state['variables']:
+                return self.state['variables'][expr]
+
+        # Default: return the expression as-is (for unknown variables)
+        print(f"   ℹ️  Variable '{expr}' not found in state, treating as false")
+        return False
 
     def _wait_for_approval(self, step: Dict[str, Any]) -> bool:
         """Wait for human approval"""
