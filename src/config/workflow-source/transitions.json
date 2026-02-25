@@ -41,12 +41,12 @@
     {
       "from": "P1-FIND_EXISTING_WORK",
       "to": "P1-CREATE_JOB",
-      "condition": "done('P1-02')"
+      "condition": "done('P1-UPDATE_CAPABILITY_TREE')"
     },
     {
       "from": "P1-UPDATE_CAPABILITY_TREE",
       "to": "P1-CREATE_JOB",
-      "condition": "done('P1-01')"
+      "condition": "done('P1-FIND_EXISTING_WORK')"
     },
     {
       "from": "P1-CREATE_JOB",
@@ -74,7 +74,7 @@
     {
       "from": "P1-REVIEW_OPENSPEC_DOCUMENTS",
       "to": "P1-PARSE_OPENSPEC_TO_STRUCTURED",
-      "condition": "review_passed('P1-05')"
+      "condition": "review_passed('P1-REVIEW_OPENSPEC_DOCUMENTS')"
     },
     {
       "from": "P1-PARSE_OPENSPEC_TO_STRUCTURED",
@@ -110,7 +110,7 @@
     {
       "from": "P1-REVIEW_DEVELOPMENT_SPECS",
       "to": "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
-      "condition": "review_passed('P1-11')"
+      "condition": "review_passed('P1-REVIEW_DEVELOPMENT_SPECS')"
     },
     {
       "from": "P1-GENERATE_GLOBAL_ROADMAP_VIEW",
