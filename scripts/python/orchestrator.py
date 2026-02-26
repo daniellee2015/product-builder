@@ -27,11 +27,15 @@ class WorkflowFailed(Exception):
 try:
     from adapters import GitAdapter, GitHubAdapter, TestAdapter
     from workflow_db_phase1 import WorkflowDatabase
+    from adapters.workflow_db_scheduler import WorkflowSchedulerDB
+    from parallel_step_executor import ParallelStepExecutor
 except ImportError:
     # Fallback for when running from different directory
     sys.path.insert(0, str(Path(__file__).parent))
     from adapters import GitAdapter, GitHubAdapter, TestAdapter
     from workflow_db_phase1 import WorkflowDatabase
+    from adapters.workflow_db_scheduler import WorkflowSchedulerDB
+    from parallel_step_executor import ParallelStepExecutor
 
 
 class CodeActExecutor:
@@ -149,7 +153,8 @@ class WorkflowOrchestrator:
     """Main workflow orchestrator using CodeAct approach"""
 
     def __init__(self, workflow_path: str, job_id: str, llm_provider: str = "codex",
-                 auto_approve: bool = False, strict_transitions: bool = False, use_database: bool = True):
+                 auto_approve: bool = False, strict_transitions: bool = False, use_database: bool = True,
+                 parallel_execution: bool = False, max_workers: int = 4):
         self.workflow_path = Path(workflow_path)
         self.job_id = job_id
         self.workflow_data = self._load_workflow()
@@ -160,11 +165,15 @@ class WorkflowOrchestrator:
         self.auto_approve = auto_approve
         self.strict_transitions = strict_transitions
         self.use_database = use_database
+        self.parallel_execution = parallel_execution
+        self.max_workers = max_workers
 
         # Initialize database if enabled
         self.db = None
         self.project_id = None
         self.workflow_version = None
+        self.scheduler_db = None
+        self.parallel_executor = None
 
         if self.use_database:
             self.db = WorkflowDatabase()
@@ -201,6 +210,14 @@ class WorkflowOrchestrator:
                 workflow_version=self.workflow_version,
                 workflow_mode=self.workflow_data.get('mode', 'standard')
             )
+
+            # Initialize scheduler database and parallel executor if parallel execution is enabled
+            if self.parallel_execution:
+                self.scheduler_db = WorkflowSchedulerDB()
+                self.parallel_executor = ParallelStepExecutor(
+                    scheduler_db=self.scheduler_db,
+                    max_workers=self.max_workers
+                )
 
         # Load state (from DB if enabled, otherwise from JSON)
         self.state = self._load_state()
@@ -364,6 +381,8 @@ class WorkflowOrchestrator:
         print(f"🚀 Starting workflow execution for job: {self.job_id}")
         print(f"📋 Mode: {self.workflow_data['mode']}")
         print(f"🤖 LLM Provider: {self.executor.llm_provider}")
+        if self.parallel_execution:
+            print(f"⚡ Parallel Execution: Enabled (max {self.max_workers} workers)")
 
         # Get enabled steps for current mode
         enabled_steps = []
@@ -382,7 +401,11 @@ class WorkflowOrchestrator:
         self._save_state()
 
         try:
-            if self.transitions:
+            if self.parallel_execution and self.parallel_executor and self.transitions:
+                # Use parallel execution with dependency analysis
+                print(f"⚡ Using parallel execution with dependency analysis")
+                self._execute_parallel(enabled_steps)
+            elif self.transitions:
                 # Use transition-driven execution
                 print(f"🔀 Using transition-driven execution ({len(self.transitions)} transitions)")
                 self._execute_with_transitions(enabled_steps)
@@ -407,6 +430,66 @@ class WorkflowOrchestrator:
         finally:
             self._save_state()
             self._save_execution_log()
+
+    def _execute_parallel(self, enabled_steps: List[str]):
+        """Execute workflow with parallel step execution"""
+        print(f"\\n{'='*60}")
+        print(f"⚡ Parallel Execution Mode")
+        print(f"{'='*60}")
+
+        # Build workflow definition for parallel executor
+        workflow_def = {
+            "steps": [],
+            "transitions": self.transitions
+        }
+
+        # Collect all steps
+        for phase in self.workflow_data['phases']:
+            for step in phase['steps']:
+                step_id = step.get('step_id', step.get('id', ''))
+                if step_id in enabled_steps:
+                    workflow_def["steps"].append(step)
+
+        # Execute with parallel executor
+        success, results = self.parallel_executor.execute_workflow_parallel(
+            job_id=self.job_id,
+            workflow_definition=workflow_def,
+            step_executor_func=self._execute_step_for_parallel,
+            initial_context={"job_id": self.job_id}
+        )
+
+        # Update state with results
+        for step_id, result in results.items():
+            if result.status.value == "completed":
+                if step_id not in self.state['completed_steps']:
+                    self.state['completed_steps'].append(step_id)
+            elif result.status.value == "failed":
+                if step_id not in self.state['failed_steps']:
+                    self.state['failed_steps'].append(step_id)
+
+        # Print summary
+        summary = self.parallel_executor.get_execution_summary()
+        print(f"\\n{'='*60}")
+        print(f"📊 Parallel Execution Summary")
+        print(f"{'='*60}")
+        print(f"Total Steps: {summary['total_steps']}")
+        print(f"Completed: {summary['completed']}")
+        print(f"Failed: {summary['failed']}")
+        print(f"Success Rate: {summary['success_rate']:.1%}")
+        print(f"Total Time: {summary['total_execution_time']:.2f}s")
+
+        if not success:
+            raise WorkflowFailed("Parallel execution failed")
+
+    def _execute_step_for_parallel(self, step_id: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a single step for parallel executor"""
+        if step_id in self.step_map:
+            step_info = self.step_map[step_id]
+            step = step_info['step']
+            result = self._execute_step(step)
+            return result
+        else:
+            return {"status": "failed", "error": f"Step {step_id} not found"}
 
     def _execute_with_transitions(self, enabled_steps: List[str]):
         """Execute workflow using transition-driven control flow"""
