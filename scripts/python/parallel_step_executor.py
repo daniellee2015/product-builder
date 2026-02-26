@@ -13,7 +13,7 @@ from enum import Enum
 import time
 
 from step_dependency_analyzer import StepDependencyAnalyzer
-from adapters.workflow_db_scheduler import WorkflowSchedulerDB
+from workflow_db_scheduler import SchedulerDatabase
 
 
 class ExecutionStatus(Enum):
@@ -49,7 +49,7 @@ class ParallelStepExecutor:
 
     def __init__(
         self,
-        scheduler_db: WorkflowSchedulerDB,
+        scheduler_db: SchedulerDatabase,
         max_workers: int = 4,
         timeout: Optional[float] = None
     ):

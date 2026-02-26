@@ -27,14 +27,14 @@ class WorkflowFailed(Exception):
 try:
     from adapters import GitAdapter, GitHubAdapter, TestAdapter
     from workflow_db_phase1 import WorkflowDatabase
-    from adapters.workflow_db_scheduler import WorkflowSchedulerDB
+    from workflow_db_scheduler import SchedulerDatabase
     from parallel_step_executor import ParallelStepExecutor
 except ImportError:
     # Fallback for when running from different directory
     sys.path.insert(0, str(Path(__file__).parent))
     from adapters import GitAdapter, GitHubAdapter, TestAdapter
     from workflow_db_phase1 import WorkflowDatabase
-    from adapters.workflow_db_scheduler import WorkflowSchedulerDB
+    from workflow_db_scheduler import SchedulerDatabase
     from parallel_step_executor import ParallelStepExecutor
 
 
@@ -213,7 +213,7 @@ class WorkflowOrchestrator:
 
             # Initialize scheduler database and parallel executor if parallel execution is enabled
             if self.parallel_execution:
-                self.scheduler_db = WorkflowSchedulerDB()
+                self.scheduler_db = SchedulerDatabase()
                 self.parallel_executor = ParallelStepExecutor(
                     scheduler_db=self.scheduler_db,
                     max_workers=self.max_workers
