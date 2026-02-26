@@ -49,3 +49,17 @@ temp/
 test-*.js
 test-*.sh
 .product-builder/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Test outputs
+test-output-*.txt
+*.log
