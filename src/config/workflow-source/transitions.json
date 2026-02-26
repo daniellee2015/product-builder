@@ -188,7 +188,15 @@
       "from": "P3-FIX_ISSUES",
       "to": "P3-FINAL_REVIEW",
       "type": "loop_internal",
-      "condition": "retry_review && auto_repair_attempts < 3",
+      "condition": "retry_review && !quality_gate_passed && review_cycle_count < 20",
+      "enabled_in_modes": [
+        "full"
+      ]
+    },
+    {
+      "from": "P3-FIX_ISSUES",
+      "to": "P3-HUMAN_ESCALATION",
+      "condition": "review_cycle_count >= 12 && !quality_gate_passed",
       "enabled_in_modes": [
         "full"
       ]

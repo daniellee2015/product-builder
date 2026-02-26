@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import os
+import hashlib
 
 
 class WorkflowHalted(Exception):
@@ -25,10 +26,12 @@ class WorkflowFailed(Exception):
 # Import adapters
 try:
     from adapters import GitAdapter, GitHubAdapter, TestAdapter
+    from workflow_db_phase1 import WorkflowDatabase
 except ImportError:
     # Fallback for when running from different directory
     sys.path.insert(0, str(Path(__file__).parent))
     from adapters import GitAdapter, GitHubAdapter, TestAdapter
+    from workflow_db_phase1 import WorkflowDatabase
 
 
 class CodeActExecutor:
@@ -145,23 +148,68 @@ class CodeActExecutor:
 class WorkflowOrchestrator:
     """Main workflow orchestrator using CodeAct approach"""
 
-    def __init__(self, workflow_path: str, job_id: str, llm_provider: str = "codex", auto_approve: bool = False, strict_transitions: bool = False):
+    def __init__(self, workflow_path: str, job_id: str, llm_provider: str = "codex",
+                 auto_approve: bool = False, strict_transitions: bool = False, use_database: bool = True):
         self.workflow_path = Path(workflow_path)
         self.job_id = job_id
         self.workflow_data = self._load_workflow()
-        self.transitions = self._load_transitions()  # Load transitions
+        self.transitions = self._load_transitions()
         self.execution_log = []
         self.executor = CodeActExecutor(llm_provider)
         self.state_file = Path(f".product-builder/jobs/{job_id}/state.json")
+        self.auto_approve = auto_approve
+        self.strict_transitions = strict_transitions
+        self.use_database = use_database
+
+        # Initialize database if enabled
+        self.db = None
+        self.project_id = None
+        self.workflow_version = None
+
+        if self.use_database:
+            self.db = WorkflowDatabase()
+
+            # Get or create project
+            project_path = str(Path.cwd())
+            project = self.db.get_project_by_path(project_path)
+            if not project:
+                # Create project
+                self.project_id = f"project-{hashlib.md5(project_path.encode()).hexdigest()[:8]}"
+                self.db.create_project(
+                    project_id=self.project_id,
+                    name=Path(project_path).name,
+                    root_path=project_path
+                )
+            else:
+                self.project_id = project['project_id']
+
+            # Save workflow definition and get version
+            workflow_id = self.workflow_data.get('workflow_id', 'default-workflow')
+            self.workflow_version = self.db.save_workflow_definition(
+                workflow_id=workflow_id,
+                project_id=self.project_id,
+                name=self.workflow_data.get('name', 'Workflow'),
+                mode_default=self.workflow_data.get('mode', 'standard'),
+                definition_json=self.workflow_data
+            )
+
+            # Create job entry
+            self.db.create_job(
+                job_id=job_id,
+                project_id=self.project_id,
+                workflow_id=workflow_id,
+                workflow_version=self.workflow_version,
+                workflow_mode=self.workflow_data.get('mode', 'standard')
+            )
+
+        # Load state (from DB if enabled, otherwise from JSON)
         self.state = self._load_state()
-        self.auto_approve = auto_approve  # Explicit auto-approve flag
-        self.strict_transitions = strict_transitions  # Strict transition mode
 
         # Initialize adapters
         self.adapters = {
             'git': GitAdapter(),
             'github': GitHubAdapter(),
-            'gh': GitHubAdapter(),  # Alias
+            'gh': GitHubAdapter(),
             'test': TestAdapter()
         }
 
@@ -252,23 +300,63 @@ class WorkflowOrchestrator:
         return display_map
 
     def _load_state(self) -> Dict[str, Any]:
-        """Load execution state from file"""
+        """Load execution state from database or file"""
+        if self.use_database and self.db:
+            # Load from database
+            job = self.db.get_job(self.job_id)
+            if job:
+                # Load variables from database
+                variables = self.db.get_all_variables(self.job_id)
+
+                # Reconstruct completed/skipped steps from step_executions
+                # (This is a simplified version - in production you'd query step_executions)
+                return {
+                    'current_phase': job.get('current_phase'),
+                    'current_step': job.get('current_step'),
+                    'completed_steps': [],  # Will be populated from step_executions
+                    'skipped_steps': [],
+                    'failed_steps': [],
+                    'status': job.get('status', 'idle'),
+                    'variables': variables
+                }
+
+        # Fallback to JSON file
         if self.state_file.exists():
             with open(self.state_file, 'r') as f:
                 return json.load(f)
+
         return {
             'current_phase': None,
             'current_step': None,
             'completed_steps': [],
-            'skipped_steps': [],  # Track skipped steps
+            'skipped_steps': [],
+            'failed_steps': [],
             'status': 'idle',
-            'variables': {}  # Runtime variables for condition evaluation
+            'variables': {}
         }
 
     def _save_state(self):
-        """Save execution state to file"""
+        """Save execution state to database and file"""
+        # Save to database if enabled
+        if self.use_database and self.db:
+            self.db.update_job_status(
+                job_id=self.job_id,
+                status=self.state['status'],
+                current_phase=self.state.get('current_phase'),
+                current_step=self.state.get('current_step')
+            )
+
+            # Save variables to database
+            if 'variables' in self.state:
+                self.db.set_variables_batch(
+                    job_id=self.job_id,
+                    variables=self.state['variables']
+                )
+
+        # Also save to JSON file for backward compatibility
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
         with open(self.state_file, 'w') as f:
+            json.dump(self.state, f, indent=2)
             json.dump(self.state, f, indent=2)
 
     def execute(self):
@@ -634,12 +722,16 @@ class WorkflowOrchestrator:
 
         # Execute with retry logic
         last_error = None
+        start_time = time.time()
+
         for attempt in range(max_retries):
             if attempt > 0:
                 print(f"   🔄 Retry attempt {attempt + 1}/{max_retries}")
                 if retry_delay > 0:
                     print(f"   ⏳ Waiting {retry_delay} seconds before retry...")
                     time.sleep(retry_delay)
+
+            attempt_start = time.time()
 
             # Route to appropriate executor
             if tool in self.adapters:
@@ -651,6 +743,8 @@ class WorkflowOrchestrator:
                     task_prompt=step.get('description', step_name),
                     context=context
                 )
+
+            attempt_duration = int((time.time() - attempt_start) * 1000)
 
             # Log execution
             log_entry = {
@@ -665,6 +759,25 @@ class WorkflowOrchestrator:
 
             if result['status'] == 'success':
                 print(f"   ✅ Step completed successfully")
+
+                # Record to database
+                if self.use_database and self.db:
+                    phase_id = self.state.get('current_phase', '')
+                    self.db.record_step_execution(
+                        job_id=self.job_id,
+                        step_id=step_id,
+                        phase_id=phase_id,
+                        status='success',
+                        attempt=attempt + 1,
+                        tool_used=tool,
+                        llm_provider=self.executor.llm_provider if tool == 'codeact' else None,
+                        duration_ms=attempt_duration,
+                        exit_code=result.get('exit_code', 0),
+                        input_json=context,
+                        output=result.get('output'),
+                        error=None
+                    )
+
                 # Remove from failed_steps if it was there
                 if 'failed_steps' not in self.state:
                     self.state['failed_steps'] = []
@@ -685,6 +798,25 @@ class WorkflowOrchestrator:
 
         # All retries exhausted
         print(f"   ❌ Step failed after {max_retries} attempts")
+        total_duration = int((time.time() - start_time) * 1000)
+
+        # Record failure to database
+        if self.use_database and self.db:
+            phase_id = self.state.get('current_phase', '')
+            self.db.record_step_execution(
+                job_id=self.job_id,
+                step_id=step_id,
+                phase_id=phase_id,
+                status='failed',
+                attempt=max_retries,
+                tool_used=tool,
+                llm_provider=self.executor.llm_provider if tool == 'codeact' else None,
+                duration_ms=total_duration,
+                exit_code=result.get('exit_code', 1),
+                input_json=context,
+                output=result.get('output'),
+                error=last_error
+            )
 
         # Update variables for failure case
         result = {'status': 'failed', 'error': last_error, 'output': ''}
@@ -741,6 +873,24 @@ class WorkflowOrchestrator:
             else:
                 # Simple variable assignment
                 self.state['variables'][var_name] = var_config
+
+        # Process computed_variables (expressions evaluated after step execution)
+        computed_vars = step.get('computed_variables', {})
+        for var_name, expression in computed_vars.items():
+            try:
+                # Evaluate the expression and store result
+                self.state['variables'][var_name] = self._evaluate_expression(expression)
+            except Exception as e:
+                print(f"   ⚠️  Failed to evaluate computed variable '{var_name}': {e}")
+                self.state['variables'][var_name] = False
+
+        # Track review cycle count for review-fix loops
+        if 'FIX_ISSUES' in step_id:
+            # Increment review cycle count when fix step executes
+            if 'review_cycle_count' not in self.state['variables']:
+                self.state['variables']['review_cycle_count'] = 0
+            self.state['variables']['review_cycle_count'] += 1
+            print(f"   📊 Review cycle count: {self.state['variables']['review_cycle_count']}")
 
         # Common variable patterns based on step type and result
         # These are heuristics for common workflow patterns
@@ -857,6 +1007,24 @@ class WorkflowOrchestrator:
             return left_val == right_val
 
         # Handle inequality comparisons
+        if '>=' in expr:
+            left, right = [p.strip() for p in expr.split('>=', 1)]
+            left_val = self._get_expression_value(left)
+            right_val = self._get_expression_value(right)
+            try:
+                return float(left_val) >= float(right_val)
+            except (ValueError, TypeError):
+                return False
+
+        if '<=' in expr:
+            left, right = [p.strip() for p in expr.split('<=', 1)]
+            left_val = self._get_expression_value(left)
+            right_val = self._get_expression_value(right)
+            try:
+                return float(left_val) <= float(right_val)
+            except (ValueError, TypeError):
+                return False
+
         if '<' in expr:
             left, right = [p.strip() for p in expr.split('<', 1)]
             left_val = self._get_expression_value(left)
