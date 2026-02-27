@@ -6,7 +6,9 @@
 import {
   renderPage,
   generateMenuHints,
-  showError
+  showError,
+  menu,
+  renderSectionHeader
 } from 'cli-menu-kit';
 import chalk from 'chalk';
 import { MENUS, buildMenuOptions, findSelectedItem } from '../../config/menu-registry';
@@ -20,9 +22,57 @@ import { resetWorkflowPage } from './reset';
 import i18n from '../../libs/i18n';
 
 /**
- * Show workflow configuration menu
+ * Show workflow configuration menu (main workflow menu with 3 options)
  */
 export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promise<void> {
+  const config = MENUS.workflow;
+
+  renderSectionHeader(config.title, config.headerWidth);
+  if (config.desc) {
+    console.log(chalk.gray(config.desc + '\n'));
+  }
+
+  const result = await menu.radio({
+    options: buildMenuOptions(config),
+    allowLetterKeys: true,
+    allowNumberKeys: true,
+    preserveOnSelect: true
+  });
+
+  const selected = findSelectedItem(config, result.value);
+  if (!selected) return;
+
+  // Handle back
+  if (result.value.includes('Back')) {
+    await showMainMenu();
+    return;
+  }
+
+  // Route to sub-menus
+  if (selected.id === 'scheduling-workflow') {
+    await showSchedulingWorkflowMenu(() => showWorkflowMenu(showMainMenu));
+  } else if (selected.id === 'development-workflow') {
+    await showDevelopmentWorkflowMenu(() => showWorkflowMenu(showMainMenu));
+  } else if (selected.id === 'coordination') {
+    await showCoordinationMenu(() => showWorkflowMenu(showMainMenu));
+  }
+
+  // Show menu again
+  await showWorkflowMenu(showMainMenu);
+}
+
+/**
+ * Show scheduling workflow sub-menu
+ */
+async function showSchedulingWorkflowMenu(back: () => Promise<void>): Promise<void> {
+  console.log(chalk.yellow('\nScheduling workflow management coming soon...\n'));
+  await back();
+}
+
+/**
+ * Show development workflow sub-menu
+ */
+async function showDevelopmentWorkflowMenu(back: () => Promise<void>): Promise<void> {
   const data = loadWorkflow();
   const modeLabel = data ? `${data.available_modes[data.mode]?.label || data.mode}` : '?';
   const menuConfig = MENUS.workflow;
@@ -30,23 +80,29 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
   const result = await renderPage({
     header: {
       type: 'section',
-      text: menuConfig.title,
-      width: menuConfig.headerWidth
+      text: 'Development Workflow',
+      width: 50
     },
     mainArea: {
       type: 'display',
       render: () => {
-        if (menuConfig.desc) {
-          console.log(chalk.gray(`  ${menuConfig.desc}`));
-          console.log('');
-        }
+        console.log(chalk.gray(`  Manage Phase 0-7 development workflow`));
+        console.log('');
         console.log(chalk.gray(`  Current mode: ${chalk.white(modeLabel)}`));
         console.log('');
       }
     },
     footer: {
       menu: {
-        options: buildMenuOptions(menuConfig),
+        options: [
+          '1. View workflow - Show Phase 0-7',
+          '2. Switch mode - Change mode (lite/standard/full)',
+          '3. Edit workflow - Enable/disable steps',
+          '4. Import workflow - Load custom workflow',
+          '5. Export workflow - Save current workflow',
+          '6. Reset workflow - Reset to defaults',
+          'b. Back - Return to workflow menu'
+        ],
         allowLetterKeys: true,
         allowNumberKeys: true,
         preserveOnSelect: true
@@ -62,65 +118,68 @@ export async function showWorkflowMenu(showMainMenu: () => Promise<void>): Promi
   const action = result.value;
 
   if (action.includes('Back')) {
-    await showMainMenu();
+    await back();
     return;
   }
 
-  const selected = findSelectedItem(menuConfig, action);
-
-  if (selected?.id === 'view') {
+  if (action.includes('View workflow')) {
     if (data) {
       const action = await viewWorkflow(data);
-
-      // Check if user selected edit
       if (action.includes(i18n.t('workflow.view.edit'))) {
         await editWorkflow(data);
       }
-
-      await showWorkflowMenu(showMainMenu);
+      await showDevelopmentWorkflowMenu(back);
     } else {
       showError('No workflow.json found.');
-      await showWorkflowMenu(showMainMenu);
+      await showDevelopmentWorkflowMenu(back);
     }
-  } else if (selected?.id === 'switch-mode') {
+  } else if (action.includes('Switch mode')) {
     if (data) {
       await switchWorkflowMode(data);
-      await showWorkflowMenu(showMainMenu);
+      await showDevelopmentWorkflowMenu(back);
     } else {
       showError('No workflow.json found.');
-      await showWorkflowMenu(showMainMenu);
+      await showDevelopmentWorkflowMenu(back);
     }
-  } else if (selected?.id === 'import') {
-    if (data) {
-      await importWorkflowPage(data);
-      await showWorkflowMenu(showMainMenu);
-    } else {
-      showError('No workflow.json found.');
-      await showWorkflowMenu(showMainMenu);
-    }
-  } else if (selected?.id === 'export') {
-    if (data) {
-      await exportWorkflowPage(data);
-      await showWorkflowMenu(showMainMenu);
-    } else {
-      showError('No workflow.json found.');
-      await showWorkflowMenu(showMainMenu);
-    }
-  } else if (selected?.id === 'reset') {
-    if (data) {
-      await resetWorkflowPage(data);
-      await showWorkflowMenu(showMainMenu);
-    } else {
-      showError('No workflow.json found.');
-      await showWorkflowMenu(showMainMenu);
-    }
-  } else if (selected?.id === 'edit') {
+  } else if (action.includes('Edit workflow')) {
     if (data) {
       await editWorkflow(data);
-      await showWorkflowMenu(showMainMenu);
+      await showDevelopmentWorkflowMenu(back);
     } else {
       showError('No workflow.json found.');
-      await showWorkflowMenu(showMainMenu);
+      await showDevelopmentWorkflowMenu(back);
+    }
+  } else if (action.includes('Import workflow')) {
+    if (data) {
+      await importWorkflowPage(data);
+      await showDevelopmentWorkflowMenu(back);
+    } else {
+      showError('No workflow.json found.');
+      await showDevelopmentWorkflowMenu(back);
+    }
+  } else if (action.includes('Export workflow')) {
+    if (data) {
+      await exportWorkflowPage(data);
+      await showDevelopmentWorkflowMenu(back);
+    } else {
+      showError('No workflow.json found.');
+      await showDevelopmentWorkflowMenu(back);
+    }
+  } else if (action.includes('Reset workflow')) {
+    if (data) {
+      await resetWorkflowPage(data);
+      await showDevelopmentWorkflowMenu(back);
+    } else {
+      showError('No workflow.json found.');
+      await showDevelopmentWorkflowMenu(back);
     }
   }
+}
+
+/**
+ * Show coordination sub-menu
+ */
+async function showCoordinationMenu(back: () => Promise<void>): Promise<void> {
+  console.log(chalk.yellow('\nCoordination management coming soon...\n'));
+  await back();
 }

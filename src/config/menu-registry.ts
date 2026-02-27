@@ -30,89 +30,127 @@ export const MENUS: Record<string, MenuConfig> = {
     title: 'Product Builder CLI',
     desc: 'AI-Driven Product Development Orchestrator',
     headerLevel: 'full',
-    groups: [
-      {
-        label: 'Setup',
-        items: [
-          { key: '1', id: 'init', label: 'Initialize configuration', desc: 'Set up Product Builder' },
-          { key: '2', id: 'status', label: 'Check status', desc: 'View system dependencies' },
-          { key: '3', id: 'reset', label: 'Reset configuration', desc: 'Clear and reconfigure' }
-        ]
-      },
-      {
-        label: 'Workflow',
-        items: [
-          { key: '4', id: 'workflow', label: 'Workflow config', desc: 'Configure workflow definition' },
-          { key: '5', id: 'jobs', label: 'Jobs & Tasks', desc: 'Manage jobs and tasks' }
-        ]
-      },
-      {
-        label: 'Tools Configuration',
-        items: [
-          { key: '6', id: 'llm-cli', label: 'LLM CLI', desc: 'Configure AI models' },
-          { key: '7', id: 'arch-tools', label: 'Architecture tools', desc: 'CCB, CCA, CCH, Ralph' },
-          { key: '8', id: 'docs', label: 'Documentation', desc: 'OpenSpec, Mint, MD' },
-          { key: '9', id: 'mcp', label: 'MCP Servers', desc: 'Model Context Protocol' },
-          { key: '0', id: 'skills', label: 'Skills', desc: 'Reusable workflows' },
-          { key: 'A', id: 'agents', label: 'Agents', desc: 'Subagents and teams' }
-        ]
-      },
-      {
-        label: 'System',
-        items: [
-          { key: 'S', id: 'settings', label: 'Settings', desc: 'User preferences' },
-          { key: 'V', id: 'view-config', label: 'View configuration', desc: 'Show current settings' },
-          { key: 'D', id: 'deps', label: 'Dependencies', desc: 'Install requirements' },
-          { key: 'H', id: 'help', label: 'Help', desc: 'Show documentation' },
-          { key: 'Q', id: 'exit', label: 'Exit', desc: '' }
-        ]
-      }
+    items: [
+      { key: '1', id: 'setup', label: 'Setup', desc: 'Initialize and configure system' },
+      { key: '2', id: 'project-mgmt', label: 'Project Management', desc: 'Configure scheduling layer' },
+      { key: '3', id: 'workflow', label: 'Workflow', desc: 'Configure workflows' },
+      { key: '4', id: 'job-mgmt', label: 'Job Management', desc: 'Manage jobs and tasks' },
+      { key: '5', id: 'agents', label: 'Agents', desc: 'Configure agents' },
+      { key: '6', id: 'ai-gateway', label: 'AI Gateway', desc: 'Configure LLM API and routing' },
+      { key: '7', id: 'tools', label: 'Tools', desc: 'Configure tools and services' },
+      { key: '8', id: 'settings', label: 'Settings', desc: 'System settings and help' },
+      { key: 'Q', id: 'exit', label: 'Exit', desc: '' }
+    ]
+  },
+
+  setup: {
+    title: 'Setup',
+    desc: 'Initialize and configure system',
+    headerLevel: 'section',
+    headerWidth: 50,
+    backLabel: 'Back to main menu',
+    items: [
+      { key: '1', id: 'init', label: 'Initialize configuration', desc: 'Set up Product Builder' },
+      { key: '2', id: 'status', label: 'Check status', desc: 'View system dependencies' },
+      { key: '3', id: 'reset', label: 'Reset configuration', desc: 'Clear and reconfigure' }
+    ]
+  },
+
+  'project-mgmt': {
+    title: 'Project Management',
+    desc: 'Configure scheduling layer',
+    headerLevel: 'section',
+    headerWidth: 50,
+    backLabel: 'Back to main menu',
+    items: [
+      { key: '1', id: 'scheduler-impl', label: 'Scheduler implementation', desc: 'Choose OpenClaw or CodeAct' },
+      { key: '2', id: 'scheduling-policies', label: 'Scheduling policies', desc: 'Configure scheduling rules' },
+      { key: '3', id: 'project-config', label: 'Project configuration', desc: 'Project-level settings' }
     ]
   },
 
   workflow: {
     title: 'Workflow Configuration',
-    desc: 'Configure workflow definition and structure',
+    desc: 'Configure workflows',
     headerLevel: 'section',
     headerWidth: 50,
     backLabel: 'Back to main menu',
     items: [
-      { key: '1', id: 'view', label: 'View workflow', desc: 'Show current workflow definition' },
-      { key: '2', id: 'switch-mode', label: 'Switch mode', desc: 'Change to base mode (lite/standard/full)' },
-      { key: '3', id: 'edit', label: 'Edit workflow', desc: 'Enable/disable steps (multi-select)' },
-      { key: '4', id: 'import', label: 'Import workflow', desc: 'Load custom workflow configuration' },
-      { key: '5', id: 'export', label: 'Export workflow', desc: 'Save current workflow configuration' },
-      { key: '6', id: 'reset', label: 'Reset workflow', desc: 'Reset to base mode defaults' }
+      { key: '1', id: 'scheduling-workflow', label: 'Scheduling workflow', desc: 'Manage scheduling workflow' },
+      { key: '2', id: 'development-workflow', label: 'Development workflow', desc: 'Manage development workflow' },
+      { key: '3', id: 'coordination', label: 'Coordination', desc: 'Manage workflow coordination' }
     ]
   },
 
-  'jobs-tasks': {
-    title: 'Jobs & Tasks Management',
-    desc: 'Manage jobs, tasks, and roadmap',
+  'job-mgmt': {
+    title: 'Job Management',
+    desc: 'Manage jobs and tasks',
     headerLevel: 'section',
     headerWidth: 50,
     backLabel: 'Back to main menu',
     items: [
-      { key: '1', id: 'roadmap', label: 'View roadmap', desc: 'Show overall project roadmap' },
-      { key: '2', id: 'list-jobs', label: 'List jobs', desc: 'Show all jobs' },
-      { key: '3', id: 'job-details', label: 'View job details', desc: 'View specific job and its tasks' },
-      { key: '4', id: 'list-tasks', label: 'List tasks', desc: 'Show all tasks across jobs' },
-      { key: '5', id: 'task-details', label: 'View task details', desc: 'View specific task details' }
+      { key: '1', id: 'job-operations', label: 'Job operations', desc: 'Start/Pause/Resume/Cancel jobs' },
+      { key: '2', id: 'job-viewing', label: 'Job viewing', desc: 'View jobs and logs' },
+      { key: '3', id: 'task-management', label: 'Task management', desc: 'Manage tasks' },
+      { key: '4', id: 'roadmap', label: 'View roadmap', desc: 'Show overall project roadmap' }
     ]
   },
 
-  'llm-cli': {
-    title: 'Configure API / Routing',
-    desc: 'Configure AI model providers and routing',
+  agents: {
+    title: 'Agents Configuration',
+    desc: 'Configure agents and related plugins',
+    headerLevel: 'section',
+    headerWidth: 50,
+    backLabel: 'Back to main menu',
+    items: [
+      { key: '1', id: 'scheduling-agents', label: 'Scheduling agents', desc: 'Configure PM/Traffic agents' },
+      { key: '2', id: 'workflow-agents', label: 'Workflow agents', desc: 'Configure workflow agents' },
+      { key: '3', id: 'mcp', label: 'MCP Servers', desc: 'Model Context Protocol' },
+      { key: '4', id: 'skills', label: 'Skills', desc: 'Reusable workflows' },
+      { key: '5', id: 'hooks', label: 'Hooks', desc: 'Lifecycle hooks' },
+      { key: '6', id: 'prompts', label: 'Prompts', desc: 'Prompt templates' },
+      { key: '7', id: 'agent-interfaces', label: 'Agent interfaces', desc: 'Agent communication (future)' }
+    ]
+  },
+
+  'ai-gateway': {
+    title: 'AI Gateway Configuration',
+    desc: 'Configure LLM API and routing',
     headerLevel: 'section',
     headerWidth: 50,
     backLabel: 'Back to main menu',
     items: [
       { key: '1', id: 'official-api', label: 'Official API', desc: 'Configure official API endpoints' },
-      { key: '2', id: 'custom-api', label: 'Custom API', desc: 'Configure custom endpoints (PackyAPI, self-hosted, etc.)' },
+      { key: '2', id: 'custom-api', label: 'Custom API', desc: 'Configure custom endpoints' },
       { key: '3', id: 'view-status', label: 'View Status', desc: 'Show current configuration' },
       { key: '4', id: 'switch-config', label: 'Switch Configuration', desc: 'Manage multiple configs' },
       { key: '5', id: 'enable-hub', label: 'Enable Code Hub', desc: 'Use cchub for routing' }
+    ]
+  },
+
+  tools: {
+    title: 'Tools Configuration',
+    desc: 'Configure development tools and services',
+    headerLevel: 'section',
+    headerWidth: 50,
+    backLabel: 'Back to main menu',
+    items: [
+      { key: '1', id: 'arch-tools', label: 'Architecture tools', desc: 'CCB, CCA, CCH, Ralph, OpenClaw' },
+      { key: '2', id: 'docs', label: 'Documentation', desc: 'OpenSpec, Mint, MD' },
+      { key: '3', id: 'deps', label: 'Dependencies', desc: 'Install requirements' }
+    ]
+  },
+
+  settings: {
+    title: 'Settings',
+    desc: 'System settings and help',
+    headerLevel: 'section',
+    headerWidth: 50,
+    backLabel: 'Back to main menu',
+    items: [
+      { key: '1', id: 'user-settings', label: 'Settings', desc: 'User preferences' },
+      { key: '2', id: 'view-config', label: 'View configuration', desc: 'Show current settings' },
+      { key: '3', id: 'help', label: 'Help', desc: 'Show documentation' }
     ]
   },
 

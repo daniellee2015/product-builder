@@ -1,25 +1,16 @@
 import { renderPage, generateMenuHints } from 'cli-menu-kit';
 import chalk from 'chalk';
 import * as path from 'path';
-import {
-  showLLMCLIMenu,
-  showArchToolsMenu,
-  showAgentsMenu,
-  showMCPMenu,
-  showSkillsMenu,
-  showDependenciesMenu,
-  showStatusCheck,
-  showResetMenu,
-  showDocumentationMenu,
-  showViewConfigMenu,
-  showHelpMenu,
-  showWorkflowMenu,
-  showJobsTasksMenu,
-} from './menus';
-import { initializeProject } from './init';
 import { MENUS, buildMenuOptions, findSelectedItem } from '../config/menu-registry';
-import { showSettingsMenu } from './settings';
 import { initCLI } from './init-cli';
+import { showSetupMenu } from './setup/menu';
+import { showProjectMgmtMenu } from './project-mgmt/menu';
+import { showWorkflowMenu } from './workflow/menu';
+import { showJobMgmtMenu } from './job-mgmt/menu';
+import { showAgentsMenu } from './agents/menu';
+import { showAIGatewayMenu } from './ai-gateway/menu';
+import { showToolsMenu } from './tools/menu';
+import { showSettingsMenu } from './settings';
 
 // Initialize CLI with unified configuration
 initCLI({
@@ -34,21 +25,14 @@ initCLI({
 
 // Route map: menu item id → handler
 const MAIN_ROUTES: Record<string, (back: () => Promise<void>) => Promise<void>> = {
-  'init': (back) => initializeProject(back),
-  'status': (back) => showStatusCheck(back),
-  'reset': (back) => showResetMenu(back),
+  'setup': (back) => showSetupMenu(back),
+  'project-mgmt': (back) => showProjectMgmtMenu(back),
   'workflow': (back) => showWorkflowMenu(back),
-  'jobs': (back) => showJobsTasksMenu(back),
-  'llm-cli': (back) => showLLMCLIMenu(back),
-  'arch-tools': (back) => showArchToolsMenu(back),
-  'docs': (back) => showDocumentationMenu(back),
-  'mcp': (back) => showMCPMenu(back),
-  'skills': (back) => showSkillsMenu(back),
+  'job-mgmt': (back) => showJobMgmtMenu(back),
   'agents': (back) => showAgentsMenu(back),
-  'view-config': (back) => showViewConfigMenu(back),
-  'deps': (back) => showDependenciesMenu(back),
+  'ai-gateway': (back) => showAIGatewayMenu(back),
+  'tools': (back) => showToolsMenu(back),
   'settings': (back) => showSettingsMenu(back),
-  'help': (back) => showHelpMenu(back),
 };
 
 /**
