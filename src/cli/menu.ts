@@ -1,16 +1,16 @@
 import { renderPage, generateMenuHints } from 'cli-menu-kit';
 import chalk from 'chalk';
 import * as path from 'path';
-import { MENUS, buildMenuOptions, findSelectedItem } from '../config/menu-registry';
-import { initCLI } from './init-cli';
-import { showSetupMenu } from './setup/menu';
-import { showProjectMgmtMenu } from './project-mgmt/menu';
-import { showWorkflowMenu } from './workflow/menu';
-import { showJobMgmtMenu } from './job-mgmt/menu';
-import { showAgentsMenu } from './agents/menu';
-import { showAIGatewayMenu } from './ai-gateway/menu';
-import { showToolsMenu } from './tools/menu';
-import { showSettingsMenu } from './settings';
+import { MENUS, buildMenuOptions, findSelectedItem } from './core/menu-registry';
+import { initCLI } from './core/init-cli';
+import { showSetupMenu } from './features/setup/menu';
+import { showProjectMgmtMenu } from './features/project/menu';
+import { showWorkflowMenu } from './features/workflow/menu';
+import { showJobMgmtMenu } from './features/jobs/menu';
+import { showAgentsMenu } from './features/agents/menu';
+import { showAIGatewayMenu } from './features/ai/menu';
+import { showToolsMenu } from './features/tools/menu';
+import { showSettingsMenu } from './features/settings';
 
 // Initialize CLI with unified configuration
 initCLI({

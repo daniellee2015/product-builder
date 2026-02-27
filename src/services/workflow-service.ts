@@ -6,7 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { WorkflowData, WorkflowStep, WorkflowMode, CustomWorkflowConfig } from '../types/workflow';
-import { getConfigDir } from '../cli/checkers';
+import { getConfigDir } from '../cli/features/setup/lib/dependency-checkers';
 import { resolveWorkflow } from '../config/workflow-resolver';
 
 const MODE_ORDER: WorkflowMode[] = ['lite', 'standard', 'full'];
