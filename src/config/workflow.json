@@ -1150,8 +1150,6 @@
           "id": "P3-FINAL_REVIEW",
           "name": "Final Review",
           "description": "Multi-model review gate for final acceptance of all completed work.",
-          "llm_providers": ["codex", "gemini", "claude"],
-          "llm_role": "reviewer",
           "input": [
             "workspace.all_changes",
             "exports/jobs/{job_id}/specs/*.mdx"
@@ -1194,12 +1192,6 @@
           "output": [
             "exports/jobs/{job_id}/reviews/final-review-aggregated.json"
           ],
-          "computed_variables": {
-            "quality_gate_passed": "(review_score >= 8.5) && (blocking_issues_count == 0)",
-            "review_needs_fix": "!quality_gate_passed",
-            "review_passed": "quality_gate_passed && (all_issues_count == 0)",
-            "review_passed_with_issues": "quality_gate_passed && (all_issues_count > 0)"
-          },
           "min_mode": "standard",
           "required_tools": [
             "ccb"
@@ -1209,9 +1201,6 @@
           "id": "P3-FIX_ISSUES",
           "name": "Fix Issues",
           "description": "Fix issues found in final review (max 3 attempts). Add comment to GitHub Issue tracking the fix attempt. If exhausted, return to Phase 2.",
-          "llm_providers": ["claude"],
-          "llm_role": "executor",
-          "fallback_providers": ["codex", "gemini"],
           "input": [
             "exports/jobs/{job_id}/reviews/final-review-aggregated.json",
             "workspace.all_changes",
@@ -2505,7 +2494,15 @@
       "from": "P3-FIX_ISSUES",
       "to": "P3-FINAL_REVIEW",
       "type": "loop_internal",
-      "condition": "retry_review && auto_repair_attempts < 3",
+      "condition": "retry_review && !quality_gate_passed && review_cycle_count < 20",
+      "enabled_in_modes": [
+        "full"
+      ]
+    },
+    {
+      "from": "P3-FIX_ISSUES",
+      "to": "P3-HUMAN_ESCALATION",
+      "condition": "review_cycle_count >= 12 && !quality_gate_passed",
       "enabled_in_modes": [
         "full"
       ]
